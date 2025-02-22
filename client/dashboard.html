@@ -4,16 +4,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>SmartBin</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='black' viewBox='0 0 16 16'%3E%3Cpath d='M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5'/%3E%3C/svg%3E">
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="../src/main.css">
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Chart -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(drawChart);
+        function drawChart() {
+
+            // Create the data table.
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Topping');
+            data.addColumn('number', 'Slices');
+            data.addRows([
+                ['Occupied space', 10],
+                ['Free space', 13 - 10],
+            ]);
+
+            // Set chart options
+            var options = {
+                'title': 'Current bin status',
+                'width': 600,
+                'height': 450,
+                'chartArea': { width: '90%', height: '67.5%' },
+                'tooltip': { isHtml: true },
+                'colors': ['#007bff', '#ff9800'],
+                'backgroundColor': 'transparent',
+            };
+
+            // Instantiate and draw our chart, passing in some options.
+            var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+            chart.draw(data, options);
+        }
+    </script>
+    <style>
+        .card:hover {
+            background-color: rgb(245, 245, 245);
+        }
+
+        #chart_div {
+            border-radius: 0.375rem;
+            border-color: rgb(0, 0, 0, 0.175) !important;
+        }
+    </style>
 </head>
 
 <body>
     <div class="row p-0 m-0">
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">Navbar</a>
+                <a class="navbar-brand" href="dashboard.html"><i class="bi bi-trash3"></i></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                     aria-expanded="false" aria-label="Toggle navigation">
@@ -52,6 +98,109 @@
                 </div>
             </div>
         </nav>
+    </div>
+    <div class="row mt-4 px-4 m-0">
+        <div class="col-sm-3 mb-3 mb-sm-0">
+            <div class="card h-100" role="button">
+                <div class="card-body">
+                    <h5 class="card-title">Registered bin</h5>
+                    <p class="card-text">Number of registered bin: 1</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3 mb-3 mb-sm-0">
+            <div class="card h-100" role="button">
+                <div class="card-body">
+                    <h5 class="card-title">Free bin</h5>
+                    <p class="card-text">Number of available bin: </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3 mb-3 mb-sm-0">
+            <div class="card h-100" role="button">
+                <div class="card-body">
+                    <h5 class="card-title">Fulled bin</h5>
+                    <p class="card-text">Number of unavailable bin: </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="card h-100" role="button">
+                <div class="card-body">
+                    <h5 class="card-title">Cleaner</h5>
+                    <p class="card-text">Number of cleaner: </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4 px-4 m-0">
+        <div class="col-md-6">
+            <div id="chart_div" class="border d-flex align-items-center justify-content-center overflow-hidden"></div>
+        </div>
+        <div class="col-md-6 mt-3 mt-md-0">
+            <table class="table table-hover border">
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">First</th>
+                    <th scope="col">Last</th>
+                    <th scope="col">Handle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row" class="py-3">1</th>
+                    <td class="py-3">Mark</td>
+                    <td class="py-3">Otto</td>
+                    <td class="py-3">@mdo</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="py-3">2</th>
+                    <td class="py-3">Mark</td>
+                    <td class="py-3">Otto</td>
+                    <td class="py-3">@mdo</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="py-3">3</th>
+                    <td class="py-3">Mark</td>
+                    <td class="py-3">Otto</td>
+                    <td class="py-3">@mdo</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <table class="table table-hover border">
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">First</th>
+                    <th scope="col">Last</th>
+                    <th scope="col">Handle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row" class="py-3">1</th>
+                    <td class="py-3">Mark</td>
+                    <td class="py-3">Otto</td>
+                    <td class="py-3">@mdo</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="py-3">2</th>
+                    <td class="py-3">Mark</td>
+                    <td class="py-3">Otto</td>
+                    <td class="py-3">@mdo</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="py-3">3</th>
+                    <td class="py-3">Mark</td>
+                    <td class="py-3">Otto</td>
+                    <td class="py-3">@mdo</td>
+                  </tr>
+                </tbody>
+              </table>
+        </div>
     </div>
 </body>
 

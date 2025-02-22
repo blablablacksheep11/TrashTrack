@@ -35,11 +35,11 @@ void loop() {
     delay(1000);
   } else {
     myServo.write(0);
-    delay(2000);
+    delay(1000);
     if (closed == false) {
       opened = false;
       digitalWrite(trigPin, LOW);
-      delayMicroseconds(2);
+      delayMicroseconds(10);
       digitalWrite(trigPin, HIGH);
       delayMicroseconds(10);
       digitalWrite(trigPin, LOW);
