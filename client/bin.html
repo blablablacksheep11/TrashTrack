@@ -25,6 +25,7 @@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                     aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -67,71 +68,7 @@
                 </tr>
             </thead>
             <tbody id="registeredbin-table">
-                <!-- Table data will be populated here -->
-            </tbody>
-        </table>
-
-        <table class="table table-hover border caption-top">
-            <caption>List of free bin</caption>
-            <thead class="table-light">
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">First</th>
-                    <th scope="col">Last</th>
-                    <th scope="col">Handle</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <th scope="row" class="py-3">1</th>
-                    <td class="py-3">Mark</td>
-                    <td class="py-3">Otto</td>
-                    <td class="py-3">@mdo</td>
-                </tr>
-                <tr>
-                    <th scope="row" class="py-3">2</th>
-                    <td class="py-3">Mark</td>
-                    <td class="py-3">Otto</td>
-                    <td class="py-3">@mdo</td>
-                </tr>
-                <tr>
-                    <th scope="row" class="py-3">3</th>
-                    <td class="py-3">Mark</td>
-                    <td class="py-3">Otto</td>
-                    <td class="py-3">@mdo</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <table class="table table-hover border caption-top">
-            <caption>List of fulled bin</caption>
-            <thead class="table-light">
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">First</th>
-                    <th scope="col">Last</th>
-                    <th scope="col">Handle</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <th scope="row" class="py-3">1</th>
-                    <td class="py-3">Mark</td>
-                    <td class="py-3">Otto</td>
-                    <td class="py-3">@mdo</td>
-                </tr>
-                <tr>
-                    <th scope="row" class="py-3">2</th>
-                    <td class="py-3">Mark</td>
-                    <td class="py-3">Otto</td>
-                    <td class="py-3">@mdo</td>
-                </tr>
-                <tr>
-                    <th scope="row" class="py-3">3</th>
-                    <td class="py-3">Mark</td>
-                    <td class="py-3">Otto</td>
-                    <td class="py-3">@mdo</td>
-                </tr>
+                <!-- Registered bin will be populated here -->
             </tbody>
         </table>
     </div>
@@ -150,7 +87,7 @@
 
             table.innerHTML = ""; // Clear previous data
 
-            data.forEach(bin => {
+            data.forEach((bin) => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${counter}</td>

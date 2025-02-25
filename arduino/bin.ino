@@ -8,7 +8,7 @@
 
 bool opened = false;
 bool closed = false;
-double duration, distance, accumulation;
+double duration, distance;
 Servo myServo;
 
 void setup() {
@@ -47,15 +47,16 @@ void loop() {
       duration = pulseIn(echoPin, HIGH);
       distance = (duration * 0.034) / 2;
 
-      accumulation = 100 - ((distance / 13) * 100);
-      if(accumulation <= 0){
-        accumulation = 0;
+      if(distance <= 0){
+        distance = 0;
+      } else if(distance >= 13){
+        distance = 13;
       }
       Serial.print(F("{\"binID\":"));
       Serial.print(binID);
-      Serial.print(F(",\"status\": \"closed\", \"accumulation\": \""));
-      Serial.print(accumulation);
-      Serial.println(F("%\"}"));
+      Serial.print(F(",\"status\": \"closed\", \"distance\": "));
+      Serial.print(distance);
+      Serial.println(F("}"));
       closed = true;
     }
   }
