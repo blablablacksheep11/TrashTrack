@@ -103,7 +103,7 @@
 
     <div class="row mt-4 px-4 m-0">
         <div class="col-md-6">
-            <div id="chart_div" class="border d-flex align-items-center justify-content-center overflow-hidden">
+            <div id="chart_div" class="border d-flex align-items-center justify-content-center">
                 <p class="text-center mt-3">No bin found ...<br><i class="bi bi-trash3 fs-2"></i></p>
             </div>
         </div>
@@ -214,6 +214,11 @@
                 `;
                     table.appendChild(row);
                 });
+            } else {
+                table.innerHTML = "";
+                const row = document.createElement("tr");
+                row.innerHTML = `<td colspan="4" class="py-3 text-center">No free bin found ...<br><i class="bi bi-trash3 fs-2"></i></td>`;
+                table.appendChild(row);
             }
         }
 
@@ -233,18 +238,63 @@
                 `;
                     table.appendChild(row);
                 });
+            } else {
+                table.innerHTML = "";
+                const row = document.createElement("tr");
+                row.innerHTML = `<td colspan="4" class="py-3 text-center">No fulled bin found ...<br><i class="bi bi-trash3 fs-2"></i></td>`;
+                table.appendChild(row);
             }
         }
 
+        async function initializeChart() {
+            const response = await fetch("http://localhost:3000/initializeChart");
+            const data = await response.json();
+            if (data.length > 0) {
+                document.getElementById("chart_div").classList.remove("justify-content-center");
+                document.getElementById("chart_div").classList.add("justify-content-end");
+                let dropdownitem = "";
+                data.forEach((bin) => {
+                    dropdownitem += `<li><a class="dropdown-item" role="button" data-value="${bin.ID}" onclick="fetchBin(${bin.ID})">Bin ${bin.ID}</a></li>`;
+                })
+                document.getElementById("chart_div").innerHTML = `
+                <div class="dropdown my-3 me-3">
+                    <a class="btn btn-secondary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Select Bin
+                    </a>
+                    <ul class="dropdown-menu">
+                        ${dropdownitem}
+                    </ul>
+                </div>
+                `;
+            } else {
+                document.getElementById("chart_div").innerHTML = `<p class="text-center mt-3">No bin found ...<br><i class="bi bi-trash3 fs-2"></i></p>`;
+            }
+        }
+
+        async function fetchBin(binid) {
+            const response = await fetch(`http://localhost:3000/fetchBin/${binid}`);
+            const data = await response.json();
+            document.getElementById("chart_div").classList.add("justify-content-center");
+            document.getElementById("chart_div").classList.remove("justify-content-end");
+            const distance = 13*((100-(data[0].accumulation))/100);
+            drawChart(data[0].ID, distance);
+        }
+
         socket.on("updateChart", async (data) => {
-            document.getElementById("chart_div").innerHTML = "";
+            document.getElementById("chart_div").innerHTML = "";    
             drawChart(data.binID, data.distance);
+            loadBinsCount();
+            loadFreeBinTable();
+            loadFulledBinTable();
         });
 
-        window.onload = loadBinsCount();
-        window.onload = loadCleanerCount();
-        window.onload = loadFreeBinTable();
-        window.onload = loadFulledBinTable();
+        window.onload = () => {
+            initializeChart();
+            loadBinsCount();
+            loadCleanerCount();
+            loadFreeBinTable();
+            loadFulledBinTable();
+        }
     </script>
 </body>
 

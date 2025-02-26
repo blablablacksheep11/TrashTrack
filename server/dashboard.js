@@ -118,6 +118,26 @@ app.get('/loadFulledBinTable', async (req, res) => {
     }
 })
 
+app.get('/initializeChart', async (req, res) => {
+    try {
+        const [record] = await database.query("SELECT * FROM bin");
+        res.json(record);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/fetchBin/:id', async (req, res)=>{
+    const binid = req.params.id;
+    try{
+        const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binid]);
+        console.log(bin);
+        res.json(bin);
+    } catch(error){
+        console.log(error);
+    }
+})
+
 // Express for bin.html
 app.get('/loadRegisteredBin', async (req, res) => {
     try {
