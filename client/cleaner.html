@@ -41,8 +41,8 @@
                                 List
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item active" href="bin.html">List of bin</a></li>
-                                <li><a class="dropdown-item" href="cleaner.html">List of cleaner</a></li>
+                                <li><a class="dropdown-item" href="bin.html">List of bin</a></li>
+                                <li><a class="dropdown-item active" href="cleaner.html">List of cleaner</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -59,16 +59,14 @@
             <caption>List of registered bin</caption>
             <thead class="table-light">
                 <tr>
-                    <th scope="col">Bin ID</th>
-                    <th scope="col">Block</th>
-                    <th scope="col">Level</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Accumulation</th>
+                    <th scope="col">Cleaner ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Gender</th>
                 </tr>
             </thead>
-            <tbody id="registeredbin-table">
+            <tbody id="cleaner-table">
                 <tr>
-                    <td colspan="6" class="text-center py-3">No bin found ...<br><i class="bi bi-trash3 fs-3"></i></td>
+                    <td colspan="6" class="text-center py-3">No cleaner found ...<br><i class="bi bi-person-slash fs-3"></i></td>
                 </tr>
             </tbody>
         </table>
@@ -80,11 +78,11 @@
             console.log("Connected to server");
         });
 
-        async function loadRegisteredBin() {
-            const response = await fetch("http://localhost:3000/loadRegisteredBin");
+        async function loadCleaner() {
+            const response = await fetch("http://localhost:3000/loadCleaner");
             const data = await response.json();
             console.log(data);
-            const table = document.getElementById("registeredbin-table");
+            const table = document.getElementById("cleaner-table");
 
             if (data.length > 0) {
                 table.innerHTML = ""; // Clear previous data
@@ -92,17 +90,15 @@
                     const row = document.createElement("tr");
                     row.innerHTML = `
                     <td class="py-3">${bin.ID}</td>
-                    <td class="py-3">${bin.block}</td>
-                    <td class="py-3">${bin.level}</td>
-                    <td class="py-3">${bin.status}</td>
-                    <td class="py-3">${bin.accumulation}%</td>
+                    <td class="py-3">${bin.name}</td>
+                    <td class="py-3">${bin.gender}</td>
                 `;
                     table.appendChild(row);
                 });
             }
         }
 
-        window.onload = loadRegisteredBin(); // Fetch data when page loads
+        window.onload = loadCleaner(); // Fetch data when page loads
     </script>
 </body>
 

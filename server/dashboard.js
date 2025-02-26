@@ -81,10 +81,58 @@ socket.on('connection', (socket) => {
 
 portConnection(); // Connect to the serial port
 
+// Express for dashboard.html
+app.get('/loadBinsCount', async (req, res) => {
+    try {
+        const [bins] = await database.query("SELECT * FROM bin");
+        res.json(bins);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/loadCleanerCount', async (req, res) => {
+    try {
+        const [cleaners] = await database.query("SELECT * FROM cleaner");
+        res.json(cleaners);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/loadFreeBinTable', async (req, res) => {
+    try {
+        const [freebins] = await database.query("SELECT * FROM bin WHERE status = 'available'");
+        res.json(freebins);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/loadFulledBinTable', async (req, res) => {
+    try {
+        const [fulledbins] = await database.query("SELECT * FROM bin WHERE status = 'unavailable'");
+        res.json(fulledbins);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+// Express for bin.html
 app.get('/loadRegisteredBin', async (req, res) => {
     try {
-        const [rows] = await database.query("SELECT * FROM bin");
-        res.json(rows);
+        const [bins] = await database.query("SELECT * FROM bin");
+        res.json(bins);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+// Express for cleaner.html
+app.get('/loadCleaner', async (req, res) => {
+    try {
+        const [cleaners] = await database.query("SELECT * FROM cleaner");
+        res.json(cleaners);
     } catch (error) {
         console.log(error);
     }
