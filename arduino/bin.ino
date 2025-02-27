@@ -1,42 +1,76 @@
 #include <Servo.h>
+#include <SPI.h>
+#include <MFRC522.h>
 
-#define irPin 2
-#define servoPin 9
-#define trigPin 3
-#define echoPin 4
 #define binID 1
+#define irPin 2
+#define trigPin 3
+#define echoPin 4 
+#define servoPin 5
+#define RST_PIN 9
+#define SS_PIN 10
+
+MFRC522 rfid(SS_PIN, RST_PIN);
+MFRC522::MIFARE_Key key;
 
 bool opened = false;
 bool closed = false;
-double duration, distance;
+bool status = true;
+double duration, distance, accumulation;
+unsigned long lastCheckTime = 0;
+const long checkInterval = 1;
 Servo myServo;
 
-void setup() {
+void setup()
+{
   pinMode(irPin, INPUT);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
   myServo.attach(servoPin);
   myServo.write(0);
+  SPI.begin();
+  rfid.PCD_Init();
+
+  for (int i = 0; i < 6; i++)
+  {
+    key.keyByte[i] = 0xFF;
+  }
+
   Serial.begin(9600);
 }
 
-void loop() {
+void loop()
+{
+  checkRFID();
   int sensorState = digitalRead(irPin);
 
-  if (sensorState == LOW) {
-    myServo.write(75);
-    if (opened == false) {
+  if (sensorState == LOW)
+  {
+    if (status == true)
+    {
+      myServo.write(75);
+      if (opened == false)
+      {
+        closed = false;
+        Serial.print(F("{\"binID\":"));
+        Serial.print(binID);
+        Serial.println(F(",\"status\": \"opened\"}"));
+        opened = true;
+      }
+      delay(1000);
+    }
+    else
+    {
       closed = false;
-      Serial.print(F("{\"binID\":"));
-      Serial.print(binID);
-      Serial.println(F(",\"status\": \"opened\"}"));
       opened = true;
     }
-    delay(1000);
-  } else {
+  }
+  else
+  {
     myServo.write(0);
     delay(1000);
-    if (closed == false) {
+    if (closed == false)
+    {
       opened = false;
       digitalWrite(trigPin, LOW);
       delayMicroseconds(10);
@@ -46,10 +80,22 @@ void loop() {
 
       duration = pulseIn(echoPin, HIGH);
       distance = (duration * 0.034) / 2;
+      accumulation = 100 - ((distance / 13) * 100);
+      if (accumulation >= 80)
+      {
+        status = false;
+      }
+      else
+      {
+        status = true;
+      }
 
-      if(distance <= 0){
+      if (distance <= 0)
+      {
         distance = 0;
-      } else if(distance >= 13){
+      }
+      else if (distance >= 13)
+      {
         distance = 13;
       }
       Serial.print(F("{\"binID\":"));
@@ -59,5 +105,86 @@ void loop() {
       Serial.println(F("}"));
       closed = true;
     }
+  }
+}
+
+void checkRFID()
+{
+  if (millis() - lastCheckTime >= checkInterval)
+  {
+    lastCheckTime = millis();
+
+    if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial())
+    {
+      return;
+    }
+
+    byte buffer[18];
+    byte buffersize = sizeof(buffer);
+    String fields[] = {"cleanerID", "Name"};
+
+    byte status;
+    byte block = 1;
+    int startingblock;
+    int trailerblock;
+    int counter = 0;
+    int fieldCount = 2;
+    String jsonOutput = "{\"binid\": " + String(binID) + ", ";
+
+    for (byte i = 0; i < fieldCount; i++)
+    {
+      startingblock = block / 4 * 4;
+      trailerblock = startingblock + 3;
+
+      status = rfid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, trailerblock, &key, &(rfid.uid));
+      if (status != MFRC522::STATUS_OK)
+      {
+        Serial.print("Authorization failed: ");
+        Serial.println(rfid.GetStatusCodeName(status));
+        return;
+      }
+
+      if (block == trailerblock)
+      {
+        fieldCount += 1;
+      }
+      else
+      {
+        status = rfid.MIFARE_Read(block, buffer, &buffersize);
+        if (status == MFRC522::STATUS_OK)
+        {
+          jsonOutput += "\"" + fields[counter] + "\": \"";
+
+          for (byte j = 0; j < 16; j++)
+          {
+            if (buffer[j] != 0x00)
+            { // Ignore null bytes
+              jsonOutput += (char)buffer[j];
+            }
+          }
+
+          jsonOutput += "\"";
+          if (counter < fieldCount - 1)
+          {
+            jsonOutput += ", ";
+          }
+        }
+        else
+        {
+          Serial.print("Read failed: ");
+          Serial.println(rfid.GetStatusCodeName(status));
+        }
+        counter++;
+      }
+      block++;
+    }
+
+    jsonOutput += "}";
+
+    // Send properly formatted JSON
+    Serial.println(jsonOutput);
+
+    rfid.PICC_HaltA();
+    rfid.PCD_StopCrypto1();
   }
 }
