@@ -39,31 +39,41 @@ function portConnection() { // Function to connect to the serial port
                 console.log(data);
                 const parsedData = JSON.parse(data);
 
-                if (parsedData.status == "closed") {
-                    const binID = Number(parsedData.binID);
-                    const status = parsedData.status;
-                    const distance = Number(parsedData.distance);
-                    const accumulation = 100 - ((distance / 13) * 100);
-                    if (accumulation >= 80) {
-                        try {
-                            let update = await database.query("UPDATE bin SET status = 'unavailable', accumulation = ? WHERE ID = ?", [accumulation, binID]);
-                            console.log(`Bin${binID} has been changed to unavailable`);
-                        } catch (err) {
-                            console.log(err);
+                if (!"cleanerID" in parsedData) {
+                    if (parsedData.status == "closed") {
+                        const binID = Number(parsedData.binID);
+                        const status = parsedData.status;
+                        const distance = Number(parsedData.distance);
+                        const accumulation = 100 - ((distance / 13) * 100);
+                        if (accumulation >= 80) {
+                            try {
+                                let update = await database.query("UPDATE bin SET status = 'unavailable', accumulation = ? WHERE ID = ?", [accumulation, binID]);
+                                console.log(`Bin${binID} has been changed to unavailable`);
+                            } catch (err) {
+                                console.log(err);
+                            }
+                            socket.emit("updateChart", { binID: binID, distance: distance });
+                        } else {
+                            try {
+                                let update = await database.query("UPDATE bin SET status = 'available', accumulation = ? WHERE ID = ?", [accumulation, binID]);
+                                console.log(`Bin${binID} has been changed to available`);
+                            } catch (err) {
+                                console.log(err);
+                            }
+                            socket.emit("updateChart", { binID: binID, distance: distance });
                         }
-                        socket.emit("updateChart", { binID: binID, distance: distance });
-                    } else {
-                        try {
-                            let update = await database.query("UPDATE bin SET status = 'available', accumulation = ? WHERE ID = ?", [accumulation, binID]);
-                            console.log(`Bin${binID} has been changed to available`);
-                        } catch (err) {
-                            console.log(err);
-                        }
-                        socket.emit("updateChart", { binID: binID, distance: distance });
+                    } else if (parsedData.status == "opened") {
+                        const binID = parsedData.binID;
+                        const status = parsedData.status;
                     }
-                } else if (parsedData.status == "opened") {
-                    const binID = parsedData.binID;
-                    const status = parsedData.status;
+                } else if ("cleanerID" in parsedData) {
+                    const binID = parsedData.binid;
+                    const cleanerid = parsedData.cleanerID;
+                    try {
+                        let update = await database.query("UPDATE bin SET status = 'available', accumulation = '0' WHERE ID = ?", [binID]);
+                    } catch (err) {
+                        console.log(err);
+                    }
                 }
             })
         } else { // If COM5 is not found
@@ -74,12 +84,35 @@ function portConnection() { // Function to connect to the serial port
 }
 
 app.use(cors()); // Use cors to allow cross-origin requests
+app.use(express.json()); // Parse JSON request body
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request body
 
 socket.on('connection', (socket) => {
     console.log("Connected to client");
 });
 
 portConnection(); // Connect to the serial port
+
+// Express for signin.html
+app.post('/signin', async (req, res)=>{
+    const {email, password} = req.body;
+    try{
+        const [admin] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
+        console.log(admin);
+        if(admin.length > 0){
+            if(admin[0].password == password){
+                console.log("pass correct");
+                res.json({status: "success", admin: admin[0]});
+            } else {
+                res.json({status: "failed"});
+            }
+        } else {
+            res.json({status: "empty"});
+        }
+    }catch(error){
+        console.log(error);
+    }
+})
 
 // Express for dashboard.html
 app.get('/loadBinsCount', async (req, res) => {
@@ -127,13 +160,13 @@ app.get('/initializeChart', async (req, res) => {
     }
 })
 
-app.get('/fetchBin/:id', async (req, res)=>{
+app.get('/fetchBin/:id', async (req, res) => {
     const binid = req.params.id;
-    try{
+    try {
         const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binid]);
         console.log(bin);
         res.json(bin);
-    } catch(error){
+    } catch (error) {
         console.log(error);
     }
 })

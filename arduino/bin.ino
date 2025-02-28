@@ -119,6 +119,7 @@ void checkRFID()
       return;
     }
 
+    myServo.write(75);
     byte buffer[18];
     byte buffersize = sizeof(buffer);
     String fields[] = {"cleanerID", "Name"};
