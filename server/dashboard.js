@@ -2,6 +2,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { SerialPort } from 'serialport';
 import { ReadlineParser } from '@serialport/parser-readline';
+import { createTransport } from 'nodemailer';
 import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2';
@@ -22,7 +23,50 @@ const database = mysql.createPool({ // Create a connection to the database
     database: 'bin'
 }).promise();
 
-function portConnection() { // Function to connect to the serial port
+const transporter = createTransport({
+    service: "gmail", // Use Gmail's SMTP service
+    auth: {
+        user: "lamyongqin@gmail.com",
+        pass: "xvtgwerkxhoavubq"
+    }
+});
+
+async function main(email, bin) {
+    const info = await transporter.sendMail({
+        from: '"SmartBin Manager" <smartbinmanager@gmail.com>', // sender address
+        to: email, // list of receivers
+        subject: "Bin Ready for Collection", // Subject line
+        text: `Dear administrator,\nThis is an automatic notification from the SmartBin System.\nA bin at Block ${bin[0].block}, Level ${bin[0].level} has reached its collection threshold and requires immediate attention.\nBin Details:\n- Location: Block ${bin[0].block}, Level ${bin[0].level}\n- Bin ID: ${bin[0].binid}\nAccumulation : ${bin[0].accumulation}%\nPlease arrange for collection as soon as possible to prevent overflow.\nThank you.`, // plain text body
+        html: `
+        <p>Dear administrator,</p>
+        <br>
+        <p>This is an automatic notification from the SmartBin System.</p>
+        <br>
+        <p>A bin at Block ${bin[0].block}, Level ${bin[0].level} has reached its collection threshold and requires immediate attention.</p>
+        <br>
+        <h3>Bin Details:</h3>
+        <br>
+        <ul>
+            <li>
+                <b>Location:</b> Block ${bin[0].block}, Level ${bin[0].level}
+            </li>
+            <li>
+                <b>Bin ID:</b>${bin[0].ID}
+            </li>
+            <li>
+                <b>Accumulation:</b>${bin[0].accumulation}%
+            </li>
+        </ul>
+        <p>Please arrange for collection as soon as possible to prevent overflow.</p>
+        <br>
+        <p>Thank you.</p>
+        `, // HTML body
+    });
+
+    console.log("Message sent");
+}
+
+async function portConnection() { // Function to connect to the serial port
     SerialPort.list().then(function (ports) {
         const COM5 = ports.find(port => port.path === 'COM5');
 
@@ -39,7 +83,7 @@ function portConnection() { // Function to connect to the serial port
                 console.log(data);
                 const parsedData = JSON.parse(data);
 
-                if (!"cleanerID" in parsedData) {
+                if (!("cleanerID" in parsedData)) {
                     if (parsedData.status == "closed") {
                         const binID = Number(parsedData.binID);
                         const status = parsedData.status;
@@ -52,6 +96,13 @@ function portConnection() { // Function to connect to the serial port
                             } catch (err) {
                                 console.log(err);
                             }
+                            const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
+                            const [email] = await database.query("SELECT email FROM administrator");
+                            let emailList = [];
+                            email.forEach((email) => {
+                                emailList.push(email.email);
+                            });
+                            main(emailList,bin).catch(console.error);
                             socket.emit("updateChart", { binID: binID, distance: distance });
                         } else {
                             try {
@@ -94,22 +145,22 @@ socket.on('connection', (socket) => {
 portConnection(); // Connect to the serial port
 
 // Express for signin.html
-app.post('/signin', async (req, res)=>{
-    const {email, password} = req.body;
-    try{
+app.post('/signin', async (req, res) => {
+    const { email, password } = req.body;
+    try {
         const [admin] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
         console.log(admin);
-        if(admin.length > 0){
-            if(admin[0].password == password){
+        if (admin.length > 0) {
+            if (admin[0].password == password) {
                 console.log("pass correct");
-                res.json({status: "success", admin: admin[0]});
+                res.json({ status: "success", admin: admin[0] });
             } else {
-                res.json({status: "failed"});
+                res.json({ status: "failed" });
             }
         } else {
-            res.json({status: "empty"});
+            res.json({ status: "empty" });
         }
-    }catch(error){
+    } catch (error) {
         console.log(error);
     }
 })

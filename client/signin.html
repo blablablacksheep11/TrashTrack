@@ -34,14 +34,29 @@
                             <input type="password" class="form-control" placeholder="Password" id="password" required>
                         </div>
                         <div class="row m-0 p-0">
-                            <div class="col-3 h-100 m-0 p-0"><button type="submit" class="btn btn-primary">Sign
-                                    In</button></div>
+                            <div class="col-3 h-100 m-0 p-0">
+                                <button type="submit" class="btn btn-primary">Sign In</button>
+                            </div>
                             <div class="col-6 h-100"></div>
                             <div class="col-3 h-100 m-0 p-0 d-flex align-items-center justify-content-end">
                                 <p><a href="#" class="link-primary">Forgot Password</a></p>
                             </div>
                         </div>
                     </form>
+
+                    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                        <div id="toast" class="toast align-items-center" role="alert" aria-live="assertive"
+                            aria-atomic="true">
+                            <div class="d-flex bg-danger-subtle">
+                                <div class="toast-body">
+                                    <i class="bi bi-exclamation-circle me-1"></i>
+                                    <label></label>
+                                </div>
+                                <button type="button" class="btn-close btn-close-grey me-2 m-auto"
+                                    data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -72,9 +87,15 @@
             if (data.status == "success") {
                 window.location.href = "./dashboard.html";
             } else if (data.status == "failed") {
-                alert("Invalid Email or Password");
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                document.querySelector(".toast-body label").innerHTML = "Incorrect password. Please try again.";
+                toastBootstrap.show();
             } else if (data.status == "empty") {
-                alert("Email or Password is empty");
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                document.querySelector(".toast-body label").innerHTML = "Account not found. Please try again.";
+                toastBootstrap.show();
             }
         } else {
             form.reportValidity();

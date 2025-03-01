@@ -5,7 +5,7 @@
 #define binID 1
 #define irPin 2
 #define trigPin 3
-#define echoPin 4 
+#define echoPin 4
 #define servoPin 5
 #define RST_PIN 9
 #define SS_PIN 10
@@ -42,6 +42,10 @@ void setup()
 void loop()
 {
   checkRFID();
+  if (accumulation >= 80)
+  {
+    return;
+  }
   int sensorState = digitalRead(irPin);
 
   if (sensorState == LOW)
@@ -63,6 +67,7 @@ void loop()
     {
       closed = false;
       opened = true;
+      return;
     }
   }
   else
@@ -119,7 +124,8 @@ void checkRFID()
       return;
     }
 
-    myServo.write(75);
+    accumulation = 0;
+    status = true;
     byte buffer[18];
     byte buffersize = sizeof(buffer);
     String fields[] = {"cleanerID", "Name"};
