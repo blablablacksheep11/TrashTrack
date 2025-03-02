@@ -7,6 +7,8 @@
 #define trigPin 3
 #define echoPin 4
 #define servoPin 5
+#define redledPin 6
+#define greenledPin 7
 #define RST_PIN 9
 #define SS_PIN 10
 
@@ -23,6 +25,8 @@ Servo myServo;
 
 void setup()
 {
+  pinMode(greenledPin, OUTPUT);
+  pinMode(redledPin, OUTPUT);
   pinMode(irPin, INPUT);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
@@ -44,7 +48,14 @@ void loop()
   checkRFID();
   if (accumulation >= 80)
   {
+    digitalWrite(redledPin, HIGH);
+    digitalWrite(greenledPin, LOW);
     return;
+  }
+  else
+  {
+    digitalWrite(redledPin, LOW);
+    digitalWrite(greenledPin, HIGH);
   }
   int sensorState = digitalRead(irPin);
 
@@ -88,10 +99,14 @@ void loop()
       accumulation = 100 - ((distance / 13) * 100);
       if (accumulation >= 80)
       {
+        digitalWrite(redledPin, HIGH);
+        digitalWrite(greenledPin, LOW);
         status = false;
       }
       else
       {
+        digitalWrite(redledPin, LOW);
+        digitalWrite(greenledPin, HIGH);
         status = true;
       }
 
@@ -124,6 +139,8 @@ void checkRFID()
       return;
     }
 
+    digitalWrite(redledPin, LOW);
+    digitalWrite(greenledPin, HIGH);
     accumulation = 0;
     status = true;
     byte buffer[18];

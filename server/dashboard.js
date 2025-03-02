@@ -67,71 +67,75 @@ async function main(email, bin) {
 }
 
 async function portConnection() { // Function to connect to the serial port
-    SerialPort.list().then(function (ports) {
-        const COM5 = ports.find(port => port.path === 'COM5');
+    const ports = await SerialPort.list(); // List all available serial ports
+    const arduino = ports.filter(port => port.vendorId && port.productId); // Filter the list to find the Arduino board
+    console.log(arduino);
 
-        if (COM5) { // If COM5 is found, connect to the port
-            console.log("COM5 found");
+    if (arduino.length == 0) {
+        console.log("No Arduino found");
+        setTimeout(portConnection, 5000); // Retry after 5 second
+    } else {
+        arduino.forEach(arduino => {
+            console.log(`Connecting to Arduino at ${arduino.path}`);
             const port = new SerialPort({
-                path: 'COM5',
+                path: arduino.path,
                 baudRate: 9600
             });
 
             port.pipe(parser);
+        })
 
-            parser.on("data", async (data) => {
-                console.log(data);
-                const parsedData = JSON.parse(data);
+        parser.on("data", async (data) => {
+            console.log(data);
+            const parsedData = JSON.parse(data);
 
-                if (!("cleanerID" in parsedData)) {
-                    if (parsedData.status == "closed") {
-                        const binID = Number(parsedData.binID);
-                        const status = parsedData.status;
-                        const distance = Number(parsedData.distance);
-                        const accumulation = 100 - ((distance / 13) * 100);
-                        if (accumulation >= 80) {
-                            try {
-                                let update = await database.query("UPDATE bin SET status = 'unavailable', accumulation = ? WHERE ID = ?", [accumulation, binID]);
-                                console.log(`Bin${binID} has been changed to unavailable`);
-                            } catch (err) {
-                                console.log(err);
-                            }
-                            const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
-                            const [email] = await database.query("SELECT email FROM administrator");
-                            let emailList = [];
-                            email.forEach((email) => {
-                                emailList.push(email.email);
-                            });
-                            main(emailList,bin).catch(console.error);
-                            socket.emit("updateChart", { binID: binID, distance: distance });
-                        } else {
-                            try {
-                                let update = await database.query("UPDATE bin SET status = 'available', accumulation = ? WHERE ID = ?", [accumulation, binID]);
-                                console.log(`Bin${binID} has been changed to available`);
-                            } catch (err) {
-                                console.log(err);
-                            }
-                            socket.emit("updateChart", { binID: binID, distance: distance });
+            if (!("cleanerID" in parsedData)) {
+                if (parsedData.status == "closed") {
+                    const binID = Number(parsedData.binID);
+                    const status = parsedData.status;
+                    const distance = Number(parsedData.distance);
+                    const accumulation = 100 - ((distance / 13) * 100);
+                    if (accumulation >= 80) {
+                        try {
+                            let update = await database.query("UPDATE bin SET status = 'unavailable', accumulation = ? WHERE ID = ?", [accumulation, binID]);
+                            console.log(`Bin${binID} has been changed to unavailable`);
+                        } catch (err) {
+                            console.log(err);
                         }
-                    } else if (parsedData.status == "opened") {
-                        const binID = parsedData.binID;
-                        const status = parsedData.status;
+                        const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
+                        const [email] = await database.query("SELECT email FROM administrator");
+                        let emailList = [];
+                        email.forEach((email) => {
+                            emailList.push(email.email);
+                        });
+                        main(emailList, bin).catch(console.error);
+                        socket.emit("updateChart", { binID: binID, distance: distance });
+                    } else {
+                        try {
+                            let update = await database.query("UPDATE bin SET status = 'available', accumulation = ? WHERE ID = ?", [accumulation, binID]);
+                            console.log(`Bin${binID} has been changed to available`);
+                        } catch (err) {
+                            console.log(err);
+                        }
+                        socket.emit("updateChart", { binID: binID, distance: distance });
                     }
-                } else if ("cleanerID" in parsedData) {
-                    const binID = parsedData.binid;
-                    const cleanerid = parsedData.cleanerID;
-                    try {
-                        let update = await database.query("UPDATE bin SET status = 'available', accumulation = '0' WHERE ID = ?", [binID]);
-                    } catch (err) {
-                        console.log(err);
-                    }
+                } else if (parsedData.status == "opened") {
+                    const binID = parsedData.binID;
+                    const status = parsedData.status;
                 }
-            })
-        } else { // If COM5 is not found
-            console.log('COM5 not found');
-            setTimeout(portConnection, 5000); // Retry after 5 second
-        }
-    });
+            } else if ("cleanerID" in parsedData) {
+                const binID = parsedData.binid;
+                const cleanerid = parsedData.cleanerID;
+                try {
+                    let update = await database.query("UPDATE bin SET status = 'available', accumulation = '0' WHERE ID = ?", [binID]);
+                } catch (err) {
+                    console.log(err);
+                }
+            } else{
+                console.log("Invalid data");
+            }
+        })
+    }
 }
 
 app.use(cors()); // Use cors to allow cross-origin requests
