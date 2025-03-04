@@ -6,6 +6,7 @@ import { createTransport } from 'nodemailer';
 import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2';
+import speakeasy from 'speakeasy';
 
 const app = express(); // Create an express app
 const server = createServer(app); // Create a server with the express app
@@ -31,7 +32,7 @@ const transporter = createTransport({
     }
 });
 
-async function main(email, bin) {
+async function mail(email, bin) {
     const info = await transporter.sendMail({
         from: '"SmartBin Manager" <smartbinmanager@gmail.com>', // sender address
         to: email, // list of receivers
@@ -66,9 +67,29 @@ async function main(email, bin) {
     console.log("Message sent");
 }
 
+async function send(email, name, otp) {
+    const info = await transporter.sendMail({
+        from: '"SmartBin Manager" <smartbinmanager@gmail.com>', // sender address
+        to: email, // list of receivers
+        subject: "OTP for password reset", // Subject line
+        text: `Dear ${name},\nYou have requested to reset your password. Please use the following One-Time Password (OTP) to proceed:\nOTP Code: ${otp}\n This OTP is valid for 2 minutes. Do not share this code with anyone for security reasons.`, // plain text body
+        html: `
+        <p>Dear ${name},</p>
+        <br>
+        <p>You have requested to reset your password. Please use the following <b>One-Time Password (OTP)</b> to proceed:</p>
+        <br>
+        <b>OTP Code: </b>${otp}
+        <br>
+        <b>This OTP is valid for 2 minutes.</b>Do not share this code with anyone for security reasons.
+        `, // HTML body
+    });
+
+    console.log("Message sent");
+}
+
 async function portConnection() { // Function to connect to the serial port
     const ports = await SerialPort.list(); // List all available serial ports
-    const arduino = ports.filter(port => port.vendorId && port.productId); // Filter the list to find the Arduino board
+    const arduino = await ports.filter(port => port.vendorId && port.productId); // Filter the list to find the Arduino board
     console.log(arduino);
 
     if (arduino.length == 0) {
@@ -89,7 +110,9 @@ async function portConnection() { // Function to connect to the serial port
             console.log(data);
             const parsedData = JSON.parse(data);
 
-            if (!("cleanerID" in parsedData)) {
+            if ("string" in parsedData) {
+                console.log("Test: Invalid data.");
+            } else if (!("cleanerID" in parsedData)) {
                 if (parsedData.status == "closed") {
                     const binID = Number(parsedData.binID);
                     const status = parsedData.status;
@@ -108,7 +131,7 @@ async function portConnection() { // Function to connect to the serial port
                         email.forEach((email) => {
                             emailList.push(email.email);
                         });
-                        main(emailList, bin).catch(console.error);
+                        mail(emailList, bin).catch(console.error);
                         socket.emit("updateChart", { binID: binID, distance: distance });
                     } else {
                         try {
@@ -131,8 +154,6 @@ async function portConnection() { // Function to connect to the serial port
                 } catch (err) {
                     console.log(err);
                 }
-            } else{
-                console.log("Invalid data");
             }
         })
     }
@@ -167,6 +188,37 @@ app.post('/signin', async (req, res) => {
     } catch (error) {
         console.log(error);
     }
+})
+
+// Express for forgotpass.html
+app.post('/forgotpassword', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const [account] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
+        console.log(account);
+        if (account.length > 0) {
+            var secret = speakeasy.generateSecret({ length: 20 });  // Generate a secret code
+
+            const otp = speakeasy.totp({ // Convert the secret code to a one-time password
+                secret: secret.base32,
+                encoding: "base32",
+                step: 120 // OTP valid for 300 seconds (5 minutes)
+            });
+
+            send(account[0].email, account[0].name, otp).catch(console.error);
+            res.json({ status: "success", admin: account[0], otp: otp });
+        } else {
+            res.json({ status: "empty" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+// Express for verification.html
+app.post('/verification', async (req, res) => {
+    const { otpToMatch } = req.body;
+
 })
 
 // Express for dashboard.html

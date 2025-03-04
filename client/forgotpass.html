@@ -19,27 +19,21 @@
 
 <body>
     <div class="row h-100 w-100 position-absolute p-0 m-0">
-        <div class="col-0 col-md-3 p-0 m-0"></div>
-        <div class="col-12 col-md-6 p-0 m-0 d-flex align-items-center">
+        <div class="col-0 col-md-4 p-0 m-0"></div>
+        <div class="col-12 col-md-4 p-0 m-0 d-flex align-items-center">
             <div class="card w-100">
-                <h5 class="card-header bg-transparent border-0 px-4 mt-2">Sign In</h5>
-                <div class="card-body px-4">
-                    <form id="login-form" autocomplete="off">
-                        <div class="input-group mb-4">
+                <h5 class="card-header bg-transparent border-0 mt-2 text-center">Forgot Password</h5>
+                <p class="card-header bg-transparent border-0 pt-0 text-center">Provide your email to receive a
+                    verification code.</p>
+                <div class="card-body px-4 py-2">
+                    <form id="form" autocomplete="off">
+                        <div class="input-group m-0">
                             <span class="input-group-text" id="basic-addon1"><i class="bi bi-envelope"></i></span>
                             <input type="email" class="form-control" placeholder="Email" id="email" required>
                         </div>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1"><i class="bi bi-lock"></i></span>
-                            <input type="password" class="form-control" placeholder="Password" id="password" required>
-                        </div>
-                        <div class="row m-0 p-0">
-                            <div class="col-3 h-100 m-0 p-0">
-                                <button type="submit" class="btn btn-primary">Sign In</button>
-                            </div>
-                            <div class="col-6 h-100"></div>
-                            <div class="col-3 h-100 m-0 p-0 d-flex align-items-center justify-content-end">
-                                <p><a href="forgotpass.html" class="link-primary">Forgot Password</a></p>
+                        <div class="row m-0 mt-3 mb-2 p-0 d-flex justify-content-center">
+                            <div class="col-5 h-100 m-0 p-0">
+                                <button type="submit" class="btn btn-primary w-100">Send</button>
                             </div>
                         </div>
                     </form>
@@ -60,7 +54,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-0 col-md-3 p-0 m-0"></div>
+        <div class="col-0 col-md-4 p-0 m-0"></div>
     </div>
 
     <script>
@@ -69,27 +63,23 @@
             console.log("Connected to server");
         });
 
-        document.getElementById("login-form").addEventListener("submit", async (e) => {
+        document.getElementById("form").addEventListener("submit", async (e) => {
             e.preventDefault();
             const form = e.target;
             if (form.checkValidity()) {
                 const email = document.getElementById("email").value;
-                const password = document.getElementById("password").value;
-                const response = await fetch(`http://localhost:3000/signin`, {
+                const response = await fetch(`http://localhost:3000/forgotpassword`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email })
                 });
                 const data = await response.json();
                 if (data.status == "success") {
-                    window.location.href = "./dashboard.html";
-                } else if (data.status == "failed") {
-                    const toast = document.getElementById('toast');
-                    const toastBootstrap = new bootstrap.Toast(toast);
-                    document.querySelector(".toast-body label").innerHTML = "Incorrect password. Please try again.";
-                    toastBootstrap.show();
+                    sessionStorage.setItem("email", email);
+                    sessionStorage.setItem("otp", data.otp);
+                    window.location.href = "./verification.html";
                 } else if (data.status == "empty") {
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
@@ -100,7 +90,6 @@
                 form.reportValidity();
             }
         })
-
     </script>
 </body>
 

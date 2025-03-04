@@ -15,31 +15,58 @@
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"
         integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+"
         crossorigin="anonymous"></script>
+    <style>
+        .no-spinner::-webkit-inner-spin-button,
+        .no-spinner::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .no-spinner {
+            height: 65px !important;
+        }
+    </style>
 </head>
 
 <body>
     <div class="row h-100 w-100 position-absolute p-0 m-0">
-        <div class="col-0 col-md-3 p-0 m-0"></div>
-        <div class="col-12 col-md-6 p-0 m-0 d-flex align-items-center">
+        <div class="col-0 col-sm-2 col-md-3 col-xl-4 p-0 m-0"></div>
+        <div class="col-12 col-sm-8 col-md-6 col-xl-4 p-0 m-0 d-flex align-items-center">
             <div class="card w-100">
-                <h5 class="card-header bg-transparent border-0 px-4 mt-2">Sign In</h5>
-                <div class="card-body px-4">
-                    <form id="login-form" autocomplete="off">
-                        <div class="input-group mb-4">
-                            <span class="input-group-text" id="basic-addon1"><i class="bi bi-envelope"></i></span>
-                            <input type="email" class="form-control" placeholder="Email" id="email" required>
-                        </div>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1"><i class="bi bi-lock"></i></span>
-                            <input type="password" class="form-control" placeholder="Password" id="password" required>
-                        </div>
-                        <div class="row m-0 p-0">
-                            <div class="col-3 h-100 m-0 p-0">
-                                <button type="submit" class="btn btn-primary">Sign In</button>
+                <h5 class="card-header bg-transparent border-0 mt-2 text-center">Enter OTP</h5>
+                <p class="card-header bg-transparent border-0 pt-0 text-center">Enter the 6 digits pin sent to your
+                    email.</p>
+                <div class="card-body px-4 py-2">
+                    <form id="form" autocomplete="off">
+                        <div class="row">
+                            <div class="col-2">
+                                <input type="number" class="form-control h-100 text-center fs-5 no-spinner"
+                                    oninput="focusNext(0)" required>
                             </div>
-                            <div class="col-6 h-100"></div>
-                            <div class="col-3 h-100 m-0 p-0 d-flex align-items-center justify-content-end">
-                                <p><a href="forgotpass.html" class="link-primary">Forgot Password</a></p>
+                            <div class="col-2">
+                                <input type="number" class="form-control h-100 text-center fs-5 no-spinner"
+                                    oninput="focusNext(1)" required>
+                            </div>
+                            <div class="col-2">
+                                <input type="number" class="form-control h-100 text-center fs-5 no-spinner"
+                                    oninput="focusNext(2)" required>
+                            </div>
+                            <div class="col-2">
+                                <input type="number" class="form-control h-100 text-center fs-5 no-spinner"
+                                    oninput="focusNext(3)" required>
+                            </div>
+                            <div class="col-2">
+                                <input type="number" class="form-control h-100 text-center fs-5 no-spinner"
+                                    oninput="focusNext(4)" required>
+                            </div>
+                            <div class="col-2">
+                                <input type="number" class="form-control h-100 text-center fs-5 no-spinner"
+                                    oninput="focusNext(5)" required>
+                            </div>
+                        </div>
+                        <div class="row m-0 mt-3 mb-2 p-0 d-flex justify-content-center">
+                            <div class="col-5 h-100 m-0 p-0">
+                                <button type="submit" class="btn btn-primary w-100">Verify</button>
                             </div>
                         </div>
                     </form>
@@ -60,7 +87,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-0 col-md-3 p-0 m-0"></div>
+        <div class="col-0 col-sm-2 col-md-3 col-xl-4 p-0 m-0"></div>
     </div>
 
     <script>
@@ -69,27 +96,33 @@
             console.log("Connected to server");
         });
 
-        document.getElementById("login-form").addEventListener("submit", async (e) => {
+        let inputs = document.querySelectorAll('.no-spinner');
+
+        async function focusNext(index) {
+            if (index < (inputs.length - 1)) {
+                inputs[index + 1].focus();
+            }
+        }
+
+        document.getElementById("form").addEventListener("submit", async (e) => {
             e.preventDefault();
             const form = e.target;
+            const otp = "";
             if (form.checkValidity()) {
-                const email = document.getElementById("email").value;
-                const password = document.getElementById("password").value;
-                const response = await fetch(`http://localhost:3000/signin`, {
+                inputs.forEach(input => {
+                    const value = this.val();
+                    otp = otp.concat(value);
+                })
+                const response = await fetch(`http://localhost:3000/verification`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ otp })
                 });
                 const data = await response.json();
                 if (data.status == "success") {
                     window.location.href = "./dashboard.html";
-                } else if (data.status == "failed") {
-                    const toast = document.getElementById('toast');
-                    const toastBootstrap = new bootstrap.Toast(toast);
-                    document.querySelector(".toast-body label").innerHTML = "Incorrect password. Please try again.";
-                    toastBootstrap.show();
                 } else if (data.status == "empty") {
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
@@ -100,7 +133,6 @@
                 form.reportValidity();
             }
         })
-
     </script>
 </body>
 
