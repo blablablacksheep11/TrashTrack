@@ -7,6 +7,7 @@ import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2';
 import speakeasy from 'speakeasy';
+import {createClient} from 'redis';
 
 const app = express(); // Create an express app
 const server = createServer(app); // Create a server with the express app
@@ -16,6 +17,13 @@ const socket = new Server(server, { // Create a socket connection
         origin: "http://127.0.0.1:5500"
     }
 });
+
+const redis = createClient({ // Create redis client
+    socket: {
+      host: 'localhost',
+      port: 6379, // Default Redis port
+    }
+  });
 
 const database = mysql.createPool({ // Create a connection to the database
     host: '127.0.0.1',
@@ -161,13 +169,19 @@ async function portConnection() { // Function to connect to the serial port
 
 app.use(cors()); // Use cors to allow cross-origin requests
 app.use(express.json()); // Parse JSON request body
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request body
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request body, for POST CRUD operation
+
+
 
 socket.on('connection', (socket) => {
     console.log("Connected to client");
 });
 
 portConnection(); // Connect to the serial port
+
+redis.connect() // Connect to the Redis database
+  .then(() => console.log('Connected to Redis'))
+  .catch(err => console.log('Redis Connection Error:', err));
 
 // Express for signin.html
 app.post('/signin', async (req, res) => {
@@ -202,9 +216,8 @@ app.post('/forgotpassword', async (req, res) => {
             const otp = speakeasy.totp({ // Convert the secret code to a one-time password
                 secret: secret.base32,
                 encoding: "base32",
-                step: 120 // OTP valid for 300 seconds (5 minutes)
+                step: 120 // OTP valid for 120 seconds (2 minutes)
             });
-
             send(account[0].email, account[0].name, otp).catch(console.error);
             res.json({ status: "success", admin: account[0], otp: otp });
         } else {
@@ -218,7 +231,23 @@ app.post('/forgotpassword', async (req, res) => {
 // Express for verification.html
 app.post('/verification', async (req, res) => {
     const { otpToMatch } = req.body;
+    console.log(req.session.otp);
 
+    const verification = speakeasy.totp.verify({ // Verify the one-time password
+        secret: req.session.otp.secret, // The correct otp
+        encoding: "base32",
+        token: otpToMatch, // The user input
+        step: 120,
+        window: 1 // Allow slight time drift
+    });
+
+    if (verification) {
+        req.session.otp = null; // Clear OTP from session
+        req.session.isVerified = true; // Mark as verified for password reset
+        res.json({ status: "success" });
+    } else {
+        res.json({ status: "invalid" });
+    }
 })
 
 // Express for dashboard.html

@@ -107,12 +107,13 @@
         document.getElementById("form").addEventListener("submit", async (e) => {
             e.preventDefault();
             const form = e.target;
-            const otp = "";
+            let otp = "";
             if (form.checkValidity()) {
                 inputs.forEach(input => {
-                    const value = this.val();
+                    const value = this.value;
                     otp = otp.concat(value);
                 })
+                console.log(otp);
                 const response = await fetch(`http://localhost:3000/verification`, {
                     method: "POST",
                     headers: {
@@ -122,11 +123,16 @@
                 });
                 const data = await response.json();
                 if (data.status == "success") {
-                    window.location.href = "./dashboard.html";
+                    window.location.href = "./resetpass.html";
+                } else if (data.status == "failed") {
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    document.querySelector(".toast-body label").innerHTML = "Invalid OTP.";
+                    toastBootstrap.show();
                 } else if (data.status == "empty") {
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
-                    document.querySelector(".toast-body label").innerHTML = "Account not found. Please try again.";
+                    document.querySelector(".toast-body label").innerHTML = "OTP expired. Please try again.";
                     toastBootstrap.show();
                 }
             } else {
