@@ -110,29 +110,34 @@
             let otp = "";
             if (form.checkValidity()) {
                 inputs.forEach(input => {
-                    const value = this.value;
+                    const value = input.value;
                     otp = otp.concat(value);
                 })
-                console.log(otp);
+                const email = sessionStorage.getItem("email");
                 const response = await fetch(`http://localhost:3000/verification`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ otp })
+                    body: JSON.stringify({ otp, email })
                 });
                 const data = await response.json();
                 if (data.status == "success") {
                     window.location.href = "./resetpass.html";
-                } else if (data.status == "failed") {
+                } else if (data.status == "invalid") {
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
                     document.querySelector(".toast-body label").innerHTML = "Invalid OTP.";
                     toastBootstrap.show();
-                } else if (data.status == "empty") {
+                } else if (data.status == "expired") {
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
                     document.querySelector(".toast-body label").innerHTML = "OTP expired. Please try again.";
+                    toastBootstrap.show();
+                }else if (data.status == "failed") {
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    document.querySelector(".toast-body label").innerHTML = "Action failed. Please try again later.";
                     toastBootstrap.show();
                 }
             } else {
