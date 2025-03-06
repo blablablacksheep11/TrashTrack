@@ -226,10 +226,10 @@ app.post('/forgotpassword', async (req, res) => {
                     const pinExists = await redis.exists(pin); // Check if OTP exists
 
                     if (pinExists == 0) {
-                        await redis.setEx(pin, 180, secret);
+                        await redis.setEx(pin, 120, secret);
                     } else if (pinExists == 1) {
                         await redis.del(pin); // Ensure deletion completes before setting new value
-                        await redis.setEx(pin, 180, secret);
+                        await redis.setEx(pin, 120, secret);
                     }
 
                     console.log("Redis storage updated successfully.");
@@ -253,8 +253,6 @@ app.post('/forgotpassword', async (req, res) => {
 app.post('/verification', async (req, res) => {
     const { otp, email } = req.body;
     const pin = `pin:${email}`;
-    console.log(email);
-    console.log(pin);
 
     async function fetch(pin, secret) {
         try {
@@ -266,7 +264,7 @@ app.post('/verification', async (req, res) => {
                 const originalpin = await redis.get(pin);
                 
                 const verification = speakeasy.totp.verify({ // Verify the one-time password
-                    secret: originalpin, // The correct otp
+                    secret: originalpin, // The correct otp (raw)
                     encoding: "base32",
                     token: secret, // The user input
                     window: 4
@@ -286,6 +284,23 @@ app.post('/verification', async (req, res) => {
     }
 
     fetch(pin, otp);
+})
+
+// Express for resetpass.html
+app.post('/resetpassword', async (req, res) => {
+    const { email, password, confirmpassword } = req.body;
+    const pin = `pin:${email}`;
+
+    try{
+        const [reset] = await database.query("UPDATE administrator SET password = ? WHERE email = ?", [password, email]);
+        if(reset.warningStatus == 0){
+            res.json({status: "success"});
+        } else {
+            res.json({status: "failed"});
+        }
+    }catch(error){
+        console.error("Database error:", error);
+    }
 })
 
 // Express for dashboard.html
