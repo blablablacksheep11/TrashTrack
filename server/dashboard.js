@@ -134,7 +134,8 @@ async function portConnection() { // Function to connect to the serial port
                             console.log(err);
                         }
                         try {
-                            let insert = await database.query("INSERT INTO bin_history (binID, accumulation, creation, status, collectorID, collectionDate, collectionTime) VALUES (?,?,?,?,?,?,?)", [binID, accumulation, new Date(), 'unavailable', 'undefined']);
+                            let insert = await database.query("INSERT INTO bin_history (binID, accumulation, creation, status) VALUES (?,?,?,?)", [binID, accumulation, new Date(), 'unavailable']);
+                            console.log(insert);
                         } catch (error) {
                             console.log(error);
                         }
@@ -164,6 +165,12 @@ async function portConnection() { // Function to connect to the serial port
                 const cleanerid = parsedData.cleanerID;
                 try {
                     let update = await database.query("UPDATE bin SET status = 'available', accumulation = '0' WHERE ID = ?", [binID]);
+                } catch (err) {
+                    console.log(err);
+                }
+                try {
+                    let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
+                    console.log(collect);
                 } catch (err) {
                     console.log(err);
                 }
