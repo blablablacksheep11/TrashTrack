@@ -15,6 +15,15 @@
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"
         integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+"
         crossorigin="anonymous"></script>
+    <style>
+        .bi-gender-female {
+            color: #ff69b4;
+        }
+
+        .bi-gender-male {
+            color: #0096FF;
+        }
+    </style>
 </head>
 
 <body>
@@ -33,7 +42,7 @@
                             <a class="nav-link" aria-current="page" role="button" href="dashboard.html">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" role="button">Link</a>
+                            <a class="nav-link" role="button">History</a>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link active dropdown-toggle" role="button" data-bs-toggle="dropdown"
@@ -54,7 +63,8 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item">View</a></li>
-                                <li><a class="dropdown-item" onclick="window.location.replace('signin.html')">Sign Out</a></li>
+                                <li><a class="dropdown-item" onclick="window.location.replace('signin.html')">Sign
+                                        Out</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -64,20 +74,120 @@
     </div>
     <div class="row mt-4 px-5 m-0">
         <table class="table table-hover border caption-top">
-            <caption>List of cleaner</caption>
+            <div>
+                <caption>List of cleaner<button class="btn btn-primary btn-sm float-end" data-bs-toggle="modal"
+                        data-bs-target="#modal1"><i class="bi bi-plus-lg me-1"></i>Add</button></caption>
+            </div>
+
             <thead class="table-light">
                 <tr>
                     <th scope="col">Cleaner ID</th>
                     <th scope="col">Name</th>
                     <th scope="col">Gender</th>
+                    <th scope="col">IC number</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Action</th>
                 </tr>
             </thead>
             <tbody id="cleaner-table">
                 <tr>
-                    <td colspan="6" class="text-center py-3">No cleaner found ...<br><i class="bi bi-person-slash fs-3"></i></td>
+                    <td colspan="6" class="text-center py-3">No cleaner found ...<br><i
+                            class="bi bi-person-slash fs-3"></i><br><button type="button" class="btn btn-primary"
+                            data-bs-toggle="modal" data-bs-target="#modal1">
+                            <i class="bi bi-plus-lg me-1"></i>
+                            Add new
+                        </button>
+                    </td>
                 </tr>
             </tbody>
         </table>
+
+        <!-- Cleaner form -->
+        <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Add Cleaner</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body border-0 py-0 pb-3">
+                        <form id="cleaner-form">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" placeholder="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Gender</label><br>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="male" value="male"
+                                        required>
+                                    <label class="form-check-label" for="male">Male<i
+                                            class="bi bi-gender-male ms-1"></i></label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="female"
+                                        value="female">
+                                    <label class="form-check-label" for="female">Female<i
+                                            class="bi bi-gender-female ms-1"></i></label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="ic" class="form-label">IC number</label>
+                                <input type="text" class="form-control" id="ic" placeholder="000000-00-0000"
+                                    pattern="^\d{6}-\d{2}-\d{4}$" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="email" placeholder="xxxxx@example.com"
+                                    required>
+                            </div>
+                            <div class="mt-4 text-end">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                    id="close-btn">Close</button>
+                                <button type="submit" class="btn btn-primary">Add new</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add cleaner confirmation modal -->
+        <div class="modal fade" id="modal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Add cleaner</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body border-0" id="confirmation-body">
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirm-add-btn">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete cleaner confirmation modal -->
+    <div class="modal fade" id="modal3" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Delete cleaner</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body border-0" id="confirmation-body">
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-del-btn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
 
     <script>
@@ -93,17 +203,123 @@
 
             if (data.length > 0) {
                 table.innerHTML = ""; // Clear previous data
-                data.forEach((bin) => {
+                data.forEach((cleaner) => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
-                    <td class="py-3">${bin.ID}</td>
-                    <td class="py-3">${bin.name}</td>
-                    <td class="py-3">${bin.gender}</td>
-                `;
+                    <td class="py-3">${cleaner.ID}</td>
+                    <td class="py-3">${cleaner.name}</td>
+                    <td class="py-3">${cleaner.gender}</td>
+                    <td class="py-3">${cleaner.IC}</td>
+                    <td class="py-3">${cleaner.email}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="del(${cleaner.ID})">Delete</button>
+                        <button type="button" class="btn btn-primary" onclick="edit(${cleaner.ID})">Edit</button>
+                    </td>
+                    `;
                     table.appendChild(row);
                 });
             }
         }
+
+        async function del(id) {
+            const response = await fetch(`http://localhost:3000/fetchCleaner/${id}`);
+            const data = await response.json();
+            const modalBody = document.querySelector("#modal3 #confirmation-body");
+            modalBody.innerHTML = `Are you sure you wanted to delete ${data[0].name} from the cleaner list?`
+
+            let confirmModal = new bootstrap.Modal(document.getElementById("modal3"));
+            confirmModal.show(); // Show the third modal
+
+            document.getElementById("confirm-del-btn").dataset.cleanerID = id; // Store the clener info in confirm btn
+        }
+
+        document.getElementById("confirm-del-btn").addEventListener("click", async () => {
+            const cleanerID = document.getElementById("confirm-del-btn").dataset.cleanerID; // Fetch the data in confirm btn
+
+            const response = await fetch(`http://localhost:3000/deleteCleaner/${cleanerID}`);
+            const data = await response.json();
+            if (data.status == "success") {
+                let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
+                modal3.hide(); // Hide the second modal
+                document.getElementById("modal3").addEventListener('hidden.bs.modal', function () {
+                    alert("Cleaner removed.");
+                });
+                loadCleaner();
+            } else if (data.status == "failed") {
+                let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
+                modal3.hide(); // Hide the third modal
+                document.getElementById("modal3").addEventListener('hidden.bs.modal', function () {
+                    alert("Failed to remove cleaner.");
+                });
+                loadCleaner();
+            }
+        })
+
+        document.getElementById("modal1").addEventListener('show.bs.modal', function () { // Clear the previous content in the form
+            document.getElementById("name").value = "";
+            document.querySelectorAll('input[name="gender"]').forEach(radio => radio.checked = false);
+            document.getElementById("ic").value = "";
+            document.getElementById("email").value = "";
+        });
+
+        document.getElementById("cleaner-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            if (form.checkValidity()) {
+                const name = document.getElementById("name").value.toUpperCase();
+                const genderRadios = document.getElementsByName("gender");
+                let gender = "";
+
+                for (let radio of genderRadios) {
+                    if (radio.checked) {
+                        gender = radio.value;
+                        break;
+                    }
+                }
+                const ic = document.getElementById("ic").value;
+                const email = document.getElementById("email").value.toLowerCase();
+
+                const cleanerInfo = { name: name, gender: gender, ic: ic, email: email }; // Temporary storage
+                const modalBody = document.querySelector("#modal2 #confirmation-body");
+                modalBody.innerHTML = `Are you sure you wanted to add ${name} as new cleaner?`
+
+                let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
+                modal1.hide(); // Hide the first modal
+
+                let confirmModal = new bootstrap.Modal(document.getElementById("modal2"));
+                confirmModal.show(); // Show the second modal
+
+                document.getElementById("confirm-add-btn").dataset.cleanerInfo = JSON.stringify(cleanerInfo); // Store the clener info in confirm btn
+            }
+        })
+
+        document.getElementById("confirm-add-btn").addEventListener("click", async () => {
+            const cleanerInfo = JSON.parse(document.getElementById("confirm-add-btn").dataset.cleanerInfo); // Fetch the data in confirm btn
+
+            const response = await fetch("http://localhost:3000/addCleaner", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(cleanerInfo)
+            });
+            const data = await response.json();
+            if (data.status == "success") {
+                let modal2 = bootstrap.Modal.getInstance(document.getElementById("modal2"));
+                modal2.hide(); // Hide the second modal
+                document.getElementById("modal2").addEventListener('hidden.bs.modal', function () {
+                    alert("New cleaner added.");
+                });
+                loadCleaner();
+            } else if (data.status == "failed") {
+                let modal2 = bootstrap.Modal.getInstance(document.getElementById("modal2"));
+                modal2.hide(); // Hide the second modal
+                document.getElementById("modal2").addEventListener('hidden.bs.modal', function () {
+                    alert("Failed to add new cleaner.");
+                });
+                loadCleaner();
+            }
+        })
 
         window.onload = loadCleaner(); // Fetch data when page loads
     </script>

@@ -133,6 +133,11 @@ async function portConnection() { // Function to connect to the serial port
                         } catch (err) {
                             console.log(err);
                         }
+                        try {
+                            let insert = await database.query("INSERT INTO bin_history (binID, accumulation, creation, status, collectorID, collectionDate, collectionTime) VALUES (?,?,?,?,?,?,?)", [binID, accumulation, new Date(), 'unavailable', 'undefined']);
+                        } catch (error) {
+                            console.log(error);
+                        }
                         const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
                         const [email] = await database.query("SELECT email FROM administrator");
                         let emailList = [];
@@ -262,7 +267,7 @@ app.post('/verification', async (req, res) => {
                 res.json({ status: "expired" });
             } else if (pinExists == 1) {
                 const originalpin = await redis.get(pin);
-                
+
                 const verification = speakeasy.totp.verify({ // Verify the one-time password
                     secret: originalpin, // The correct otp (raw)
                     encoding: "base32",
@@ -291,14 +296,14 @@ app.post('/resetpassword', async (req, res) => {
     const { email, password, confirmpassword } = req.body;
     const pin = `pin:${email}`;
 
-    try{
+    try {
         const [reset] = await database.query("UPDATE administrator SET password = ? WHERE email = ?", [password, email]);
-        if(reset.warningStatus == 0){
-            res.json({status: "success"});
+        if (reset.warningStatus == 0) {
+            res.json({ status: "success" });
         } else {
-            res.json({status: "failed"});
+            res.json({ status: "failed" });
         }
-    }catch(error){
+    } catch (error) {
         console.error("Database error:", error);
     }
 })
@@ -375,6 +380,56 @@ app.get('/loadCleaner', async (req, res) => {
     try {
         const [cleaners] = await database.query("SELECT * FROM cleaner");
         res.json(cleaners);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.post('/addCleaner', async (req, res) => {
+    const { name, gender, ic, email } = req.body;
+    try {
+        const [add] = await database.query("INSERT INTO cleaner (name, gender, IC, email) VALUES(?,?,?,?)", [name, gender, ic, email]);
+        if (add.warningStatus == 0) {
+            res.json({ status: "success" });
+        } else {
+            res.json({ status: "failed" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/fetchCleaner/:id', async (req, res) => {
+    const cleanerID = req.params.id;
+    try{
+        const [fetch] = await database.query("SELECT * FROM cleaner WHERE ID = ?", [cleanerID]);
+        res.json(fetch);
+    }catch(error){
+        console.log(error);
+    }
+})
+
+app.get('/deleteCleaner/:id', async (req, res) => {
+    const cleanerID = req.params.id;
+    try{
+        const [del] = await database.query("DELETE FROM cleaner WHERE ID = ?", [cleanerID]);
+        if(del.warningStatus == 0){
+            res.json({status: "success"});
+        } else {
+            res.json({status: "failed"});
+        }
+    }catch(error){
+        console.log(error);
+    }
+})
+
+// Express for history.html
+app.get('/loadBinHistory/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ?", [id]);
+        console.log(binHistory);
+        res.json(binHistory);
     } catch (error) {
         console.log(error);
     }

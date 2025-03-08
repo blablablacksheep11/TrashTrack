@@ -33,15 +33,15 @@
                             <a class="nav-link" aria-current="page" role="button" href="dashboard.html">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" role="button">History</a>
+                            <a class="nav-link active" role="button">History</a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link active dropdown-toggle" role="button" data-bs-toggle="dropdown"
+                            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
                                 List
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item active" href="bin.html">List of bin</a></li>
+                                <li><a class="dropdown-item" href="bin.html">List of bin</a></li>
                                 <li><a class="dropdown-item" href="cleaner.html">List of cleaner</a></li>
                             </ul>
                         </li>
@@ -64,20 +64,21 @@
     </div>
     <div class="row mt-4 px-5 m-0">
         <table class="table table-hover border caption-top">
-            <caption>List of registered bin</caption>
+            <caption></caption>
             <thead class="table-light">
                 <tr>
                     <th scope="col">Bin ID</th>
-                    <th scope="col">Block</th>
-                    <th scope="col">Level</th>
-                    <th scope="col">Status</th>
                     <th scope="col">Accumulation</th>
-                    <th scope="col">Action</th>
+                    <th scope="col">Request Created At</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Collector</th>
+                    <th scope="col">Collection Date</th>
+                    <th scope="col">Collection Time</th>
                 </tr>
             </thead>
-            <tbody id="registeredbin-table">
+            <tbody id="history-table">
                 <tr>
-                    <td colspan="6" class="text-center py-3">No bin found ...<br><i class="bi bi-trash3 fs-3"></i></td>
+                    <td colspan="7" class="text-center py-3">No history found ...<br><i class="bi bi-clock-history fs-3"></i></td>
                 </tr>
             </tbody>
         </table>
@@ -89,34 +90,32 @@
             console.log("Connected to server");
         });
 
-        async function loadRegisteredBin() {
-            const response = await fetch("http://localhost:3000/loadRegisteredBin");
+        document.querySelector("table caption").innerHTML = "Collection history of Bin "+ sessionStorage.getItem("binIDforhistory");
+
+        async function loadBinHistory() {
+            const response = await fetch(`http://localhost:3000/loadBinHistory/${sessionStorage.getItem("binIDforhistory")}`);
             const data = await response.json();
-            const table = document.getElementById("registeredbin-table");
+            const table = document.getElementById("history-table");
 
             if (data.length > 0) {
                 table.innerHTML = ""; // Clear previous data
-                data.forEach((bin) => {
+                data.forEach((history) => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
-                    <td class="py-3">${bin.ID}</td>
-                    <td class="py-3">${bin.block}</td>
-                    <td class="py-3">${bin.level}</td>
-                    <td class="py-3">${bin.status}</td>
-                    <td class="py-3">${bin.accumulation}%</td>
-                    <td><button class="btn btn-primary" value="${bin.ID}" onclick="history(${bin.ID})">History</button></td>
+                    <td class="py-3">${history.binID}</td>
+                    <td class="py-3">${history.accumulation}</td>
+                    <td class="py-3">${history.creation}</td>
+                    <td class="py-3">${history.status}</td>
+                    <td class="py-3">${history.collectorID}</td>
+                    <td class="py-3">${history.collectionDate}</td>
+                    <td class="py-3">${history.collectionTime}</td>
                 `;
                     table.appendChild(row);
                 });
             }
         }
 
-        async function history(binID) {
-            sessionStorage.setItem("binIDforhistory", binID);
-            window.location.href = "history.html";
-        }
-
-        window.onload = loadRegisteredBin(); // Fetch data when page loads
+        window.onload = loadBinHistory(); // Fetch data when page loads
     </script>
 </body>
 
