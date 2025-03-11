@@ -139,6 +139,9 @@ async function portConnection() { // Function to connect to the serial port
                         } catch (error) {
                             console.log(error);
                         }
+
+                        socket.emit("updateHistory")
+
                         const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
                         const [email] = await database.query("SELECT email FROM administrator");
                         let emailList = [];
@@ -406,26 +409,46 @@ app.post('/addCleaner', async (req, res) => {
     }
 })
 
+app.post('/editCleaner', async (req, res) => {
+    const { cleanerID, name, gender, ic, email } = req.body;
+    console.log(name);
+    console.log(gender);
+    console.log(ic);
+    console.log(email);
+    try {
+        const [edit] = await database.query("UPDATE cleaner SET name = ?, gender = ?, IC = ?, email = ? WHERE ID = ?", [name, gender, ic, email, cleanerID]);
+        console.log(edit);
+        if (edit.warningStatus == 0) {
+            res.json({ status: "success" });
+        } else {
+            res.json({ status: "failed" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
 app.get('/fetchCleaner/:id', async (req, res) => {
     const cleanerID = req.params.id;
-    try{
+    try {
         const [fetch] = await database.query("SELECT * FROM cleaner WHERE ID = ?", [cleanerID]);
+        console.log(fetch);
         res.json(fetch);
-    }catch(error){
+    } catch (error) {
         console.log(error);
     }
 })
 
 app.get('/deleteCleaner/:id', async (req, res) => {
     const cleanerID = req.params.id;
-    try{
+    try {
         const [del] = await database.query("DELETE FROM cleaner WHERE ID = ?", [cleanerID]);
-        if(del.warningStatus == 0){
-            res.json({status: "success"});
+        if (del.warningStatus == 0) {
+            res.json({ status: "success" });
         } else {
-            res.json({status: "failed"});
+            res.json({ status: "failed" });
         }
-    }catch(error){
+    } catch (error) {
         console.log(error);
     }
 })
@@ -435,6 +458,14 @@ app.get('/loadBinHistory/:id', async (req, res) => {
     const id = req.params.id;
     try {
         const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ?", [id]);
+        binHistory.forEach(history => {
+            if (history.creation != null) {
+                history.creation = history.creation.toLocaleString();
+            }
+            if (history.collection != null) {
+                history.collection = history.collection.toLocaleString();
+            }
+        })
         console.log(binHistory);
         res.json(binHistory);
     } catch (error) {

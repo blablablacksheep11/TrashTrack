@@ -111,34 +111,34 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body border-0 py-0 pb-3">
-                        <form id="cleaner-form">
+                        <form id="add-cleaner-form">
                             <div class="mb-3">
-                                <label for="name" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="name" placeholder="name" required>
+                                <label for="name1" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name1" placeholder="name" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Gender</label><br>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="gender" id="male" value="male"
+                                    <input class="form-check-input" type="radio" name="gender1" id="male1" value="male"
                                         required>
-                                    <label class="form-check-label" for="male">Male<i
+                                    <label class="form-check-label" for="male1">Male<i
                                             class="bi bi-gender-male ms-1"></i></label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="gender" id="female"
+                                    <input class="form-check-input" type="radio" name="gender1" id="female1"
                                         value="female">
-                                    <label class="form-check-label" for="female">Female<i
+                                    <label class="form-check-label" for="female1">Female<i
                                             class="bi bi-gender-female ms-1"></i></label>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label for="ic" class="form-label">IC number</label>
-                                <input type="text" class="form-control" id="ic" placeholder="000000-00-0000"
+                                <label for="ic1" class="form-label">IC number</label>
+                                <input type="text" class="form-control" id="ic1" placeholder="000000-00-0000"
                                     pattern="^\d{6}-\d{2}-\d{4}$" required>
                             </div>
                             <div class="mb-3">
-                                <label for="email" class="form-label">Email address</label>
-                                <input type="email" class="form-control" id="email" placeholder="xxxxx@example.com"
+                                <label for="email1" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="email1" placeholder="xxxxx@example.com"
                                     required>
                             </div>
                             <div class="mt-4 text-end">
@@ -188,6 +188,55 @@
             </div>
         </div>
     </div>
+
+    <!-- Edit cleaner form -->
+    <div class="modal fade" id="modal4" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Cleaner</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body border-0 py-0 pb-3">
+                    <form id="edit-cleaner-form">
+                        <div class="mb-3">
+                            <label for="name2" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name2" placeholder="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Gender</label><br>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="gender2" id="male2" value="male"
+                                    required>
+                                <label class="form-check-label" for="male2">Male<i
+                                        class="bi bi-gender-male ms-1"></i></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="gender2" id="female2" value="female">
+                                <label class="form-check-label" for="female2">Female<i
+                                        class="bi bi-gender-female ms-1"></i></label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ic2" class="form-label">IC number</label>
+                            <input type="text" class="form-control" id="ic2" placeholder="000000-00-0000"
+                                pattern="^\d{6}-\d{2}-\d{4}$" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email2" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email2" placeholder="xxxxx@example.com"
+                                required>
+                        </div>
+                        <div class="mt-4 text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                id="close-btn">Close</button>
+                            <button type="submit" class="btn btn-primary" id="save-btn">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
 
     <script>
@@ -219,6 +268,29 @@
                     table.appendChild(row);
                 });
             }
+        }
+
+        async function edit(id) {
+            const response = await fetch(`http://localhost:3000/fetchCleaner/${id}`);
+            const data = await response.json();
+
+            const name = document.querySelector("#modal4 #edit-cleaner-form #name2");
+            name.value = data[0].name;
+
+            if (data[0].gender == "male") {
+                document.querySelector("#modal4 #edit-cleaner-form #male2").checked = true;
+            } else if (data[0].gender == "female") {
+                document.querySelector("#modal4 #edit-cleaner-form #female2").checked = true;
+            }
+            const ic = document.querySelector("#modal4 #edit-cleaner-form #ic2");
+            ic.value = data[0].IC;
+            const email = document.querySelector("#modal4 #edit-cleaner-form #email2");
+            email.value = data[0].email;
+
+            let editModal = new bootstrap.Modal(document.getElementById("modal4"));
+            editModal.show(); // Show the third modal
+
+            document.getElementById("save-btn").dataset.cleanerID = id; // Store the clener id in save btn
         }
 
         async function del(id) {
@@ -256,18 +328,18 @@
         })
 
         document.getElementById("modal1").addEventListener('show.bs.modal', function () { // Clear the previous content in the form
-            document.getElementById("name").value = "";
-            document.querySelectorAll('input[name="gender"]').forEach(radio => radio.checked = false);
-            document.getElementById("ic").value = "";
-            document.getElementById("email").value = "";
+            document.getElementById("name1").value = "";
+            document.querySelectorAll('input[name="gender1"]').forEach(radio => radio.checked = false);
+            document.getElementById("ic1").value = "";
+            document.getElementById("email1").value = "";
         });
 
-        document.getElementById("cleaner-form").addEventListener("submit", async (e) => {
+        document.getElementById("add-cleaner-form").addEventListener("submit", async (e) => {
             e.preventDefault();
             const form = e.target;
             if (form.checkValidity()) {
-                const name = document.getElementById("name").value.toUpperCase();
-                const genderRadios = document.getElementsByName("gender");
+                const name = document.getElementById("name1").value.toUpperCase();
+                const genderRadios = document.getElementsByName("gender1");
                 let gender = "";
 
                 for (let radio of genderRadios) {
@@ -276,8 +348,8 @@
                         break;
                     }
                 }
-                const ic = document.getElementById("ic").value;
-                const email = document.getElementById("email").value.toLowerCase();
+                const ic = document.getElementById("ic1").value;
+                const email = document.getElementById("email1").value.toLowerCase();
 
                 const cleanerInfo = { name: name, gender: gender, ic: ic, email: email }; // Temporary storage
                 const modalBody = document.querySelector("#modal2 #confirmation-body");
@@ -290,6 +362,48 @@
                 confirmModal.show(); // Show the second modal
 
                 document.getElementById("confirm-add-btn").dataset.cleanerInfo = JSON.stringify(cleanerInfo); // Store the clener info in confirm btn
+            }
+        })
+
+        document.getElementById("edit-cleaner-form").addEventListener("submit", async (e) => {
+            const cleanerID = JSON.parse(document.getElementById("save-btn").dataset.cleanerID); // Fetch the data in save btn
+
+            e.preventDefault();
+            const form = e.target;
+            if (form.checkValidity()) {
+                const name = document.getElementById("name2").value.toUpperCase();
+                const genderRadios = document.getElementsByName("gender2");
+                let gender = "";
+
+                for (let radio of genderRadios) {
+                    if (radio.checked) {
+                        gender = radio.value;
+                        break;
+                    }
+                }
+                const ic = document.getElementById("ic2").value;
+                const email = document.getElementById("email2").value.toLowerCase();
+
+                const response = await fetch("http://localhost:3000/editCleaner", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({cleanerID, name, gender, ic, email })
+                });
+                const data = await response.json();
+                if (data.status == "success") {
+                    let modal = bootstrap.Modal.getInstance(document.getElementById("modal4"));
+                    modal.hide(); // Hide the first modal
+                    loadCleaner();
+                } else if (data.status == "failed") {
+                    let modal = bootstrap.Modal.getInstance(document.getElementById("modal4"));
+                    await modal.hide(); // Hide the first modal
+                    document.getElementById("modal4").addEventListener('hidden.bs.modal', function () {
+                        alert("Failed to edit cleaner information.");
+                    });
+                    loadCleaner();
+                }
             }
         })
 
