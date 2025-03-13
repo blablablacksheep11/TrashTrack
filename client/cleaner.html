@@ -237,7 +237,6 @@
             </div>
         </div>
     </div>
-    </div>
 
     <script>
         const socket = io('http://localhost:3000');
@@ -288,7 +287,7 @@
             email.value = data[0].email;
 
             let editModal = new bootstrap.Modal(document.getElementById("modal4"));
-            editModal.show(); // Show the third modal
+            editModal.show(); // Show the edit modal
 
             document.getElementById("save-btn").dataset.cleanerID = id; // Store the clener id in save btn
         }
@@ -300,26 +299,26 @@
             modalBody.innerHTML = `Are you sure you wanted to delete ${data[0].name} from the cleaner list?`
 
             let confirmModal = new bootstrap.Modal(document.getElementById("modal3"));
-            confirmModal.show(); // Show the third modal
+            confirmModal.show(); // Show the confirm delete modal
 
             document.getElementById("confirm-del-btn").dataset.cleanerID = id; // Store the clener info in confirm btn
         }
 
-        document.getElementById("confirm-del-btn").addEventListener("click", async () => {
+        document.getElementById("confirm-del-btn").addEventListener("click", async () => { // When confirm btn click in confirm delete modal
             const cleanerID = document.getElementById("confirm-del-btn").dataset.cleanerID; // Fetch the data in confirm btn
 
             const response = await fetch(`http://localhost:3000/deleteCleaner/${cleanerID}`);
             const data = await response.json();
             if (data.status == "success") {
                 let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
-                modal3.hide(); // Hide the second modal
+                modal3.hide(); // Hide the confirmation modal
                 document.getElementById("modal3").addEventListener('hidden.bs.modal', function () {
                     alert("Cleaner removed.");
                 });
                 loadCleaner();
             } else if (data.status == "failed") {
                 let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
-                modal3.hide(); // Hide the third modal
+                modal3.hide(); // Hide the confirmation modal
                 document.getElementById("modal3").addEventListener('hidden.bs.modal', function () {
                     alert("Failed to remove cleaner.");
                 });
@@ -334,7 +333,7 @@
             document.getElementById("email1").value = "";
         });
 
-        document.getElementById("add-cleaner-form").addEventListener("submit", async (e) => {
+        document.getElementById("add-cleaner-form").addEventListener("submit", async (e) => { // When add cleaner form is filled and submitted
             e.preventDefault();
             const form = e.target;
             if (form.checkValidity()) {
@@ -356,16 +355,16 @@
                 modalBody.innerHTML = `Are you sure you wanted to add ${name} as new cleaner?`
 
                 let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
-                modal1.hide(); // Hide the first modal
+                modal1.hide(); // Hide the add form modal
 
                 let confirmModal = new bootstrap.Modal(document.getElementById("modal2"));
-                confirmModal.show(); // Show the second modal
+                confirmModal.show(); // Show the confirmation modal
 
                 document.getElementById("confirm-add-btn").dataset.cleanerInfo = JSON.stringify(cleanerInfo); // Store the clener info in confirm btn
             }
         })
 
-        document.getElementById("edit-cleaner-form").addEventListener("submit", async (e) => {
+        document.getElementById("edit-cleaner-form").addEventListener("submit", async (e) => { // When the save btn is clicked in the edit modal
             const cleanerID = JSON.parse(document.getElementById("save-btn").dataset.cleanerID); // Fetch the data in save btn
 
             e.preventDefault();
@@ -389,16 +388,16 @@
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({cleanerID, name, gender, ic, email })
+                    body: JSON.stringify({ cleanerID, name, gender, ic, email })
                 });
                 const data = await response.json();
                 if (data.status == "success") {
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal4"));
-                    modal.hide(); // Hide the first modal
+                    modal.hide(); // Hide the edit modal
                     loadCleaner();
                 } else if (data.status == "failed") {
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal4"));
-                    await modal.hide(); // Hide the first modal
+                    await modal.hide(); // Hide the edit modal
                     document.getElementById("modal4").addEventListener('hidden.bs.modal', function () {
                         alert("Failed to edit cleaner information.");
                     });
@@ -407,7 +406,7 @@
             }
         })
 
-        document.getElementById("confirm-add-btn").addEventListener("click", async () => {
+        document.getElementById("confirm-add-btn").addEventListener("click", async () => {  // When the confirm button is clicked for add cleaner
             const cleanerInfo = JSON.parse(document.getElementById("confirm-add-btn").dataset.cleanerInfo); // Fetch the data in confirm btn
 
             const response = await fetch("http://localhost:3000/addCleaner", {
@@ -420,14 +419,14 @@
             const data = await response.json();
             if (data.status == "success") {
                 let modal2 = bootstrap.Modal.getInstance(document.getElementById("modal2"));
-                modal2.hide(); // Hide the second modal
+                modal2.hide(); // Hide the confirmation modal
                 document.getElementById("modal2").addEventListener('hidden.bs.modal', function () {
                     alert("New cleaner added.");
                 });
                 loadCleaner();
             } else if (data.status == "failed") {
                 let modal2 = bootstrap.Modal.getInstance(document.getElementById("modal2"));
-                modal2.hide(); // Hide the second modal
+                modal2.hide(); // Hide the confirmation modal
                 document.getElementById("modal2").addEventListener('hidden.bs.modal', function () {
                     alert("Failed to add new cleaner.");
                 });

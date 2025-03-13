@@ -30,7 +30,7 @@
                         <div class="input-group m-0">
                             <span class="input-group-text" id="basic-addon1"><i class="bi bi-envelope"></i></span>
                             <input type="password" class="form-control" placeholder="Password" id="password"
-                                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$"
+                                pattern="(?=.*\d)(?=.*[_@$!%*?&])(?=.*[a-z])(?=.*[A-Z]).{6,}"
                                 title="Password must be at least 6 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)."
                                 required>
                         </div>
@@ -91,7 +91,7 @@
                     if (data.status == "success") {
                         sessionStorage.removeItem("email");
                         if (confirm("Your password has been changed. Please login with your new password.")) {
-                            window.location.href = "./signin.html";
+                            window.location.href = "./signin.html"; // Redirect to signin page
                         }
                     } else if (data.status == "failed") {
                         const toast = document.getElementById('toast');
@@ -107,6 +107,7 @@
                 }
             } else {
                 form.reportValidity();
+                console.log(document.getElementById("password").value);
             }
         })
     </script>

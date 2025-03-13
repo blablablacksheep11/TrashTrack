@@ -473,6 +473,72 @@ app.get('/loadBinHistory/:id', async (req, res) => {
     }
 })
 
+app.get('/deleteHistory/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const [del] = await database.query("DELETE FROM bin_history WHERE ID = ?", [id]);
+        if (del.warningStatus == 0) {
+            res.json({ status: "success" });
+        } else if (del.warningStatus != 0) {
+            res.json({ status: "failed" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/fetchHistory/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const [fetch] = await database.query("SELECT * FROM bin_history WHERE ID = ?", [id]);
+        console.log(fetch);
+        // The datetime will be returned in timezone format
+        // Split datetime into date and time
+        // Convert date and time to locale string
+        if (fetch[0].creation != null) {
+            const creationDateTime = fetch[0].creation.toLocaleString().split(",");
+            fetch[0].creationDate = creationDateTime[0];
+            fetch[0].creationTime = creationDateTime[1];
+            delete fetch[0].creation;
+        }
+        if (fetch[0].collection != null) {
+            const collectionDateTime = fetch[0].collection.toLocaleString().split(",");
+            fetch[0].collectionDate = collectionDateTime[0];
+            fetch[0].collectionTime = collectionDateTime[1];
+            delete fetch[0].collection;
+        }
+        console.log(fetch);
+        res.json(fetch);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/getCleanerList', async (req, res) => {
+    try {
+        const [cleanerList] = await database.query("SELECT * FROM cleaner");
+        res.json(cleanerList);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.post('/editHistory', async (req, res) => {
+    // Unlike fetch hsitory, the colleection datetime is already preprocessed on the client side (history.html)
+    const { historyID, collector, collection } = req.body;
+    console.log(req.body);
+    try {
+        const [edit] = await database.query("UPDATE bin_history SET collectorID = ?, collection =? WHERE ID = ?", [collector, collection, historyID]);
+        if (edit.warningStatus == 0) {
+            res.json({ status: "success" });
+        } else if (edit.warningStatus != 0) {
+            res.json({ status: "failed" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
 server.listen(3000, () => {
     console.log('Server is running on port 3000');
 })

@@ -54,7 +54,8 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item">View</a></li>
-                                <li><a class="dropdown-item" onclick="window.location.replace('signin.html')">Sign Out</a></li>
+                                <li><a class="dropdown-item" onclick="window.location.replace('signin.html')">Sign
+                                        Out</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -73,14 +74,99 @@
                     <th scope="col">Status</th>
                     <th scope="col">Collector</th>
                     <th scope="col">Collection</th>
+                    <th scope="col">Action</th>
                 </tr>
             </thead>
             <tbody id="history-table">
                 <tr>
-                    <td colspan="7" class="text-center py-3">No history found ...<br><i class="bi bi-clock-history fs-3"></i></td>
+                    <td colspan="8" class="text-center py-3">No history found ...<br><i
+                            class="bi bi-clock-history fs-3"></i></td>
                 </tr>
             </tbody>
         </table>
+    </div>
+
+    <!-- Delete history confirmation modal -->
+    <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Delete history</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body border-0" id="confirmation-body">
+                    Are you sure you want to delete the selected history?
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-del-btn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit history form -->
+    <div class="modal fade" id="modal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Edit History</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body border-0 py-0 pb-3">
+                    <form id="edit-history-form">
+                        <div class="mb-3">
+                            <label for="id" class="form-label">Bin ID</label>
+                            <input type="text" class="form-control" id="id" placeholder="Bin ID" disabled readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="accumulation" class="form-label">Accumulation</label>
+                            <input type="text" class="form-control" id="accumulation" placeholder="Accumulation"
+                                disabled readonly>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="creation-date" class="form-label">Request Creation Date</label>
+                                <input type="date" class="form-control" id="creation-date"
+                                    placeholder="Request Creation Date" disabled readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="creation-time" class="form-label">Request Creation Time</label>
+                                <input type="time" class="form-control" id="creation-time"
+                                    placeholder="Request Creation Time" disabled readonly>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <input type="text" class="form-control" id="status" placeholder="Status" disabled readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="collector" class="form-label">Collector</label>
+                            <select class="form-select" aria-label="Default select example" id="collector" required>
+                                <option selected hidden>Collector</option>
+                            </select>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="collection-date" class="form-label">Collection Date</label>
+                                <input type="date" class="form-control" id="collection-date"
+                                    placeholder="Collection Date" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="collection-time" class="form-label">Collection Time</label>
+                                <input type="time" class="form-control" id="collection-time"
+                                    placeholder="Collection Time" step="1" required>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                id="close-btn">Close</button>
+                            <button type="submit" class="btn btn-primary" id="save-btn">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -89,7 +175,9 @@
             console.log("Connected to server");
         });
 
-        document.querySelector("table caption").innerHTML = "Collection history of Bin "+ sessionStorage.getItem("binIDforhistory");
+        window.onload = loadBinHistory(); // Fetch data when page loads
+
+        document.querySelector("table caption").innerHTML = "Collection history of Bin " + sessionStorage.getItem("binIDforhistory");
 
         async function loadBinHistory() {
             const response = await fetch(`http://localhost:3000/loadBinHistory/${sessionStorage.getItem("binIDforhistory")}`);
@@ -107,13 +195,145 @@
                     <td class="py-3">${history.status}</td>
                     <td class="py-3">${history.collectorID}</td>
                     <td class="py-3">${history.collection}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="del(${history.ID})">Delete</button>
+                        <button type="button" class="btn btn-primary" onclick="edit(${history.ID})">Edit</button>
+                    </td>
                 `;
                     table.appendChild(row);
                 });
             }
         }
 
-        window.onload = loadBinHistory(); // Fetch data when page loads
+        async function del(id) {
+            let confirmModal = new bootstrap.Modal(document.getElementById("modal1"));
+            confirmModal.show(); // Show the confirmation modal
+
+            document.getElementById("confirm-del-btn").dataset.historyID = id; // Store the history ID in confirm btn
+        }
+
+        document.getElementById("confirm-del-btn").addEventListener("click", async () => {  // When confirm btn clicked for history delete
+            const historyID = document.getElementById("confirm-del-btn").dataset.historyID; // Fetch the data in confirm btn
+
+            const response = await fetch(`http://localhost:3000/deleteHistory/${historyID}`);
+            const data = await response.json();
+            if (data.status == "success") {
+                let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
+                modal1.hide(); // Hide the confirmation modal
+                document.getElementById("modal1").addEventListener('hidden.bs.modal', function () {
+                    alert("History removed.");
+                });
+                loadBinHistory();
+            } else if (data.status == "failed") {
+                let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
+                modal1.hide(); // Hide the confirmation modal
+                document.getElementById("modal1").addEventListener('hidden.bs.modal', function () {
+                    alert("Failed to remove history.");
+                });
+                loadBinHistory();
+            }
+        })
+
+        // Convert request creation date to "YYYY-MM-DD" format (for <input type="date">)
+        function convertDate(date) {
+            let dateParts = date.split('/');
+            let formattedDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+            return formattedDate;
+        }
+
+        // Convert request creation time to "HH:MM" 24-hour format (for <input type="time">)
+        function convertTime(time) {
+            let timeParts = time.trim().split(/[: ]/);
+            let hours = parseInt(timeParts[0]);
+            let minutes = timeParts[1];
+            let seconds = timeParts[2];
+            let period = timeParts[3]; // AM or PM
+
+            if (period.toLowerCase() === "pm" && hours !== 12) {
+                hours += 12; // Convert PM hours to 24-hour format
+            } else if (period.toLowerCase() === "am" && hours === 12) {
+                hours = 0; // Convert 12 AM to 00
+            }
+
+            let formattedTime = `${hours.toString().padStart(2, '0')}:${minutes}:${seconds}`;
+            return formattedTime;
+        }
+
+        // Get all available cleaner (for <select>)
+        async function getCleanerList() {
+            document.getElementById("collector").innerHTML = "";
+            const response = await fetch('http://localhost:3000/getCleanerList');
+            const data = await response.json();
+            data.forEach(cleaner => {
+                let option = document.createElement('option');
+                option.value = cleaner.ID;
+                option.text = cleaner.name;
+                document.getElementById("collector").appendChild(option);
+            })
+        }
+
+        async function edit(id) {
+            const response = await fetch(`http://localhost:3000/fetchHistory/${id}`);
+            const data = await response.json();
+
+            // Load the current record into the form
+            // Some of the value is unchangable in the form
+            // Date and time will be returned for server in LocaleString format, conversion is required to fit html date and time field format
+            document.querySelector("#modal2 #edit-history-form #id").value = data[0].ID;
+            document.querySelector("#modal2 #edit-history-form #accumulation").value = `${data[0].accumulation}%`;
+            document.querySelector("#modal2 #edit-history-form #creation-date").value = convertDate(data[0].creationDate);
+            document.querySelector("#modal2 #edit-history-form #creation-time").value = convertTime(data[0].creationTime);
+            document.querySelector("#modal2 #edit-history-form #status").value = data[0].status;
+            document.querySelector("#modal2 #edit-history-form #collection-date").value = convertDate(data[0].collectionDate);
+            document.querySelector("#modal2 #edit-history-form #collection-time").value = convertTime(data[0].collectionTime);
+            await getCleanerList();
+            document.querySelector("#modal2 #edit-history-form #collector").value = data[0].collectorID;
+
+            let editModal = new bootstrap.Modal(document.getElementById("modal2"));
+            editModal.show(); // Show the confirmation modal
+
+            document.getElementById("save-btn").dataset.historyID = id; // Store the clener id in save btn
+        }
+
+        document.getElementById("edit-history-form").addEventListener("submit", async (e) => { // When confirm btn clicked for edit history
+            const historyID = JSON.parse(document.getElementById("save-btn").dataset.historyID); // Fetch the data in save btn
+
+            e.preventDefault();
+            const form = e.target;
+            if (form.checkValidity()) {
+                const collector = document.getElementById("collector").value;
+                const collectionDate = document.getElementById("collection-date").value;
+                const collectionTime = document.getElementById("collection-time").value;
+                const collection = `${collectionDate} ${collectionTime}`; 
+                // The date and time returned by html is already suitable for mysql format
+                // No special convertion is required
+                // Binning is required becuse MySQL use datetime datatype
+
+                const response = await fetch("http://localhost:3000/editHistory", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ historyID, collector, collection })
+                });
+                const data = await response.json();
+                if (data.status == "success") {
+                    let modal = bootstrap.Modal.getInstance(document.getElementById("modal2"));
+                    modal.hide(); // Hide the edit history modal
+                    document.getElementById("modal2").addEventListener('hidden.bs.modal', function () {
+                        alert("History updated.");
+                    });
+                    loadBinHistory();
+                } else if (data.status == "failed") {
+                    let modal = bootstrap.Modal.getInstance(document.getElementById("modal2"));
+                    modal.hide(); // Hide the edit history modal
+                    document.getElementById("modal2").addEventListener('hidden.bs.modal', function () {
+                        alert("Failed to update history.");
+                    });
+                    loadBinHistory();
+                }
+            }
+        })
     </script>
 </body>
 
