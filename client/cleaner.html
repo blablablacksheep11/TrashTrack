@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -22,6 +22,10 @@
 
         .bi-gender-male {
             color: #0096FF;
+        }
+
+        #theme::after {
+            display: none !important;
         }
     </style>
 </head>
@@ -67,6 +71,18 @@
                                         Out</a></li>
                             </ul>
                         </li>
+                        <div class="dropdown p-0 m-0">
+                            <button class="btn btn-transparent dropdown-toggle border" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false" id="theme">
+                                <i class="bi bi-brightness-high"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item active" id="light-theme" onclick="change(1)"><i
+                                            class="bi bi-brightness-high"></i>&nbsp;&nbsp;Light</a></li>
+                                <li><a class="dropdown-item" id="dark-theme" onclick="change(0)"><i
+                                            class="bi bi-moon"></i>&nbsp;&nbsp;Dark</a></li>
+                            </ul>
+                        </div>
                     </ul>
                 </div>
             </div>
@@ -79,7 +95,7 @@
                         data-bs-target="#modal1"><i class="bi bi-plus-lg me-1"></i>Add</button></caption>
             </div>
 
-            <thead class="table-light">
+            <thead class="table">
                 <tr>
                     <th scope="col">Cleaner ID</th>
                     <th scope="col">Name</th>
@@ -308,6 +324,37 @@
             document.getElementById("confirm-del-btn").dataset.cleanerID = id; // Store the clener info in confirm btn
         }
 
+        async function change(mode) {
+            let htmlTag = document.documentElement; // Select the <html> tag
+
+            if (mode == 1) {  // Switch to light mode
+                if (htmlTag.getAttribute("data-bs-theme") == "dark") {
+                    htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
+                    htmlTag.setAttribute("data-bs-theme", "light");  // Set light mode
+                    document.getElementById("light-theme").classList.add("active");
+                    document.getElementById("dark-theme").classList.remove("active");
+                    sessionStorage.setItem("theme", "light");
+                }
+            } else if (mode == 0) {  // Switch to dark mode
+                if (htmlTag.getAttribute("data-bs-theme") == "light") {
+                    htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
+                    htmlTag.setAttribute("data-bs-theme", "dark");  // Set dark mode
+                    document.getElementById("light-theme").classList.remove("active");
+                    document.getElementById("dark-theme").classList.add("active");
+                    sessionStorage.setItem("theme", "dark");
+                }
+            }
+        }
+
+        async function getTheme() {
+            const theme = sessionStorage.getItem("theme");
+            if (theme == "light") {
+                change(1);
+            } else if (theme == "dark") {
+                change(0);
+            }
+        }
+
         document.getElementById("confirm-del-btn").addEventListener("click", async () => { // When confirm btn click in confirm delete modal
             const cleanerID = document.getElementById("confirm-del-btn").dataset.cleanerID; // Fetch the data in confirm btn
 
@@ -438,7 +485,10 @@
             }
         })
 
-        window.onload = loadCleaner(); // Fetch data when page loads
+        window.onload = () => {
+            loadCleaner(); // Fetch data when page loads
+            getTheme();
+        }
     </script>
 </body>
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -15,9 +15,28 @@
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"
         integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+"
         crossorigin="anonymous"></script>
+    <style>
+        .dropdown-toggle::after {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body>
+    <div class="row position-absolute w-100 z-1 p-0 p-3 m-0 text-end">
+        <div class="dropdown p-0 m-0">
+            <button class="btn btn-transparent dropdown-toggle border" type="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <i class="bi bi-brightness-high"></i>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item active" id="light-theme" onclick="change(1)"><i
+                            class="bi bi-brightness-high"></i>&nbsp;&nbsp;Light</a></li>
+                <li><a class="dropdown-item" id="dark-theme" onclick="change(0)"><i
+                            class="bi bi-moon"></i>&nbsp;&nbsp;Dark</a></li>
+            </ul>
+        </div>
+    </div>
     <div class="row h-100 w-100 position-absolute p-0 m-0">
         <div class="col-0 col-md-4 p-0 m-0"></div>
         <div class="col-12 col-md-4 p-0 m-0 d-flex align-items-center">
@@ -93,6 +112,39 @@
                 form.reportValidity();
             }
         })
+
+        async function change(mode) {
+            let htmlTag = document.documentElement; // Select the <html> tag
+
+            if (mode == 1) {  // Switch to light mode
+                if (htmlTag.getAttribute("data-bs-theme") == "dark") {
+                    htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
+                    htmlTag.setAttribute("data-bs-theme", "light");  // Set light mode
+                    document.getElementById("light-theme").classList.add("active");
+                    document.getElementById("dark-theme").classList.remove("active");
+                    sessionStorage.setItem("theme", "light");
+                }
+            } else if (mode == 0) {  // Switch to dark mode
+                if (htmlTag.getAttribute("data-bs-theme") == "light") {
+                    htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
+                    htmlTag.setAttribute("data-bs-theme", "dark");  // Set dark mode
+                    document.getElementById("light-theme").classList.remove("active");
+                    document.getElementById("dark-theme").classList.add("active");
+                    sessionStorage.setItem("theme", "dark");
+                }
+            }
+        }
+
+        async function getTheme() {
+            const theme = sessionStorage.getItem("theme");
+            if (theme == "light") {
+                change(1);
+            } else if (theme == "dark") {
+                change(0);
+            }
+        }
+
+        window.onload = getTheme();
     </script>
 </body>
 
