@@ -168,6 +168,10 @@
             </div>
         </div>
     </div>
+    <!-- Footer -->
+    <div class="row position-absolute w-100 bottom-0 p-0 m-0">
+        <p class="p-0 m-0 text-center fs-6 fw-light">&copy; 2025 LAM YONG QIN. All rights reserved.</p>
+    </div>
 
     <script>
         const socket = io('http://localhost:3000');
@@ -304,7 +308,7 @@
                 const collector = document.getElementById("collector").value;
                 const collectionDate = document.getElementById("collection-date").value;
                 const collectionTime = document.getElementById("collection-time").value;
-                const collection = `${collectionDate} ${collectionTime}`; 
+                const collection = `${collectionDate} ${collectionTime}`;
                 // The date and time returned by html is already suitable for mysql format
                 // No special convertion is required
                 // Binning is required becuse MySQL use datetime datatype
