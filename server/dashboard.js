@@ -8,6 +8,10 @@ import cors from 'cors';
 import mysql from 'mysql2';
 import speakeasy from 'speakeasy';
 import { createClient } from 'redis';
+import PdfPrinter from 'pdfmake';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 const app = express(); // Create an express app
 const server = createServer(app); // Create a server with the express app
@@ -458,14 +462,19 @@ app.get('/loadBinHistory/:id', async (req, res) => {
     const id = req.params.id;
     try {
         const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ?", [id]);
-        binHistory.forEach(history => {
+        for (const history of binHistory) {
+            // Convert the datetime to locale string
             if (history.creation != null) {
                 history.creation = history.creation.toLocaleString();
             }
             if (history.collection != null) {
                 history.collection = history.collection.toLocaleString();
             }
-        })
+
+            // Convert the cleanerID to the cleaner's name
+            const [cleanerName] = await database.query("SELECT name FROM cleaner WHERE ID = ?", [history.collectorID]);
+            history.collectorID = cleanerName[0].name;
+        }
         console.log(binHistory);
         res.json(binHistory);
     } catch (error) {
@@ -524,7 +533,7 @@ app.get('/getCleanerList', async (req, res) => {
 })
 
 app.post('/editHistory', async (req, res) => {
-    // Unlike fetch hsitory, the colleection datetime is already preprocessed on the client side (history.html)
+    // Unlike fetch history, the colleection datetime is already preprocessed on the client side (history.html)
     const { historyID, collector, collection } = req.body;
     console.log(req.body);
     try {
@@ -536,6 +545,82 @@ app.post('/editHistory', async (req, res) => {
         }
     } catch (error) {
         console.log(error);
+    }
+})
+
+app.get('/exportHistory/:id', async (req, res) => {
+    const binID = req.params.id;
+    const fonts = {
+        Roboto: {
+            normal: '../fonts/Roboto-Regular.ttf',
+            bold: '../fonts/Roboto-Medium.ttf',
+            italics: '../fonts/Roboto-Italic.ttf',
+            bolditalics: '../fonts/Roboto-MediumItalic.ttf',
+        },
+    };
+
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const printer = new PdfPrinter(fonts);
+
+    const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ?", [binID]);
+    for (const history of binHistory) {
+        // Convert the datetime to locale string
+        if (history.creation != null) {
+            history.creation = history.creation.toLocaleString();
+        }
+        if (history.collection != null) {
+            history.collection = history.collection.toLocaleString();
+        }
+
+        // Convert the cleanerID to the cleaner's name
+        const [cleanerName] = await database.query("SELECT name FROM cleaner WHERE ID = ?", [history.collectorID]);
+        history.collectorID = `${cleanerName[0].name} (${history.collectorID})`;
+    }
+
+    // Format the data for the table (assuming your query returns an array of objects)
+    const attributes = binHistory.map(history => [
+        history.binID,
+        history.accumulation,
+        history.creation,
+        history.status,
+        history.collectorID,
+        history.collection
+    ]);
+
+    // Document definition with a table
+    const docDefinition = {
+        content: [
+            { text: 'Bin History Report', fontSize: 20, bold: true, margin: [0, 0, 0, 20] },
+            {
+                table: {
+                    headerRows: 1,
+                    body: [
+                        ['Bin ID', 'Accumulation', 'Request Created At', 'Status', 'Collector', 'Collection'], // Table headers
+                        ...attributes // Add the table data from the database
+                    ]
+                }
+            }
+        ],
+    };
+
+    try {
+        const pdfDoc = printer.createPdfKitDocument(docDefinition);
+
+        // Set response headers to force download
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename="custom-filename.pdf"');
+
+        // Pipe the PDF directly to the response object
+        pdfDoc.pipe(res);
+
+        // End the document generation (this will send the file to the client)
+        pdfDoc.end();
+
+        console.log('PDF is being sent to the client for download');
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        res.status(500).send('Error generating PDF');
     }
 })
 
