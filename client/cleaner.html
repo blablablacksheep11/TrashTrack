@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBin</title>
-    <link rel="icon" type="image/svg+xml" href="../img/smart-trash.svg">
+    <title>TrashTrack</title>
+    <link rel="icon" type="image/svg+xml" href="../img/smart-trash-dark.svg">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="../src/main.css">
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -31,10 +31,10 @@
 
 <body>
     <div class="row p-0 m-0">
-        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <nav class="navbar navbar-expand-lg bg-secondary-subtle">
             <div class="container-fluid">
-                <a class="navbar-brand" href="dashboard.html"><img src="../img/smart-trash.svg" alt="TrashTrack"
-                    style="height: 30px;">&nbsp;<label class="fs-6 ps-1"
+                <a class="navbar-brand" href="dashboard.html"><img src="../img/smart-trash-dark.svg" alt="TrashTrack"
+                    style="height: 30px;" id="logo">&nbsp;<label class="fs-6 ps-1"
                     style="cursor: pointer;">TrashTrack</label></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
@@ -67,7 +67,7 @@
                                 Profile
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item">View</a></li>
+                                <li><a class="dropdown-item" onclick="window.location.href = 'profile.html'">View</a></li>
                                 <li><a class="dropdown-item" onclick="window.location.replace('signin.html')">Sign
                                         Out</a></li>
                             </ul>
@@ -331,11 +331,13 @@
 
         async function change(mode) {
             let htmlTag = document.documentElement; // Select the <html> tag
+                let logo = document.getElementById("logo");
 
             if (mode == 1) {  // Switch to light mode
                 if (htmlTag.getAttribute("data-bs-theme") == "dark") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "light");  // Set light mode
+                    logo.src = "../img/smart-trash-dark.svg";
                     document.getElementById("light-theme").classList.add("active");
                     document.getElementById("dark-theme").classList.remove("active");
                     sessionStorage.setItem("theme", "light");
@@ -344,6 +346,7 @@
                 if (htmlTag.getAttribute("data-bs-theme") == "light") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "dark");  // Set dark mode
+                    logo.src = "../img/smart-trash-light.svg";
                     document.getElementById("light-theme").classList.remove("active");
                     document.getElementById("dark-theme").classList.add("active");
                     sessionStorage.setItem("theme", "dark");

@@ -177,6 +177,7 @@ async function portConnection() { // Function to connect to the serial port
                 }
                 try {
                     let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
+                    socket.emit("updateHistory");
                     console.log(collect);
                 } catch (err) {
                     console.log(err);
@@ -359,7 +360,7 @@ app.get('/loadFulledBinTable', async (req, res) => {
     }
 })
 
-app.get('/initializeChart', async (req, res) => {
+app.get('/initializeChart&Graph', async (req, res) => {
     try {
         const [record] = await database.query("SELECT * FROM bin");
         res.json(record);
@@ -368,7 +369,18 @@ app.get('/initializeChart', async (req, res) => {
     }
 })
 
-app.get('/fetchBin/:id', async (req, res) => {
+app.get('/fetchChart/:id', async (req, res) => {
+    const binid = req.params.id;
+    try {
+        const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binid]);
+        console.log(bin);
+        res.json(bin);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/fetchGraph/:id', async (req, res) => {
     const binid = req.params.id;
     try {
         const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binid]);
@@ -467,13 +479,21 @@ app.get('/loadBinHistory/:id', async (req, res) => {
             if (history.creation != null) {
                 history.creation = history.creation.toLocaleString();
             }
+
             if (history.collection != null) {
                 history.collection = history.collection.toLocaleString();
+            } else {
+                history.collection = "Uncollected";
             }
 
-            // Convert the cleanerID to the cleaner's name
-            const [cleanerName] = await database.query("SELECT name FROM cleaner WHERE ID = ?", [history.collectorID]);
-            history.collectorID = cleanerName[0].name;
+            if (history.collectorID != null) {
+                // Convert the cleanerID to the cleaner's name
+                const [cleanerName] = await database.query("SELECT name FROM cleaner WHERE ID = ?", [history.collectorID]);
+                console.log(cleanerName);
+                history.collectorID = cleanerName[0].name;
+            } else {
+                history.collectorID = "Uncollected";
+            }
         }
         console.log(binHistory);
         res.json(binHistory);
@@ -595,13 +615,27 @@ app.get('/exportHistory/:id', async (req, res) => {
             {
                 table: {
                     headerRows: 1,
+                    widths: ['*', '*', '*', '*', '*', '*'], // Set the column width auto fit maximum of page width
                     body: [
-                        ['Bin ID', 'Accumulation', 'Request Created At', 'Status', 'Collector', 'Collection'], // Table headers
-                        ...attributes // Add the table data from the database
+                        [
+                            { text: 'Bin ID', fontSize: 10, fillColor: '#f2f2f2' },
+                            { text: 'Accumulation', fontSize: 10, fillColor: '#f2f2f2' },
+                            { text: 'Request Created At', fontSize: 10, fillColor: '#f2f2f2' },
+                            { text: 'Status', fontSize: 10, fillColor: '#f2f2f2' },
+                            { text: 'Collector', fontSize: 10, fillColor: '#f2f2f2' },
+                            { text: 'Collection', fontSize: 10, fillColor: '#f2f2f2' }
+                        ],  // Table headers
+                        ...attributes.map(row => row.map(cell => ({ text: cell, fontSize: 10 }))) // Add the table data from the database
                     ]
+                },
+                layout: {
+                    hLineWidth: function (i, node) { return 0.2; }, // Horizontal border width
+                    vLineWidth: function (i, node) { return 0.2; }, // Vertical border width
+                    hLineColor: function (i, node) { return '#000000'; }, // Horizontal border color
+                    vLineColor: function (i, node) { return '#000000'; }  // Vertical border color
                 }
             }
-        ],
+        ]
     };
 
     try {
@@ -621,6 +655,32 @@ app.get('/exportHistory/:id', async (req, res) => {
     } catch (error) {
         console.error('Error generating PDF:', error);
         res.status(500).send('Error generating PDF');
+    }
+})
+
+app.get('/loadInfo/:email', async (req, res) => {
+    const email = req.params.email;
+    try {
+        const [admin] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
+        console.log(admin);
+        res.json(admin);
+    } catch (error) {
+        console.error(error);
+    }
+})
+
+app.post('/updateProfile', async (req, res) => {
+    const { adminemail, name, email, gender, phone } = req.body;
+    try {
+        const [edit] = await database.query("UPDATE administrator SET name = ?, email = ?, gender = ?, contact = ? WHERE email = ?", [name, email, gender, phone, adminemail]);
+        console.log(edit);
+        if (edit.warningStatus == 0) {
+            res.json({ status: "success" });
+        } else {
+            res.json({ status: "failed" });
+        }
+    } catch (error) {
+        console.log(error);
     }
 })
 

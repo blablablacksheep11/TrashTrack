@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBin</title>
-    <link rel="icon" type="image/svg+xml" href="../img/smart-trash.svg">
+    <title>TrashTrack</title>
+    <link rel="icon" type="image/svg+xml" href="../img/smart-trash-dark.svg">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="../src/main.css">
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -17,6 +17,11 @@
     <!-- Google Chart -->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <style>
+        body {
+            min-height: 100vh;
+            position: relative;
+        }
+
         #chart_div {
             border-radius: 0.375rem;
         }
@@ -27,12 +32,12 @@
     </style>
 </head>
 
-<body>
+<body class="d-flex flex-column bg-body-tertiary">
     <div class="row p-0 m-0">
-        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <nav class="navbar navbar-expand-lg bg-secondary-subtle">
             <div class="container-fluid">
-                <a class="navbar-brand" href="dashboard.html"><img src="../img/smart-trash.svg" alt="TrashTrack"
-                        style="height: 30px;">&nbsp;<label class="fs-6 ps-1"
+                <a class="navbar-brand" href="dashboard.html"><img src="../img/smart-trash-dark.svg" alt="TrashTrack"
+                        style="height: 30px;" id="logo">&nbsp;<label class="fs-6 ps-1"
                         style="cursor: pointer;">TrashTrack</label></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
@@ -65,7 +70,7 @@
                                 Profile
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item">View</a></li>
+                                <li><a class="dropdown-item" onclick="window.location.href = 'profile.html'">View</a></li>
                                 <li><a class="dropdown-item" onclick="window.location.replace('signin.html')">Sign
                                         Out</a></li>
                             </ul>
@@ -124,7 +129,7 @@
 
     <div class="row mt-4 px-4 m-0">
         <div class="col-md-6">
-            <div id="chart_div" class="border d-flex align-items-center justify-content-center">
+            <div id="chart_div" class="border d-flex align-items-center justify-content-center bg-white">
                 <p class="text-center mt-3">No bin found ...<br><i class="bi bi-trash3 fs-2"></i></p>
             </div>
         </div>
@@ -166,6 +171,13 @@
             </table>
         </div>
     </div>
+    <div class="row mt-4 px-4 m-0 mb-5">
+        <div class="col">
+            <div id="graph_div" class="border d-flex align-items-center justify-content-center bg-white">
+                <p class="text-center mt-3">No bin found ...<br><i class="bi bi-trash3 fs-2"></i></p>
+            </div>
+        </div>
+    </div>
     <!-- Footer -->
     <div class="row position-absolute w-100 bottom-0 p-0 m-0">
         <p class="p-0 m-0 text-center fs-6 fw-light">&copy; 2025 LAM YONG QIN. All rights reserved.</p>
@@ -174,8 +186,8 @@
     <script type="text/javascript">
         async function drawChart(binid, distance) {
             google.charts.load('current', { 'packages': ['corechart'] });
-            google.charts.setOnLoadCallback(draw);
-            function draw() {
+            google.charts.setOnLoadCallback(drawC);
+            function drawC() {
                 // Create the data table.
                 var data = new google.visualization.DataTable();
                 data.addColumn('string', 'Topping');
@@ -199,6 +211,50 @@
                 // Instantiate and draw our chart, passing in some options.
                 var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
                 chart.draw(data, options);
+            }
+        }
+
+        async function drawGraph(binid, distance) {
+            document.getElementById("graph_div").classList.add("py-4");
+            google.charts.load('current', { 'packages': ['line'] });
+            google.charts.setOnLoadCallback(drawG);
+
+            function drawG() {
+
+                var data = new google.visualization.DataTable();
+                data.addColumn('number', 'Date');
+                data.addColumn('number', 'Collection Frequency');
+
+                data.addRows([
+                    [1, 37.8],
+                    [2, 30.9],
+                    [3, 25.4],
+                    [4, 11.7],
+                    [5, 11.9],
+                    [6, 8.8],
+                    [7, 7.6],
+                    [8, 12.3],
+                    [9, 16.9],
+                    [10, 12.8],
+                    [11, 5.3],
+                    [12, 6.6],
+                    [13, 4.8],
+                    [14, 4.2]
+                ]);
+
+                var options = {
+                    'title': `Collection Frequency of Bin${binid}`,
+                    'width': 1300, // Control the canvas width
+                    'height': 450, // Control the canvas height
+                    'chartArea': { width: '90%', height: '67.5%' }, // Determine the chart size in canvas
+                    'tooltip': { isHtml: true },
+                    'colors': ['#007bff', '#ff9800'],
+                    'backgroundColor': 'transparent',
+                };
+
+                var chart = new google.charts.Line(document.getElementById('graph_div'));
+
+                chart.draw(data, google.charts.Line.convertOptions(options));
             }
         }
     </script>
@@ -272,14 +328,14 @@
         }
 
         async function initializeChart() {
-            const response = await fetch("http://localhost:3000/initializeChart");
+            const response = await fetch("http://localhost:3000/initializeChart&Graph");
             const data = await response.json();
             if (data.length > 0) {
                 document.getElementById("chart_div").classList.remove("justify-content-center");
                 document.getElementById("chart_div").classList.add("justify-content-end");
                 let dropdownitem = "";
                 data.forEach((bin) => {
-                    dropdownitem += `<li><a class="dropdown-item" role="button" data-value="${bin.ID}" onclick="fetchBin(${bin.ID})">Bin ${bin.ID}</a></li>`;
+                    dropdownitem += `<li><a class="dropdown-item" role="button" data-value="${bin.ID}" onclick="fetchChart(${bin.ID})">Bin ${bin.ID}</a></li>`;
                 })
                 document.getElementById("chart_div").innerHTML = `
                 <div class="dropdown my-3 me-3">
@@ -296,8 +352,33 @@
             }
         }
 
-        async function fetchBin(binid) {
-            const response = await fetch(`http://localhost:3000/fetchBin/${binid}`);
+        async function initializeGraph() {
+            const response = await fetch("http://localhost:3000/initializeChart&Graph");
+            const data = await response.json();
+            if (data.length > 0) {
+                document.getElementById("graph_div").classList.remove("justify-content-center");
+                document.getElementById("graph_div").classList.add("justify-content-end");
+                let dropdownitem = "";
+                data.forEach((bin) => {
+                    dropdownitem += `<li><a class="dropdown-item" role="button" data-value="${bin.ID}" onclick="fetchGraph(${bin.ID})">Bin ${bin.ID}</a></li>`;
+                })
+                document.getElementById("graph_div").innerHTML = `
+                <div class="dropdown my-3 me-3">
+                    <a class="btn btn-secondary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Select Bin
+                    </a>
+                    <ul class="dropdown-menu">
+                        ${dropdownitem}
+                    </ul>
+                </div>
+                `;
+            } else {
+                document.getElementById("graph_div").innerHTML = `<p class="text-center mt-3">No bin found ...<br><i class="bi bi-trash3 fs-2"></i></p>`;
+            }
+        }
+
+        async function fetchChart(binid) {
+            const response = await fetch(`http://localhost:3000/fetchChart/${binid}`);
             const data = await response.json();
             document.getElementById("chart_div").classList.add("justify-content-center");
             document.getElementById("chart_div").classList.remove("justify-content-end");
@@ -305,13 +386,30 @@
             drawChart(data[0].ID, distance);
         }
 
+        async function fetchGraph(binid) {
+            const response = await fetch(`http://localhost:3000/fetchGraph/${binid}`);
+            const data = await response.json();
+            document.getElementById("graph_div").classList.add("justify-content-center");
+            document.getElementById("graph_div").classList.remove("justify-content-end");
+            const distance = 13 * ((100 - (data[0].accumulation)) / 100);
+            drawGraph(data[0].ID, distance);
+        }
+
         async function change(mode) {
             let htmlTag = document.documentElement; // Select the <html> tag
+            let logo = document.getElementById("logo");
+            let graph = document.getElementById("graph_div");
+            let chart = document.getElementById("chart_div");
 
             if (mode == 1) {  // Switch to light mode
                 if (htmlTag.getAttribute("data-bs-theme") == "dark") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "light");  // Set light mode
+                    chart.classList.add("bg-white");
+                    graph.classList.add("bg-white");
+                    chart.classList.remove("bg-dark");
+                    graph.classList.remove("bg-dark");
+                    logo.src = "../img/smart-trash-dark.svg";
                     document.getElementById("light-theme").classList.add("active");
                     document.getElementById("dark-theme").classList.remove("active");
                     sessionStorage.setItem("theme", "light");
@@ -320,6 +418,11 @@
                 if (htmlTag.getAttribute("data-bs-theme") == "light") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "dark");  // Set dark mode
+                    chart.classList.add("bg-dark");
+                    graph.classList.add("bg-dark");
+                    chart.classList.remove("bg-white");
+                    graph.classList.remove("bg-white");
+                    logo.src = "../img/smart-trash-light.svg";
                     document.getElementById("light-theme").classList.remove("active");
                     document.getElementById("dark-theme").classList.add("active");
                     sessionStorage.setItem("theme", "dark");
@@ -346,6 +449,7 @@
 
         window.onload = () => {
             initializeChart();
+            initializeGraph();
             loadBinsCount();
             loadCleanerCount();
             loadFreeBinTable();

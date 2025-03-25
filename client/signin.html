@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBin</title>
-    <link rel="icon" type="image/svg+xml" href="../img/smart-trash.svg">
+    <title>TrashTrack</title>
+    <link rel="icon" type="image/svg+xml" href="../img/smart-trash-dark.svg">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="../src/main.css">
     <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -48,8 +48,8 @@
     <div class="row h-100 w-100 position-absolute p-0 m-0" id="bg">
         <div class="col-0 col-md-3 p-0 m-0"></div>
         <div class="col-12 col-md-6 p-0 m-0 d-flex align-items-center justify-content-center flex-column">
-            <p class="fs-2 fst-italic p-0 d-flex align-items-center"><img src="../img/smart-trash.svg" alt="TrashTrack"
-                    style="height: 50px;">&nbsp;TrashTrack</p>
+            <p class="fs-2 fst-italic p-0 d-flex align-items-center"><img src="../img/smart-trash-dark.svg"
+                    alt="TrashTrack" style="height: 50px;" id="logo">&nbsp;TrashTrack</p>
             <div class="card w-100">
                 <h5 class="card-header bg-transparent border-0 px-4 mt-2">Sign In</h5>
                 <div class="card-body px-4">
@@ -119,6 +119,7 @@
                 const data = await response.json();
                 if (data.status == "success") {
                     window.location.href = "./dashboard.html";
+                    sessionStorage.setItem("adminEmail", email);
                 } else if (data.status == "failed") {
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
@@ -137,11 +138,13 @@
 
         async function change(mode) {
             let htmlTag = document.documentElement; // Select the <html> tag
+            let logo = document.getElementById("logo");
 
             if (mode == 1) {  // Switch to light mode
                 if (htmlTag.getAttribute("data-bs-theme") == "dark") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "light");  // Set light mode
+                    logo.src = "../img/smart-trash-dark.svg";
                     document.getElementById("light-theme").classList.add("active");
                     document.getElementById("dark-theme").classList.remove("active");
                     sessionStorage.setItem("theme", "light");
@@ -150,6 +153,7 @@
                 if (htmlTag.getAttribute("data-bs-theme") == "light") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "dark");  // Set dark mode
+                    logo.src = "../img/smart-trash-light.svg";
                     document.getElementById("light-theme").classList.remove("active");
                     document.getElementById("dark-theme").classList.add("active");
                     sessionStorage.setItem("theme", "dark");
