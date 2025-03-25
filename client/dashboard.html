@@ -73,7 +73,8 @@
                                 Profile
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" onclick="window.location.href = 'profile.html'">View</a></li>
+                                <li><a class="dropdown-item" onclick="window.location.href = 'profile.html'">View</a>
+                                </li>
                                 <li><a class="dropdown-item" onclick="window.location.replace('signin.html')">Sign
                                         Out</a></li>
                             </ul>
@@ -193,8 +194,8 @@
             function drawC() {
                 // Create the data table.
                 var data = new google.visualization.DataTable();
-                data.addColumn('string', 'Topping');
-                data.addColumn('number', 'Slices');
+                data.addColumn('string', 'Type');
+                data.addColumn('number', 'Accumulation');
                 data.addRows([
                     ['Free space', distance],
                     ['Occupied space', 13 - distance],
@@ -203,12 +204,20 @@
                 // Set chart options
                 var options = {
                     'title': `Condition of Bin${binid}`,
+                    'titleTextStyle': {
+                        'color': 'grey', // Change the title color to grey
+                        'fontSize': 16,  // Optionally adjust the font size
+                        'bold': false     // Optionally make the title unbolded
+                    },
                     'width': 600, // Control the canvas width
                     'height': 450, // Control the canvas height
                     'chartArea': { width: '90%', height: '67.5%' }, // Determine the chart size in canvas
                     'tooltip': { isHtml: true },
                     'colors': ['#007bff', '#ff9800'],
                     'backgroundColor': 'transparent',
+                    'legendTextStyle': {
+                        'color': 'grey' // Change the color of the legend text
+                    }
                 };
 
                 // Instantiate and draw our chart, passing in some options.
@@ -217,41 +226,36 @@
             }
         }
 
-        async function drawGraph(binid, distance) {
+        async function drawGraph(binid, dates) {
             document.getElementById("graph_div").classList.add("py-4");
             google.charts.load('current', { 'packages': ['line'] });
             google.charts.setOnLoadCallback(drawG);
 
-            function drawG() {
+            async function drawG() {
 
                 var data = new google.visualization.DataTable();
-                data.addColumn('number', 'Date');
+                data.addColumn('date', 'Date');
                 data.addColumn('number', 'Collection Frequency');
 
-                data.addRows([
-                    [1, 37.8],
-                    [2, 30.9],
-                    [3, 25.4],
-                    [4, 11.7],
-                    [5, 11.9],
-                    [6, 8.8],
-                    [7, 7.6],
-                    [8, 12.3],
-                    [9, 16.9],
-                    [10, 12.8],
-                    [11, 5.3],
-                    [12, 6.6],
-                    [13, 4.8],
-                    [14, 4.2]
-                ]);
+                for (const entry of dates) {
+                    const response = await fetch(`http://localhost:3000/getHistory/${binid}/${entry.date}`);
+                    const sum = await response.json();
+
+                    const date = new Date(entry.date); // Create a Date object from the given string    
+                    const formattedDate = date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
+
+                    data.addRows([
+                        [new Date(formattedDate), sum[0].sum],
+                    ]);
+                }
 
                 var options = {
                     'title': `Collection Frequency of Bin${binid}`,
                     'width': 1300, // Control the canvas width
                     'height': 450, // Control the canvas height
-                    'chartArea': { width: '90%', height: '67.5%' }, // Determine the chart size in canvas
+                    'chartArea': { width: '90%', height: '67.5%', 'backgroundColor': 'transparent' }, // Determine the chart size in canvas
                     'tooltip': { isHtml: true },
-                    'colors': ['#007bff', '#ff9800'],
+                    'colors': ['#007bff'],
                     'backgroundColor': 'transparent',
                 };
 
@@ -394,8 +398,7 @@
             const data = await response.json();
             document.getElementById("graph_div").classList.add("justify-content-center");
             document.getElementById("graph_div").classList.remove("justify-content-end");
-            const distance = 13 * ((100 - (data[0].accumulation)) / 100);
-            drawGraph(data[0].ID, distance);
+            drawGraph(binid, data);
         }
 
         async function change(mode) {

@@ -226,17 +226,11 @@
         async function change(mode) {
             let htmlTag = document.documentElement; // Select the <html> tag
             let logo = document.getElementById("logo");
-            let graph = document.getElementById("graph_div");
-            let chart = document.getElementById("chart_div");
 
             if (mode == 1) {  // Switch to light mode
                 if (htmlTag.getAttribute("data-bs-theme") == "dark") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "light");  // Set light mode
-                    chart.classList.add("bg-white");
-                    graph.classList.add("bg-white");
-                    chart.classList.remove("bg-dark");
-                    graph.classList.remove("bg-dark");
                     logo.src = "../img/smart-trash-dark.svg";
                     document.getElementById("light-theme").classList.add("active");
                     document.getElementById("dark-theme").classList.remove("active");
@@ -246,10 +240,6 @@
                 if (htmlTag.getAttribute("data-bs-theme") == "light") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "dark");  // Set dark mode
-                    chart.classList.add("bg-dark");
-                    graph.classList.add("bg-dark");
-                    chart.classList.remove("bg-white");
-                    graph.classList.remove("bg-white");
                     logo.src = "../img/smart-trash-light.svg";
                     document.getElementById("light-theme").classList.remove("active");
                     document.getElementById("dark-theme").classList.add("active");

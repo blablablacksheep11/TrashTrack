@@ -383,9 +383,21 @@ app.get('/fetchChart/:id', async (req, res) => {
 app.get('/fetchGraph/:id', async (req, res) => {
     const binid = req.params.id;
     try {
-        const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binid]);
-        console.log(bin);
-        res.json(bin);
+        const [date] = await database.query("SELECT DISTINCT DATE(collection) AS date FROM bin_history WHERE binID = ?  ORDER BY date;", [binid]);
+        res.json(date);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/getHistory/:id/:date', async (req, res) => {
+    const binid = req.params.id;
+    const date = req.params.date;
+    
+    try {
+        const [history] = await database.query("SELECT COUNT(*) as sum FROM bin_history WHERE binID = ? AND DATE(collection) = CONVERT_TZ(?, '+00:00', '+08:00') AND collection IS NOT NULL", [binid, date]);
+        console.log(history);
+        res.json(history);
     } catch (error) {
         console.log(error);
     }
