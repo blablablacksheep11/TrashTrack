@@ -172,12 +172,14 @@ async function portConnection() { // Function to connect to the serial port
                 const cleanerid = parsedData.cleanerID;
                 try {
                     let update = await database.query("UPDATE bin SET status = 'available', accumulation = '0' WHERE ID = ?", [binID]);
+                    socket.emit("updateChart", { binID: binID, distance: 13 });
                 } catch (err) {
                     console.log(err);
                 }
                 try {
                     let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
                     socket.emit("updateHistory");
+                    socket.emit("updateGraph", {binID: binID});
                     console.log(collect);
                 } catch (err) {
                     console.log(err);

@@ -18,7 +18,7 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <style>
         body {
-            min-height: 100vh;
+            min-height: 100vh !important;
             position: relative;
         }
 
@@ -32,7 +32,7 @@
     </style>
 </head>
 
-<body class="d-flex flex-column bg-body-tertiary">
+<body class="bg-body-tertiary d-flex flex-column">
     <div class="row p-0 m-0">
         <nav class="navbar navbar-expand-lg bg-secondary-subtle">
             <div class="container-fluid">
@@ -137,85 +137,29 @@
         </div>
     </div>
     <!-- Footer -->
-    <div class="row position-absolute w-100 bottom-0 p-0 m-0">
-        <p class="p-0 m-0 text-center fs-6 fw-light">&copy; 2025 LAM YONG QIN. All rights reserved.</p>
+    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center" style="margin-top: auto !important;">
+        <label class="fs-2 fst-italic text-center mt-4">TrashTrack</label>
+        <label class="w-50 text-center mt-3 mb-4">Revolutionize your waste management with SmartBin - A high-tech
+            solution that automatically monitors waste levels, optimizes collection, and promotes a cleaner, smarter
+            environment.</label>
+        <div class="m-0 p-0 d-flex justify-content-center">
+            <div class="w-25 text-center d-flex justify-content-evenly">
+                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i class="bi bi-facebook fs-3"></i></a>
+                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i class="bi bi-instagram fs-3"></i></a>
+                <a href="https://github.com/" class="text-body" target="_blank"><i class="bi bi-github fs-3"></i></a>
+                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i class="bi bi-linkedin fs-3"></i></a>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between mt-5 mb-2">
+            <p class="p-0 m-0 ps-3 fs-6 fw-light">&copy; 2025 LAM YONG QIN. All rights reserved.</p>
+            <div class="p-0 m-0 pe-3">
+                <a href="dashboard.html">Home</a>&nbsp;
+                <a href="about.html">About</a>&nbsp;
+                <a href="https://mail.google.com/mail/u/0/">Contact Us</a>
+            </div>
+        </div>
     </div>
-    <!-- Google Chart -->
-    <script type="text/javascript">
-        async function drawChart(binid, distance) {
-            google.charts.load('current', { 'packages': ['corechart'] });
-            google.charts.setOnLoadCallback(drawC);
-            function drawC() {
-                // Create the data table.
-                var data = new google.visualization.DataTable();
-                data.addColumn('string', 'Topping');
-                data.addColumn('number', 'Slices');
-                data.addRows([
-                    ['Free space', distance],
-                    ['Occupied space', 13 - distance],
-                ]);
-
-                // Set chart options
-                var options = {
-                    'title': `Condition of Bin${binid}`,
-                    'width': 600, // Control the canvas width
-                    'height': 450, // Control the canvas height
-                    'chartArea': { width: '90%', height: '67.5%' }, // Determine the chart size in canvas
-                    'tooltip': { isHtml: true },
-                    'colors': ['#007bff', '#ff9800'],
-                    'backgroundColor': 'transparent',
-                };
-
-                // Instantiate and draw our chart, passing in some options.
-                var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
-                chart.draw(data, options);
-            }
-        }
-
-        async function drawGraph(binid, distance) {
-            document.getElementById("graph_div").classList.add("py-4");
-            google.charts.load('current', { 'packages': ['line'] });
-            google.charts.setOnLoadCallback(drawG);
-
-            function drawG() {
-
-                var data = new google.visualization.DataTable();
-                data.addColumn('number', 'Date');
-                data.addColumn('number', 'Collection Frequency');
-
-                data.addRows([
-                    [1, 37.8],
-                    [2, 30.9],
-                    [3, 25.4],
-                    [4, 11.7],
-                    [5, 11.9],
-                    [6, 8.8],
-                    [7, 7.6],
-                    [8, 12.3],
-                    [9, 16.9],
-                    [10, 12.8],
-                    [11, 5.3],
-                    [12, 6.6],
-                    [13, 4.8],
-                    [14, 4.2]
-                ]);
-
-                var options = {
-                    'title': `Collection Frequency of Bin${binid}`,
-                    'width': 1300, // Control the canvas width
-                    'height': 450, // Control the canvas height
-                    'chartArea': { width: '90%', height: '67.5%' }, // Determine the chart size in canvas
-                    'tooltip': { isHtml: true },
-                    'colors': ['#007bff', '#ff9800'],
-                    'backgroundColor': 'transparent',
-                };
-
-                var chart = new google.charts.Line(document.getElementById('graph_div'));
-
-                chart.draw(data, google.charts.Line.convertOptions(options));
-            }
-        }
-    </script>
+    
     <!-- General JavaScript-->
     <script>
         const socket = io('http://localhost:3000');

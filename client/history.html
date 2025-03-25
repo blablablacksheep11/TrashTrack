@@ -15,6 +15,10 @@
         integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+"
         crossorigin="anonymous"></script>
     <style>
+        body{
+            min-height: 100vh !important;
+        }
+
         #theme::after {
             display: none !important;
         }
@@ -25,7 +29,7 @@
     </style>
 </head>
 
-<body>
+<body class="bg-body-tertiary d-flex flex-column">
     <div class="row p-0 m-0">
         <nav class="navbar navbar-expand-lg bg-secondary-subtle">
             <div class="container-fluid">
@@ -88,7 +92,7 @@
             </div>
         </nav>
     </div>
-    <div class="row mt-4 px-5 m-0">
+    <div class="row mt-4 mb-3 px-5 m-0">
         <table class="table table-hover border caption-top">
             <caption></caption>
             <thead class="table">
@@ -109,6 +113,29 @@
                 </tr>
             </tbody>
         </table>
+    </div>
+    <!-- Footer -->
+    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center" style="margin-top: auto !important;">
+        <label class="fs-2 fst-italic text-center mt-4">TrashTrack</label>
+        <label class="w-50 text-center mt-3 mb-4">Revolutionize your waste management with SmartBin - A high-tech
+            solution that automatically monitors waste levels, optimizes collection, and promotes a cleaner, smarter
+            environment.</label>
+        <div class="m-0 p-0 d-flex justify-content-center">
+            <div class="w-25 text-center d-flex justify-content-evenly">
+                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i class="bi bi-facebook fs-3"></i></a>
+                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i class="bi bi-instagram fs-3"></i></a>
+                <a href="https://github.com/" class="text-body" target="_blank"><i class="bi bi-github fs-3"></i></a>
+                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i class="bi bi-linkedin fs-3"></i></a>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between mt-5 mb-2">
+            <p class="p-0 m-0 ps-3 fs-6 fw-light">&copy; 2025 LAM YONG QIN. All rights reserved.</p>
+            <div class="p-0 m-0 pe-3">
+                <a href="dashboard.html">Home</a>&nbsp;
+                <a href="about.html">About</a>&nbsp;
+                <a href="https://mail.google.com/mail/u/0/">Contact Us</a>
+            </div>
+        </div>
     </div>
 
     <!-- Delete history confirmation modal -->
@@ -192,10 +219,6 @@
                 </div>
             </div>
         </div>
-    </div>
-    <!-- Footer -->
-    <div class="row position-absolute w-100 bottom-0 p-0 m-0">
-        <p class="p-0 m-0 text-center fs-6 fw-light">&copy; 2025 LAM YONG QIN. All rights reserved.</p>
     </div>
 
     <script>
