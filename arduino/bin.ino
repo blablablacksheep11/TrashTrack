@@ -63,7 +63,7 @@ void loop()
   {
     if (status == true)
     {
-      myServo.write(75);
+      myServo.write(100);
       if (opened == false)
       {
         closed = false;
