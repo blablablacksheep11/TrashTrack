@@ -170,12 +170,14 @@
         async function change(mode) {
             let htmlTag = document.documentElement; // Select the <html> tag
             let logo = document.getElementById("logo");
+            let body = document.body;
 
             if (mode == 1) {  // Switch to light mode
                 if (htmlTag.getAttribute("data-bs-theme") == "dark") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "light");  // Set light mode
                     logo.src = "../img/smart-trash-dark.svg";
+                    body.classList.add("bg-white");
                     document.getElementById("light-theme").classList.add("active");
                     document.getElementById("dark-theme").classList.remove("active");
                     sessionStorage.setItem("theme", "light");
@@ -185,6 +187,7 @@
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "dark");  // Set dark mode
                     logo.src = "../img/smart-trash-light.svg";
+                    body.classList.remove("bg-white");
                     document.getElementById("light-theme").classList.remove("active");
                     document.getElementById("dark-theme").classList.add("active");
                     sessionStorage.setItem("theme", "dark");
