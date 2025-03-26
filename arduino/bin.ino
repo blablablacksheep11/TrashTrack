@@ -84,7 +84,7 @@ void loop()
   else
   {
     myServo.write(0);
-    delay(1000);
+    delay(2000);
     if (closed == false)
     {
       opened = false;
@@ -96,7 +96,7 @@ void loop()
 
       duration = pulseIn(echoPin, HIGH);
       distance = (duration * 0.034) / 2;
-      accumulation = 100 - ((distance / 13) * 100);
+      accumulation = 100 - ((distance / 24) * 100);
       if (accumulation >= 80)
       {
         digitalWrite(redledPin, HIGH);
@@ -114,9 +114,9 @@ void loop()
       {
         distance = 0;
       }
-      else if (distance >= 13)
+      else if (distance >= 24)
       {
-        distance = 13;
+        distance = 24;
       }
       Serial.print(F("{\"binID\":"));
       Serial.print(binID);

@@ -222,7 +222,7 @@
                 data.addColumn('number', 'Accumulation');
                 data.addRows([
                     ['Free space', distance],
-                    ['Occupied space', 13 - distance],
+                    ['Occupied space', 24 - distance],
                 ]);
 
                 // Set chart options
@@ -413,7 +413,7 @@
             const data = await response.json();
             //document.getElementById("chart_div").classList.add("justify-content-center");
             //document.getElementById("chart_div").classList.remove("justify-content-end");
-            const distance = 13 * ((100 - (data[0].accumulation)) / 100);
+            const distance = 24 * ((100 - (data[0].accumulation)) / 100);
             drawChart(data[0].ID, distance);
         }
 
