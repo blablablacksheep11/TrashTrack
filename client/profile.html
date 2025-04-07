@@ -59,6 +59,7 @@
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="bin.html">List of bin</a></li>
                                 <li><a class="dropdown-item" href="cleaner.html">List of cleaner</a></li>
+                                <li><a class="dropdown-item" href="administrator.html">List of administrator</a></li>
                             </ul>
                         </li>
                         <li class="nav-item">
@@ -120,9 +121,14 @@
                         </div>
                         <div class="mb-3">
                             <label for="phone" class="form-label">Phone Number</label>
-                            <input type="tel" class="form-control no-spinner" id="phone" placeholder="Phone Number" pattern="^\d{3}-\d{7}$" title="Your phone number need to be in format of 000-0000000" required>
+                            <input type="tel" class="form-control no-spinner" id="phone" placeholder="Phone Number"
+                                pattern="^\d{3}-\d{7}$" title="Your phone number need to be in format of 000-0000000"
+                                required>
                         </div>
-                        <button type="submit" class="btn btn-primary float-end">Save</button>
+                        <div class="float-end">
+                            <button type="button" class="btn btn-secondary">Change password</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
                     </form>
 
                     <div class="toast-container position-fixed bottom-0 end-0 p-3">
@@ -144,17 +150,21 @@
         <div class="col-0 col-md-4 p-0 m-0"></div>
     </div>
     <!-- Footer -->
-    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center" style="margin-top: auto !important;">
+    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center"
+        style="margin-top: auto !important;">
         <label class="fs-2 fst-italic text-center mt-4">TrashTrack</label>
         <label class="w-50 text-center mt-3 mb-4">Revolutionize your waste management with SmartBin - A high-tech
             solution that automatically monitors waste levels, optimizes collection, and promotes a cleaner, smarter
             environment.</label>
         <div class="m-0 p-0 d-flex justify-content-center">
             <div class="w-25 text-center d-flex justify-content-evenly">
-                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i class="bi bi-facebook fs-3"></i></a>
-                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i class="bi bi-instagram fs-3"></i></a>
+                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i
+                        class="bi bi-facebook fs-3"></i></a>
+                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i
+                        class="bi bi-instagram fs-3"></i></a>
                 <a href="https://github.com/" class="text-body" target="_blank"><i class="bi bi-github fs-3"></i></a>
-                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i class="bi bi-linkedin fs-3"></i></a>
+                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i
+                        class="bi bi-linkedin fs-3"></i></a>
             </div>
         </div>
         <div class="d-flex justify-content-between mt-5 mb-2">
@@ -202,10 +212,10 @@
             }
         })
 
-        async function loadInfo(email){
+        async function loadInfo(email) {
             const response = await fetch(`http://localhost:3000/loadInfo/${email}`);
             const data = await response.json();
-            if(data != null || data.length > 0){
+            if (data != null || data.length > 0) {
                 document.getElementById("name").value = data[0].name;
                 document.getElementById("email").value = data[0].email;
                 document.getElementById("gender").value = data[0].gender;

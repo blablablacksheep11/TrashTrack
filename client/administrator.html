@@ -18,7 +18,7 @@
         body {
             min-height: 100vh !important;
         }
-        
+
         .bi-gender-female {
             color: #ff69b4;
         }
@@ -38,8 +38,8 @@
         <nav class="navbar navbar-expand-lg bg-secondary-subtle">
             <div class="container-fluid">
                 <a class="navbar-brand" href="dashboard.html"><img src="../img/smart-trash-dark.svg" alt="TrashTrack"
-                    style="height: 30px;" id="logo">&nbsp;<label class="fs-6 ps-1"
-                    style="cursor: pointer;">TrashTrack</label></a>
+                        style="height: 30px;" id="logo">&nbsp;<label class="fs-6 ps-1"
+                        style="cursor: pointer;">TrashTrack</label></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                     aria-expanded="false" aria-label="Toggle navigation">
@@ -60,8 +60,9 @@
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="bin.html">List of bin</a></li>
-                                <li><a class="dropdown-item active" href="cleaner.html">List of cleaner</a></li>
-                                <li><a class="dropdown-item" href="administrator.html">List of administrator</a></li>
+                                <li><a class="dropdown-item" href="cleaner.html">List of cleaner</a></li>
+                                <li><a class="dropdown-item active" href="administrator.html">List of administrator</a>
+                                </li>
                             </ul>
                         </li>
                         <li class="nav-item">
@@ -75,7 +76,8 @@
                                 Profile
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" onclick="window.location.href = 'profile.html'">View</a></li>
+                                <li><a class="dropdown-item" onclick="window.location.href = 'profile.html'">View</a>
+                                </li>
                                 <li><a class="dropdown-item" onclick="window.location.replace('signin.html')">Sign
                                         Out</a></li>
                             </ul>
@@ -100,22 +102,22 @@
     <div class="row mt-4 px-5 m-0">
         <table class="table table-hover border caption-top">
             <div>
-                <caption>List of cleaner</caption>
+                <caption>List of administrator</caption>
             </div>
 
             <thead class="table">
                 <tr>
-                    <th scope="col">Cleaner ID</th>
+                    <th scope="col">Administrator ID</th>
                     <th scope="col">Name</th>
                     <th scope="col">Gender</th>
-                    <th scope="col">IC number</th>
                     <th scope="col">Email</th>
+                    <th scope="col">Contact</th>
                     <th scope="col">Action</th>
                 </tr>
             </thead>
-            <tbody id="cleaner-table">
+            <tbody id="administrator-table">
                 <tr>
-                    <td colspan="6" class="text-center py-3">No cleaner found ...<br><i
+                    <td colspan="6" class="text-center py-3">No administrator found ...<br><i
                             class="bi bi-person-slash fs-3"></i><br><button type="button" class="btn btn-primary"
                             data-bs-toggle="modal" data-bs-target="#modal1">
                             <i class="bi bi-plus-lg me-1"></i>
@@ -127,16 +129,16 @@
         </table>
         <div class="p-0 m-0 d-flex justify-content-center" id="btn-container"></div>
 
-        <!-- Cleaner form -->
+        <!-- Adminsitrator form -->
         <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header border-0">
-                        <h1 class="modal-title fs-5" id="exampleModalLabel">Add Cleaner</h1>
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Add Administrator</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body border-0 py-0 pb-3">
-                        <form id="add-cleaner-form">
+                        <form id="add-administrator-form">
                             <div class="mb-3">
                                 <label for="name1" class="form-label">Name</label>
                                 <input type="text" class="form-control" id="name1" placeholder="name" required>
@@ -157,18 +159,25 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label for="ic1" class="form-label">IC number</label>
-                                <input type="text" class="form-control" id="ic1" placeholder="000000-00-0000"
-                                    pattern="^\d{6}-\d{2}-\d{4}$" required>
-                            </div>
-                            <div class="mb-3">
                                 <label for="email1" class="form-label">Email address</label>
                                 <input type="email" class="form-control" id="email1" placeholder="xxxxx@example.com"
                                     required>
                             </div>
+                            <div class="mb-3">
+                                <label for="contact1" class="form-label">Contact</label>
+                                <input type="tel" class="form-control no-spinner" id="contact1"
+                                    placeholder="000-0000000" pattern="^\d{3}-\d{7}$"
+                                    title="Your phone number need to be in format of 000-0000000" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password1" class="form-label">Password</label>
+                                <input type="password" class="form-control" placeholder="Password" id="password1"
+                                    pattern="(?=.*\d)(?=.*[_@$!%*?&#\(\)\[\]])(?=.*[a-z])(?=.*[A-Z]).{6,}"
+                                    title="Password must be at least 6 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character (_@$!%*?&#()[])."
+                                    required>
+                            </div>
                             <div class="mt-4 text-end">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
-                                    id="close-btn">Close</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="submit" class="btn btn-primary">Add new</button>
                             </div>
                         </form>
@@ -177,12 +186,12 @@
             </div>
         </div>
 
-        <!-- Add cleaner confirmation modal -->
+        <!-- Add administrator confirmation modal -->
         <div class="modal fade" id="modal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header border-0">
-                        <h1 class="modal-title fs-5" id="exampleModalLabel">Add cleaner</h1>
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Add administrator</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body border-0" id="confirmation-body">
@@ -196,12 +205,12 @@
         </div>
     </div>
 
-    <!-- Delete cleaner confirmation modal -->
+    <!-- Delete administrator confirmation modal -->
     <div class="modal fade" id="modal3" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Delete cleaner</h1>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Delete administrator</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body border-0" id="confirmation-body">
@@ -214,16 +223,16 @@
         </div>
     </div>
 
-    <!-- Edit cleaner form -->
+    <!-- Edit administrator form -->
     <div class="modal fade" id="modal4" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Cleaner</h1>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Administrator</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body border-0 py-0 pb-3">
-                    <form id="edit-cleaner-form">
+                    <form id="edit-administrator-form">
                         <div class="mb-3">
                             <label for="name2" class="form-label">Name</label>
                             <input type="text" class="form-control" id="name2" placeholder="name" required>
@@ -243,18 +252,18 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="ic2" class="form-label">IC number</label>
-                            <input type="text" class="form-control" id="ic2" placeholder="000000-00-0000"
-                                pattern="^\d{6}-\d{2}-\d{4}$" required>
-                        </div>
-                        <div class="mb-3">
                             <label for="email2" class="form-label">Email address</label>
                             <input type="email" class="form-control" id="email2" placeholder="xxxxx@example.com"
                                 required>
                         </div>
+                        <div class="mb-3">
+                            <label for="contact2" class="form-label">Contact</label>
+                            <input type="tel" class="form-control no-spinner" id="contact2" placeholder="000-0000000"
+                                pattern="^\d{3}-\d{7}$" title="Your phone number need to be in format of 000-0000000"
+                                required>
+                        </div>
                         <div class="mt-4 text-end">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
-                                id="close-btn">Close</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             <button type="submit" class="btn btn-primary" id="save-btn">Save</button>
                         </div>
                     </form>
@@ -262,18 +271,37 @@
             </div>
         </div>
     </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast align-items-center" role="alert" aria-live="assertive"
+            aria-atomic="true">
+            <div class="d-flex bg-danger-subtle rounded">
+                <div class="toast-body">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    <label></label>
+                </div>
+                <button type="button" class="btn-close btn-close-grey me-2 m-auto"
+                    data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
-    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center" style="margin-top: auto !important;">
+    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center"
+        style="margin-top: auto !important;">
         <label class="fs-2 fst-italic text-center mt-4">TrashTrack</label>
         <label class="w-50 text-center mt-3 mb-4">Revolutionize your waste management with SmartBin - A high-tech
             solution that automatically monitors waste levels, optimizes collection, and promotes a cleaner, smarter
             environment.</label>
         <div class="m-0 p-0 d-flex justify-content-center">
             <div class="w-25 text-center d-flex justify-content-evenly">
-                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i class="bi bi-facebook fs-3"></i></a>
-                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i class="bi bi-instagram fs-3"></i></a>
+                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i
+                        class="bi bi-facebook fs-3"></i></a>
+                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i
+                        class="bi bi-instagram fs-3"></i></a>
                 <a href="https://github.com/" class="text-body" target="_blank"><i class="bi bi-github fs-3"></i></a>
-                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i class="bi bi-linkedin fs-3"></i></a>
+                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i
+                        class="bi bi-linkedin fs-3"></i></a>
             </div>
         </div>
         <div class="d-flex justify-content-between mt-5 mb-2">
@@ -292,24 +320,25 @@
             console.log("Connected to server");
         });
 
-        async function loadCleaner() {
-            const response = await fetch("http://localhost:3000/loadCleaner");
+        async function loadAdministrator() {
+            const administratorEmail = sessionStorage.getItem("adminEmail"); // Fetch the email from session storage
+            const response = await fetch(`http://localhost:3000/loadAdministrator/${administratorEmail}`);
             const data = await response.json();
-            const table = document.getElementById("cleaner-table");
+            const table = document.getElementById("administrator-table");
 
             if (data.length > 0) {
                 table.innerHTML = ""; // Clear previous data
-                data.forEach((cleaner) => {
+                data.forEach((administrator) => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
-                    <td class="py-3">${cleaner.ID}</td>
-                    <td class="py-3">${cleaner.name}</td>
-                    <td class="py-3">${cleaner.gender}</td>
-                    <td class="py-3">${cleaner.IC}</td>
-                    <td class="py-3">${cleaner.email}</td>
+                    <td class="py-3">${administrator.ID}</td>
+                    <td class="py-3">${administrator.name}</td>
+                    <td class="py-3">${administrator.gender}</td>
+                    <td class="py-3">${administrator.email}</td>
+                    <td class="py-3">${administrator.contact}</td>
                     <td>
-                        <button type="button" class="btn btn-danger" onclick="del(${cleaner.ID})">Delete</button>
-                        <button type="button" class="btn btn-primary" onclick="edit(${cleaner.ID})">Edit</button>
+                        <button type="button" class="btn btn-danger" onclick="del(${administrator.ID})">Delete</button>
+                        <button type="button" class="btn btn-primary" onclick="edit(${administrator.ID})">Edit</button>
                     </td>
                     `;
                     table.appendChild(row);
@@ -322,43 +351,43 @@
         }
 
         async function edit(id) {
-            const response = await fetch(`http://localhost:3000/fetchCleaner/${id}`);
+            const response = await fetch(`http://localhost:3000/fetchAdministrator/${id}`);
             const data = await response.json();
 
-            const name = document.querySelector("#modal4 #edit-cleaner-form #name2");
+            const name = document.querySelector("#modal4 #edit-administrator-form #name2");
             name.value = data[0].name;
 
             if (data[0].gender == "male") {
-                document.querySelector("#modal4 #edit-cleaner-form #male2").checked = true;
+                document.querySelector("#modal4 #edit-administrator-form #male2").checked = true;
             } else if (data[0].gender == "female") {
-                document.querySelector("#modal4 #edit-cleaner-form #female2").checked = true;
+                document.querySelector("#modal4 #edit-administrator-form #female2").checked = true;
             }
-            const ic = document.querySelector("#modal4 #edit-cleaner-form #ic2");
-            ic.value = data[0].IC;
-            const email = document.querySelector("#modal4 #edit-cleaner-form #email2");
+            const email = document.querySelector("#modal4 #edit-administrator-form #email2");
             email.value = data[0].email;
+            const contact = document.querySelector("#modal4 #edit-administrator-form #contact2");
+            contact.value = data[0].contact;
 
             let editModal = new bootstrap.Modal(document.getElementById("modal4"));
             editModal.show(); // Show the edit modal
 
-            document.getElementById("save-btn").dataset.cleanerID = id; // Store the clener id in save btn
+            document.getElementById("save-btn").dataset.administratorID = id; // Store the admin id in save btn
         }
 
         async function del(id) {
-            const response = await fetch(`http://localhost:3000/fetchCleaner/${id}`);
+            const response = await fetch(`http://localhost:3000/fetchAdministrator/${id}`);
             const data = await response.json();
             const modalBody = document.querySelector("#modal3 #confirmation-body");
-            modalBody.innerHTML = `Are you sure you wanted to delete ${data[0].name} from the cleaner list?`
+            modalBody.innerHTML = `Are you sure you wanted to delete ${data[0].name} from the administrator list?`
 
             let confirmModal = new bootstrap.Modal(document.getElementById("modal3"));
             confirmModal.show(); // Show the confirm delete modal
 
-            document.getElementById("confirm-del-btn").dataset.cleanerID = id; // Store the clener info in confirm btn
+            document.getElementById("confirm-del-btn").dataset.administratorID = id; // Store the admin info in confirm btn
         }
 
         async function change(mode) {
             let htmlTag = document.documentElement; // Select the <html> tag
-                let logo = document.getElementById("logo");
+            let logo = document.getElementById("logo");
 
             if (mode == 1) {  // Switch to light mode
                 if (htmlTag.getAttribute("data-bs-theme") == "dark") {
@@ -390,42 +419,43 @@
             }
         }
 
-        function alertCleanerRemoved(){
-            alert("Cleaner removed.");
+        function alertAdministratorRemoved() {
+            alert("Administrator removed.");
         }
 
-        function alertFailedtoRemoveCleaner(){
-            alert("Failed to remove cleaner.");
+        function alertFailedtoRemoveAdministrator() {
+            alert("Failed to remove administrator.");
         }
 
         document.getElementById("confirm-del-btn").addEventListener("click", async () => { // When confirm btn click in confirm delete modal
-            const cleanerID = document.getElementById("confirm-del-btn").dataset.cleanerID; // Fetch the data in confirm btn
+            const administratorID = document.getElementById("confirm-del-btn").dataset.administratorID; // Fetch the data in confirm btn
 
-            const response = await fetch(`http://localhost:3000/deleteCleaner/${cleanerID}`);
+            const response = await fetch(`http://localhost:3000/deleteAdministrator/${administratorID}`);
             const data = await response.json();
             if (data.status == "success") {
                 let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
                 modal3.hide(); // Hide the confirmation modal
-                await document.getElementById("modal3").addEventListener('hidden.bs.modal', alertCleanerRemoved);
-                loadCleaner();
-                await document.getElementById("modal3").removeEventListener('hidden.bs.modal', alertCleanerRemoved);
+                await document.getElementById("modal3").addEventListener('hidden.bs.modal', alertAdministratorRemoved);
+                loadAdministrator();
+                await document.getElementById("modal3").removeEventListener('hidden.bs.modal', alertAdministratorRemoved);
             } else if (data.status == "failed") {
                 let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
                 modal3.hide(); // Hide the confirmation modal
-                await document.getElementById("modal3").addEventListener('hidden.bs.modal', alertFailedtoRemoveCleaner);
-                loadCleaner();
-                await document.getElementById("modal3").removeEventListener('hidden.bs.modal', alertFailedtoRemoveCleaner);
+                await document.getElementById("modal3").addEventListener('hidden.bs.modal', alertFailedtoRemoveAdministrator);
+                loadAdministrator();
+                await document.getElementById("modal3").removeEventListener('hidden.bs.modal', alertFailedtoRemoveAdministrator);
             }
         })
 
         document.getElementById("modal1").addEventListener('show.bs.modal', function () { // Clear the previous content in the form
             document.getElementById("name1").value = "";
             document.querySelectorAll('input[name="gender1"]').forEach(radio => radio.checked = false);
-            document.getElementById("ic1").value = "";
             document.getElementById("email1").value = "";
+            document.getElementById("contact1").value = "";
+            document.getElementById("password1").value = "";
         });
 
-        document.getElementById("add-cleaner-form").addEventListener("submit", async (e) => { // When add cleaner form is filled and submitted
+        document.getElementById("add-administrator-form").addEventListener("submit", async (e) => { // When add administrator form is filled and submitted
             e.preventDefault();
             const form = e.target;
             if (form.checkValidity()) {
@@ -439,12 +469,33 @@
                         break;
                     }
                 }
-                const ic = document.getElementById("ic1").value;
                 const email = document.getElementById("email1").value.toLowerCase();
+                const contact = document.getElementById("contact1").value;
+                const password = document.getElementById("password1").value;
 
-                const cleanerInfo = { name: name, gender: gender, ic: ic, email: email }; // Temporary storage
+                const response = await fetch(`http://localhost:3000/validateEmail/${email}`); // Check if the email already exists
+                const data = await response.json();
+                if (data.status == "existed") {
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    document.querySelector(".toast-body label").innerHTML = "Email already exists. Please try again.";
+                    toastBootstrap.show();
+                    return;
+                }
+
+                const response2 = await fetch(`http://localhost:3000/validateContact/${contact}`); // Check if the contact already exists
+                const data2 = await response2.json();
+                if (data2.status == "existed") {
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    document.querySelector(".toast-body label").innerHTML = "Contact already exists. Please try again.";
+                    toastBootstrap.show();
+                    return;
+                }
+
+                const administratorInfo = { name: name, gender: gender, email: email, contact: contact, password: password }; // Temporary storage
                 const modalBody = document.querySelector("#modal2 #confirmation-body");
-                modalBody.innerHTML = `Are you sure you wanted to add ${name} as new cleaner?`
+                modalBody.innerHTML = `Are you sure you wanted to add ${name} as new administrator?`
 
                 let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
                 modal1.hide(); // Hide the add form modal
@@ -452,16 +503,16 @@
                 let confirmModal = new bootstrap.Modal(document.getElementById("modal2"));
                 confirmModal.show(); // Show the confirmation modal
 
-                document.getElementById("confirm-add-btn").dataset.cleanerInfo = JSON.stringify(cleanerInfo); // Store the clener info in confirm btn
+                document.getElementById("confirm-add-btn").dataset.administratorInfo = JSON.stringify(administratorInfo); // Store the clener info in confirm btn
             }
         })
 
-        function alertFailedtoEditCleaner(){
-            alert("Failed to edit cleaner information.");
+        function alertFailedtoEditAdministrator() {
+            alert("Failed to edit administrator information.");
         }
 
-        document.getElementById("edit-cleaner-form").addEventListener("submit", async (e) => { // When the save btn is clicked in the edit modal
-            const cleanerID = JSON.parse(document.getElementById("save-btn").dataset.cleanerID); // Fetch the data in save btn
+        document.getElementById("edit-administrator-form").addEventListener("submit", async (e) => { // When the save btn is clicked in the edit modal
+            const administratorID = JSON.parse(document.getElementById("save-btn").dataset.administratorID); // Fetch the data in save btn
 
             e.preventDefault();
             const form = e.target;
@@ -476,67 +527,67 @@
                         break;
                     }
                 }
-                const ic = document.getElementById("ic2").value;
                 const email = document.getElementById("email2").value.toLowerCase();
+                const contact = document.getElementById("contact2").value;
 
-                const response = await fetch("http://localhost:3000/editCleaner", {
+                const response = await fetch("http://localhost:3000/editAdministrator", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ cleanerID, name, gender, ic, email })
+                    body: JSON.stringify({ administratorID, name, gender, email, contact })
                 });
                 const data = await response.json();
                 if (data.status == "success") {
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal4"));
                     modal.hide(); // Hide the edit modal
-                    loadCleaner();
+                    loadAdministrator();
                 } else if (data.status == "failed") {
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal4"));
                     modal.hide(); // Hide the edit modal
-                    await document.getElementById("modal4").addEventListener('hidden.bs.modal', alertFailedtoEditCleaner);
-                    loadCleaner();
-                    await document.getElementById("modal4").removeEventListener('hidden.bs.modal', alertFailedtoEditCleaner);
+                    await document.getElementById("modal4").addEventListener('hidden.bs.modal', alertFailedtoEditAdministrator);
+                    loadAdministrator();
+                    await document.getElementById("modal4").removeEventListener('hidden.bs.modal', alertFailedtoEditAdministrator);
                 }
             }
         })
-        
-        function alertNewCleanerAdded(){
-            alert("New cleaner added.");
+
+        function alertNewAdministratorAdded() {
+            alert("New administrator added.");
         }
 
-        function alertFailedtoAddNewCleaner(){
-            alert("Failed to add new cleaner.");
+        function alertFailedtoAddNewAdministrator() {
+            alert("Failed to add new administrator.");
         }
 
-        document.getElementById("confirm-add-btn").addEventListener("click", async () => {  // When the confirm button is clicked for add cleaner
-            const cleanerInfo = JSON.parse(document.getElementById("confirm-add-btn").dataset.cleanerInfo); // Fetch the data in confirm btn
+        document.getElementById("confirm-add-btn").addEventListener("click", async () => {  // When the confirm button is clicked for add administrator
+            const administratorInfo = JSON.parse(document.getElementById("confirm-add-btn").dataset.administratorInfo); // Fetch the data in confirm btn
 
-            const response = await fetch("http://localhost:3000/addCleaner", {
+            const response = await fetch("http://localhost:3000/addAdministrator", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(cleanerInfo)
+                body: JSON.stringify(administratorInfo)
             });
             const data = await response.json();
             if (data.status == "success") {
                 let modal2 = bootstrap.Modal.getInstance(document.getElementById("modal2"));
                 modal2.hide(); // Hide the confirmation modal
-                await document.getElementById("modal2").addEventListener('hidden.bs.modal', alertNewCleanerAdded);
-                loadCleaner();
-                await document.getElementById("modal2").removeEventListener('hidden.bs.modal', alertNewCleanerAdded);
+                await document.getElementById("modal2").addEventListener('hidden.bs.modal', alertNewAdministratorAdded);
+                loadAdministrator();
+                await document.getElementById("modal2").removeEventListener('hidden.bs.modal', alertNewAdministratorAdded);
             } else if (data.status == "failed") {
                 let modal2 = bootstrap.Modal.getInstance(document.getElementById("modal2"));
                 modal2.hide(); // Hide the confirmation modal
-                await document.getElementById("modal2").addEventListener('hidden.bs.modal', alertFailedtoAddNewCleaner);
-                loadCleaner();
-                await document.getElementById("modal2").removeEventListener('hidden.bs.modal', alertFailedtoAddNewCleaner);
+                await document.getElementById("modal2").addEventListener('hidden.bs.modal', alertFailedtoAddNewAdministrator);
+                loadAdministrator();
+                await document.getElementById("modal2").removeEventListener('hidden.bs.modal', alertFailedtoAddNewAdministrator);
             }
         })
 
         window.onload = () => {
-            loadCleaner(); // Fetch data when page loads
+            loadAdministrator(); // Fetch data when page loads
             getTheme();
         }
     </script>

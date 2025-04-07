@@ -9,7 +9,6 @@ import mysql from 'mysql2';
 import speakeasy from 'speakeasy';
 import { createClient } from 'redis';
 import PdfPrinter from 'pdfmake';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -44,6 +43,7 @@ const transporter = createTransport({
     }
 });
 
+// Function to send mail when bin is full
 async function mail(email, bin) {
     const info = await transporter.sendMail({
         from: '"SmartBin Manager" <smartbinmanager@gmail.com>', // sender address
@@ -79,6 +79,7 @@ async function mail(email, bin) {
     console.log("Message sent");
 }
 
+// Function to send mail for password reset
 async function send(email, name, otp) {
     const info = await transporter.sendMail({
         from: '"SmartBin Manager" <smartbinmanager@gmail.com>', // sender address
@@ -119,18 +120,18 @@ async function portConnection() { // Function to connect to the serial port
         })
 
         parser.on("data", async (data) => {
-            console.log(data);
+            console.log(data); // Log the data received from the Arduino
             const parsedData = JSON.parse(data);
 
             if ("string" in parsedData) {
-                console.log("Test: Invalid data.");
-            } else if (!("cleanerID" in parsedData)) {
+                console.log("Test: Invalid data."); // This is a test module
+            } else if (!("cleanerID" in parsedData)) { // If the data does not contain cleanerID, it means it is a bin data
                 if (parsedData.status == "closed") {
                     const binID = Number(parsedData.binID);
                     const status = parsedData.status;
                     const distance = Number(parsedData.distance);
                     const accumulation = 100 - ((distance / 24) * 100);
-                    if (accumulation >= 80) {
+                    if (accumulation >= 80) { // If the bin is full, change the status to unavailable
                         try {
                             let update = await database.query("UPDATE bin SET status = 'unavailable', accumulation = ? WHERE ID = ?", [accumulation, binID]);
                             console.log(`Bin${binID} has been changed to unavailable`);
@@ -144,15 +145,15 @@ async function portConnection() { // Function to connect to the serial port
                             console.log(error);
                         }
 
-                        socket.emit("updateHistory")
+                        socket.emit("updateHistory") // Emit the updateHistory event to update the history table
 
                         const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
                         const [email] = await database.query("SELECT email FROM administrator");
-                        let emailList = [];
+                        let emailList = []; 
                         email.forEach((email) => {
                             emailList.push(email.email);
                         });
-                        mail(emailList, bin).catch(console.error);
+                        mail(emailList, bin).catch(console.error); // Send email to the all administrator
                         socket.emit("updateChart", { binID: binID, distance: distance });
                     } else {
                         try {
@@ -167,15 +168,18 @@ async function portConnection() { // Function to connect to the serial port
                     const binID = parsedData.binID;
                     const status = parsedData.status;
                 }
-            } else if ("cleanerID" in parsedData) {
+            } else if ("cleanerID" in parsedData) { // If the data contains cleanerID, it means it is a collection data
                 const binID = parsedData.binid;
                 const cleanerid = parsedData.cleanerID;
+
+                // Update the bin status to available and reset the accumulation to 0
                 try {
                     let update = await database.query("UPDATE bin SET status = 'available', accumulation = '0' WHERE ID = ?", [binID]);
                     socket.emit("updateChart", { binID: binID, distance: 24 });
                 } catch (err) {
                     console.log(err);
                 }
+                // Insert the collection data into the bin_history table
                 try {
                     let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
                     socket.emit("updateHistory");
@@ -206,7 +210,7 @@ redis.connect() // Connect to the Redis database
     .catch(err => console.log('Redis Connection Error:', err));
 
 // Express for signin.html
-app.post('/signin', async (req, res) => {
+app.post('/signin', async (req, res) => { // When user request for signin
     const { email, password } = req.body;
     try {
         const [admin] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
@@ -227,12 +231,12 @@ app.post('/signin', async (req, res) => {
 })
 
 // Express for forgotpass.html
-app.post('/forgotpassword', async (req, res) => {
+app.post('/forgotpassword', async (req, res) => { // When user request for password reset
     const { email } = req.body;
     try {
         const [account] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
         console.log(account);
-        if (account.length > 0) {
+        if (account.length > 0) { // If the email exists in the database
             var secret = speakeasy.generateSecret({ length: 20 });  // Generate a secret code
 
             const otp = speakeasy.totp({ // Convert the secret code to a one-time password
@@ -263,7 +267,7 @@ app.post('/forgotpassword', async (req, res) => {
             store(pin, otpPin);
             send(account[0].email, account[0].name, otp).catch(console.error);
             res.json({ status: "success", admin: account[0], otp: otp });
-        } else {
+        } else { // If the email does not exist in the database
             res.json({ status: "empty" });
         }
     } catch (error) {
@@ -477,6 +481,103 @@ app.get('/deleteCleaner/:id', async (req, res) => {
             res.json({ status: "success" });
         } else {
             res.json({ status: "failed" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+// Express for administrator.html
+app.get('/loadAdministrator/:id', async (req, res) => {
+    const adminEmail = req.params.id;
+    try {
+        const [administrators] = await database.query(`SELECT * FROM administrator WHERE NOT email = ?`, [adminEmail]);
+        res.json(administrators);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.post('/addAdministrator', async (req, res) => {
+    const { name, gender, email, contact, password } = req.body;
+    try {
+        const [add] = await database.query("INSERT INTO administrator (name, gender, email, contact, password) VALUES(?,?,?,?,?)", [name, gender, email, contact, password]);
+        if (add.warningStatus == 0) {
+            res.json({ status: "success" });
+        } else {
+            res.json({ status: "failed" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.post('/editAdministrator', async (req, res) => {
+    const { administratorID, name, gender, email, contact } = req.body;
+    console.log(name);
+    console.log(gender);
+    console.log(email);
+    console.log(contact);
+    try {
+        const [edit] = await database.query("UPDATE administrator SET name = ?, gender = ?, email = ?, contact = ? WHERE ID = ?", [name, gender, email, contact, administratorID]);
+        console.log(edit);
+        if (edit.warningStatus == 0) {
+            res.json({ status: "success" });
+        } else {
+            res.json({ status: "failed" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/fetchAdministrator/:id', async (req, res) => {
+    const administratorID = req.params.id;
+    try {
+        const [fetch] = await database.query("SELECT * FROM administrator WHERE ID = ?", [administratorID]);
+        console.log(fetch);
+        res.json(fetch);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/deleteAdministrator/:id', async (req, res) => {
+    const administratorID = req.params.id;
+    try {
+        const [del] = await database.query("DELETE FROM administrator WHERE ID = ?", [administratorID]);
+        if (del.warningStatus == 0) {
+            res.json({ status: "success" });
+        } else {
+            res.json({ status: "failed" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/validateEmail/:email', async (req, res) => {
+    const email = req.params.email;
+    try {
+        const [validate] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
+        if (validate.length > 0) {
+            res.json({ status: "existed" });
+        } else {
+            res.json({ status: "empty" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/validateContact/:contact', async (req, res) => {
+    const contact = req.params.contact;
+    try {
+        const [validate] = await database.query("SELECT * FROM administrator WHERE contact = ?", [contact]);
+        if (validate.length > 0) {
+            res.json({ status: "existed" });
+        } else {
+            res.json({ status: "empty" });
         }
     } catch (error) {
         console.log(error);
