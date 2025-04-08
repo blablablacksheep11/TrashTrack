@@ -28,6 +28,24 @@
         #theme::after {
             display: none !important;
         }
+
+        #show-pass-btn1 {
+            float: right;
+            position: relative;
+            right: 15px;
+            margin-top: -47px;
+            z-index: 5;
+            cursor: pointer;
+        }
+
+        #show-pass-btn2 {
+            float: right;
+            position: relative;
+            right: 15px;
+            margin-top: -47px;
+            z-index: 5;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -126,29 +144,67 @@
                                 required>
                         </div>
                         <div class="float-end">
-                            <button type="button" class="btn btn-secondary">Change password</button>
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal"
+                                data-bs-target="#modal1">
+                                Change Password
+                            </button>
                             <button type="submit" class="btn btn-primary">Save</button>
                         </div>
                     </form>
-
-                    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-                        <div id="toast" class="toast align-items-center" role="alert" aria-live="assertive"
-                            aria-atomic="true">
-                            <div class="d-flex bg-danger-subtle">
-                                <div class="toast-body">
-                                    <i class="bi bi-exclamation-circle me-1"></i>
-                                    <label></label>
-                                </div>
-                                <button type="button" class="btn-close btn-close-grey me-2 m-auto"
-                                    data-bs-dismiss="toast" aria-label="Close"></button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
         <div class="col-0 col-md-4 p-0 m-0"></div>
     </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex bg-danger-subtle rounded" id="toast-color">
+                <div class="toast-body" id="toast-body">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    <label></label>
+                </div>
+                <button type="button" class="btn-close btn-close-grey me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Change Password -->
+    <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Add Cleaner</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body border-0 py-0 pb-3">
+                    <form id="change-password-form">
+                        <div class="mb-3">
+                            <label for="oldpassword" class="form-label">Old password</label>
+                            <input type="password" class="form-control" id="oldpassword" placeholder="Old password"
+                                required>
+                        </div>
+                        <i class="bi bi-eye-slash" id="show-pass-btn1" onclick="show(0)"></i>
+                        <div class="mb-3">
+                            <label for="newpassword" class="form-label">New password</label>
+                            <input type="password" class="form-control" placeholder="New password" id="newpassword"
+                                pattern="(?=.*\d)(?=.*[_@$!%*?&#\(\)\[\]])(?=.*[a-z])(?=.*[A-Z]).{6,}"
+                                title="Password must be at least 6 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character (_@$!%*?&#()[])."
+                                required>
+                        </div>
+                        <i class="bi bi-eye-slash" id="show-pass-btn2" onclick="show(1)"></i>
+                        <div class="mt-4 text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                id="close-btn">Close</button>
+                            <button type="submit" class="btn btn-primary">Change Password</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center"
         style="margin-top: auto !important;">
@@ -201,16 +257,99 @@
                 });
                 const data = await response.json();
                 if (data.status == "success") {
-                    alert("Information updated");
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-danger-subtle");
+                        document.getElementById("toast-color").classList.add("bg-success-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Information updated.";
+                    toastBootstrap.show();
                     loadInfo(sessionStorage.getItem("adminEmail"));
                 } else if (data.status == "failed") {
-                    alert("Failed to update information");
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Failed to update information.";
+                    toastBootstrap.show();
                     loadInfo(sessionStorage.getItem("adminEmail"));
                 }
             } else {
                 form.reportValidity();
             }
         })
+
+        document.getElementById("change-password-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const adminemail = sessionStorage.getItem("adminEmail");
+            if (form.checkValidity()) {
+                const newpassword = document.getElementById("newpassword").value;
+                const oldpassword = document.getElementById("oldpassword").value;
+                const response = await fetch(`http://localhost:3000/validatePassword`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ adminemail, oldpassword })
+                });
+                const data = await response.json();
+
+                if (data.status == "failed") {
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Incorrect old password. Please try again.";
+                    toastBootstrap.show();
+                    return;
+                }
+
+                const response1 = await fetch(`http://localhost:3000/changePassword`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ adminemail, newpassword })
+                });
+                const data1 = await response1.json();
+                if (data1.status == "success") {
+                    let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
+                    modal1.hide(); // Hide the confirmation modal
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-danger-subtle");
+                        document.getElementById("toast-color").classList.add("bg-success-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Password changed.";
+                    toastBootstrap.show();
+                } else if (data1.status == "failed") {
+                    let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
+                    modal1.hide(); // Hide the confirmation modal
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Failed to change password. Please try again.";
+                    toastBootstrap.show();
+                }
+            } else {
+                form.reportValidity();
+            }
+        })
+
+        document.getElementById("modal1").addEventListener('show.bs.modal', function () { // Clear the previous content in the form
+            document.getElementById("oldpassword").value = "";
+            document.getElementById("newpassword").value = "";
+        });
 
         async function loadInfo(email) {
             const response = await fetch(`http://localhost:3000/loadInfo/${email}`);
@@ -254,6 +393,34 @@
                 change(1);
             } else if (theme == "dark") {
                 change(0);
+            }
+        }
+
+        async function show(index) {
+            if (index == 0) {
+                const password = document.getElementById("oldpassword");
+                const showPassBtn = document.getElementById("show-pass-btn1");
+                if (password.type === "password") {
+                    password.type = "text";
+                    showPassBtn.classList.remove("bi-eye-slash");
+                    showPassBtn.classList.add("bi-eye");
+                } else {
+                    password.type = "password";
+                    showPassBtn.classList.remove("bi-eye");
+                    showPassBtn.classList.add("bi-eye-slash");
+                }
+            } else if (index == 1) {
+                const password = document.getElementById("newpassword");
+                const showPassBtn = document.getElementById("show-pass-btn2");
+                if (password.type === "password") {
+                    password.type = "text";
+                    showPassBtn.classList.remove("bi-eye-slash");
+                    showPassBtn.classList.add("bi-eye");
+                } else {
+                    password.type = "password";
+                    showPassBtn.classList.remove("bi-eye");
+                    showPassBtn.classList.add("bi-eye-slash");
+                }
             }
         }
 

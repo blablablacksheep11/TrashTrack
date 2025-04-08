@@ -487,6 +487,34 @@ app.get('/deleteCleaner/:id', async (req, res) => {
     }
 })
 
+app.get('/validateCleanerEmail/:email', async (req, res) => {
+    const email = req.params.email;
+    try {
+        const [validate] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
+        if (validate.length > 0) {
+            res.json({ status: "existed" });
+        } else {
+            res.json({ status: "empty" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/validateCleanerIC/:ic', async (req, res) => {
+    const ic = req.params.ic;
+    try {
+        const [validate] = await database.query("SELECT * FROM cleaner WHERE IC = ?", [ic]);
+        if (validate.length > 0) {
+            res.json({ status: "existed" });
+        } else {
+            res.json({ status: "empty" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
 // Express for administrator.html
 app.get('/loadAdministrator/:id', async (req, res) => {
     const adminEmail = req.params.id;
@@ -773,6 +801,7 @@ app.get('/exportHistory/:id', async (req, res) => {
     }
 })
 
+// Express for profile.html
 app.get('/loadInfo/:email', async (req, res) => {
     const email = req.params.email;
     try {
@@ -790,6 +819,36 @@ app.post('/updateProfile', async (req, res) => {
         const [edit] = await database.query("UPDATE administrator SET name = ?, email = ?, gender = ?, contact = ? WHERE email = ?", [name, email, gender, phone, adminemail]);
         console.log(edit);
         if (edit.warningStatus == 0) {
+            res.json({ status: "success" });
+        } else {
+            res.json({ status: "failed" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.post('/validatePassword', async (req, res) => {
+    const {adminemail, oldpassword} = req.body;
+    try {
+        const [validate] = await database.query("SELECT * FROM administrator WHERE email = ? AND password = ?", [adminemail, oldpassword]);
+        console.log(validate);
+        if (validate.length > 0) {
+            res.json({ status: "success" });
+        } else {
+            res.json({ status: "failed" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.post('/changePassword', async (req, res) => {
+    const {adminemail, newpassword} = req.body;
+    try {
+        const [update] = await database.query("UPDATE administrator SET password = ? WHERE email = ?", [newpassword, adminemail]);
+        console.log(update);
+        if (update.warningStatus == 0) {
             res.json({ status: "success" });
         } else {
             res.json({ status: "failed" });

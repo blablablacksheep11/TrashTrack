@@ -30,6 +30,15 @@
         #theme::after {
             display: none !important;
         }
+
+        #show-pass-btn {
+            float: right;
+            position: relative;
+            right: 15px;
+            margin-top: -46px;
+            z-index: 5;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -176,6 +185,7 @@
                                     title="Password must be at least 6 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character (_@$!%*?&#()[])."
                                     required>
                             </div>
+                            <i class="bi bi-eye-slash" id="show-pass-btn" onclick="show()"></i>
                             <div class="mt-4 text-end">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="submit" class="btn btn-primary">Add new</button>
@@ -273,15 +283,14 @@
     </div>
 
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="toast" class="toast align-items-center" role="alert" aria-live="assertive"
-            aria-atomic="true">
-            <div class="d-flex bg-danger-subtle rounded">
-                <div class="toast-body">
+        <div id="toast" class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex bg-danger-subtle rounded" id="toast-color">
+                <div class="toast-body" id="toast-body">
                     <i class="bi bi-exclamation-circle me-1"></i>
                     <label></label>
                 </div>
-                <button type="button" class="btn-close btn-close-grey me-2 m-auto"
-                    data-bs-dismiss="toast" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-grey me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
             </div>
         </div>
     </div>
@@ -419,14 +428,6 @@
             }
         }
 
-        function alertAdministratorRemoved() {
-            alert("Administrator removed.");
-        }
-
-        function alertFailedtoRemoveAdministrator() {
-            alert("Failed to remove administrator.");
-        }
-
         document.getElementById("confirm-del-btn").addEventListener("click", async () => { // When confirm btn click in confirm delete modal
             const administratorID = document.getElementById("confirm-del-btn").dataset.administratorID; // Fetch the data in confirm btn
 
@@ -435,15 +436,27 @@
             if (data.status == "success") {
                 let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
                 modal3.hide(); // Hide the confirmation modal
-                await document.getElementById("modal3").addEventListener('hidden.bs.modal', alertAdministratorRemoved);
                 loadAdministrator();
-                await document.getElementById("modal3").removeEventListener('hidden.bs.modal', alertAdministratorRemoved);
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-danger-subtle");
+                    document.getElementById("toast-color").classList.add("bg-success-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "Administrator removed.";
+                toastBootstrap.show();
             } else if (data.status == "failed") {
                 let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
                 modal3.hide(); // Hide the confirmation modal
-                await document.getElementById("modal3").addEventListener('hidden.bs.modal', alertFailedtoRemoveAdministrator);
                 loadAdministrator();
-                await document.getElementById("modal3").removeEventListener('hidden.bs.modal', alertFailedtoRemoveAdministrator);
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                    document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "Failed to remove administrator.";
+                toastBootstrap.show();
             }
         })
 
@@ -478,6 +491,10 @@
                 if (data.status == "existed") {
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
                     document.querySelector(".toast-body label").innerHTML = "Email already exists. Please try again.";
                     toastBootstrap.show();
                     return;
@@ -488,6 +505,10 @@
                 if (data2.status == "existed") {
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
                     document.querySelector(".toast-body label").innerHTML = "Contact already exists. Please try again.";
                     toastBootstrap.show();
                     return;
@@ -506,10 +527,6 @@
                 document.getElementById("confirm-add-btn").dataset.administratorInfo = JSON.stringify(administratorInfo); // Store the clener info in confirm btn
             }
         })
-
-        function alertFailedtoEditAdministrator() {
-            alert("Failed to edit administrator information.");
-        }
 
         document.getElementById("edit-administrator-form").addEventListener("submit", async (e) => { // When the save btn is clicked in the edit modal
             const administratorID = JSON.parse(document.getElementById("save-btn").dataset.administratorID); // Fetch the data in save btn
@@ -542,23 +559,29 @@
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal4"));
                     modal.hide(); // Hide the edit modal
                     loadAdministrator();
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-danger-subtle");
+                        document.getElementById("toast-color").classList.add("bg-success-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Administrator information updated.";
+                    toastBootstrap.show();
                 } else if (data.status == "failed") {
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal4"));
                     modal.hide(); // Hide the edit modal
-                    await document.getElementById("modal4").addEventListener('hidden.bs.modal', alertFailedtoEditAdministrator);
                     loadAdministrator();
-                    await document.getElementById("modal4").removeEventListener('hidden.bs.modal', alertFailedtoEditAdministrator);
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Failed to edit administrator information.";
+                    toastBootstrap.show();
                 }
             }
         })
-
-        function alertNewAdministratorAdded() {
-            alert("New administrator added.");
-        }
-
-        function alertFailedtoAddNewAdministrator() {
-            alert("Failed to add new administrator.");
-        }
 
         document.getElementById("confirm-add-btn").addEventListener("click", async () => {  // When the confirm button is clicked for add administrator
             const administratorInfo = JSON.parse(document.getElementById("confirm-add-btn").dataset.administratorInfo); // Fetch the data in confirm btn
@@ -574,17 +597,43 @@
             if (data.status == "success") {
                 let modal2 = bootstrap.Modal.getInstance(document.getElementById("modal2"));
                 modal2.hide(); // Hide the confirmation modal
-                await document.getElementById("modal2").addEventListener('hidden.bs.modal', alertNewAdministratorAdded);
                 loadAdministrator();
-                await document.getElementById("modal2").removeEventListener('hidden.bs.modal', alertNewAdministratorAdded);
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-danger-subtle");
+                    document.getElementById("toast-color").classList.add("bg-success-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "New administrator added.";
+                toastBootstrap.show();
             } else if (data.status == "failed") {
                 let modal2 = bootstrap.Modal.getInstance(document.getElementById("modal2"));
                 modal2.hide(); // Hide the confirmation modal
-                await document.getElementById("modal2").addEventListener('hidden.bs.modal', alertFailedtoAddNewAdministrator);
                 loadAdministrator();
-                await document.getElementById("modal2").removeEventListener('hidden.bs.modal', alertFailedtoAddNewAdministrator);
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                    document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "Failed to add administrator.";
+                toastBootstrap.show();
             }
         })
+
+        async function show() {
+            const password = document.getElementById("password1");
+            const showPassBtn = document.getElementById("show-pass-btn");
+            if (password.type === "password") {
+                password.type = "text";
+                showPassBtn.classList.remove("bi-eye-slash");
+                showPassBtn.classList.add("bi-eye");
+            } else {
+                password.type = "password";
+                showPassBtn.classList.remove("bi-eye");
+                showPassBtn.classList.add("bi-eye-slash");
+            }
+        }
 
         window.onload = () => {
             loadAdministrator(); // Fetch data when page loads

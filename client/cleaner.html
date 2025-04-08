@@ -18,7 +18,7 @@
         body {
             min-height: 100vh !important;
         }
-        
+
         .bi-gender-female {
             color: #ff69b4;
         }
@@ -38,8 +38,8 @@
         <nav class="navbar navbar-expand-lg bg-secondary-subtle">
             <div class="container-fluid">
                 <a class="navbar-brand" href="dashboard.html"><img src="../img/smart-trash-dark.svg" alt="TrashTrack"
-                    style="height: 30px;" id="logo">&nbsp;<label class="fs-6 ps-1"
-                    style="cursor: pointer;">TrashTrack</label></a>
+                        style="height: 30px;" id="logo">&nbsp;<label class="fs-6 ps-1"
+                        style="cursor: pointer;">TrashTrack</label></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                     aria-expanded="false" aria-label="Toggle navigation">
@@ -75,7 +75,8 @@
                                 Profile
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" onclick="window.location.href = 'profile.html'">View</a></li>
+                                <li><a class="dropdown-item" onclick="window.location.href = 'profile.html'">View</a>
+                                </li>
                                 <li><a class="dropdown-item" onclick="window.location.replace('signin.html')">Sign
                                         Out</a></li>
                             </ul>
@@ -262,18 +263,23 @@
             </div>
         </div>
     </div>
+
     <!-- Footer -->
-    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center" style="margin-top: auto !important;">
+    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center"
+        style="margin-top: auto !important;">
         <label class="fs-2 fst-italic text-center mt-4">TrashTrack</label>
         <label class="w-50 text-center mt-3 mb-4">Revolutionize your waste management with SmartBin - A high-tech
             solution that automatically monitors waste levels, optimizes collection, and promotes a cleaner, smarter
             environment.</label>
         <div class="m-0 p-0 d-flex justify-content-center">
             <div class="w-25 text-center d-flex justify-content-evenly">
-                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i class="bi bi-facebook fs-3"></i></a>
-                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i class="bi bi-instagram fs-3"></i></a>
+                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i
+                        class="bi bi-facebook fs-3"></i></a>
+                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i
+                        class="bi bi-instagram fs-3"></i></a>
                 <a href="https://github.com/" class="text-body" target="_blank"><i class="bi bi-github fs-3"></i></a>
-                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i class="bi bi-linkedin fs-3"></i></a>
+                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i
+                        class="bi bi-linkedin fs-3"></i></a>
             </div>
         </div>
         <div class="d-flex justify-content-between mt-5 mb-2">
@@ -282,6 +288,19 @@
                 <a href="dashboard.html">Home</a>&nbsp;
                 <a href="about.html">About</a>&nbsp;
                 <a href="https://mail.google.com/mail/u/0/">Contact Us</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex bg-danger-subtle rounded" id="toast-color">
+                <div class="toast-body" id="toast-body">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    <label></label>
+                </div>
+                <button type="button" class="btn-close btn-close-grey me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
             </div>
         </div>
     </div>
@@ -358,7 +377,7 @@
 
         async function change(mode) {
             let htmlTag = document.documentElement; // Select the <html> tag
-                let logo = document.getElementById("logo");
+            let logo = document.getElementById("logo");
 
             if (mode == 1) {  // Switch to light mode
                 if (htmlTag.getAttribute("data-bs-theme") == "dark") {
@@ -390,14 +409,6 @@
             }
         }
 
-        function alertCleanerRemoved(){
-            alert("Cleaner removed.");
-        }
-
-        function alertFailedtoRemoveCleaner(){
-            alert("Failed to remove cleaner.");
-        }
-
         document.getElementById("confirm-del-btn").addEventListener("click", async () => { // When confirm btn click in confirm delete modal
             const cleanerID = document.getElementById("confirm-del-btn").dataset.cleanerID; // Fetch the data in confirm btn
 
@@ -406,15 +417,27 @@
             if (data.status == "success") {
                 let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
                 modal3.hide(); // Hide the confirmation modal
-                await document.getElementById("modal3").addEventListener('hidden.bs.modal', alertCleanerRemoved);
                 loadCleaner();
-                await document.getElementById("modal3").removeEventListener('hidden.bs.modal', alertCleanerRemoved);
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-danger-subtle");
+                    document.getElementById("toast-color").classList.add("bg-success-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "Cleaner removed.";
+                toastBootstrap.show();
             } else if (data.status == "failed") {
                 let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
                 modal3.hide(); // Hide the confirmation modal
-                await document.getElementById("modal3").addEventListener('hidden.bs.modal', alertFailedtoRemoveCleaner);
                 loadCleaner();
-                await document.getElementById("modal3").removeEventListener('hidden.bs.modal', alertFailedtoRemoveCleaner);
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                    document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "Failed to remove cleaner.";
+                toastBootstrap.show();
             }
         })
 
@@ -442,6 +465,34 @@
                 const ic = document.getElementById("ic1").value;
                 const email = document.getElementById("email1").value.toLowerCase();
 
+                const response1 = await fetch(`http://localhost:3000/validateCleanerIC/${ic}`);
+                const data1 = await response1.json();
+                if (data1.status == "existed") {
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "IC already exists. Please try again.";
+                    toastBootstrap.show();
+                    return;
+                }
+
+                const response = await fetch(`http://localhost:3000/validateCleanerEmail/${email}`);
+                const data = await response.json();
+                if (data.status == "existed") {
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Email already exists. Please try again.";
+                    toastBootstrap.show();
+                    return;
+                }
+
                 const cleanerInfo = { name: name, gender: gender, ic: ic, email: email }; // Temporary storage
                 const modalBody = document.querySelector("#modal2 #confirmation-body");
                 modalBody.innerHTML = `Are you sure you wanted to add ${name} as new cleaner?`
@@ -455,10 +506,6 @@
                 document.getElementById("confirm-add-btn").dataset.cleanerInfo = JSON.stringify(cleanerInfo); // Store the clener info in confirm btn
             }
         })
-
-        function alertFailedtoEditCleaner(){
-            alert("Failed to edit cleaner information.");
-        }
 
         document.getElementById("edit-cleaner-form").addEventListener("submit", async (e) => { // When the save btn is clicked in the edit modal
             const cleanerID = JSON.parse(document.getElementById("save-btn").dataset.cleanerID); // Fetch the data in save btn
@@ -491,23 +538,29 @@
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal4"));
                     modal.hide(); // Hide the edit modal
                     loadCleaner();
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-danger-subtle");
+                        document.getElementById("toast-color").classList.add("bg-success-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Cleaner information updated.";
+                    toastBootstrap.show();
                 } else if (data.status == "failed") {
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal4"));
                     modal.hide(); // Hide the edit modal
-                    await document.getElementById("modal4").addEventListener('hidden.bs.modal', alertFailedtoEditCleaner);
                     loadCleaner();
-                    await document.getElementById("modal4").removeEventListener('hidden.bs.modal', alertFailedtoEditCleaner);
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Failed to update cleaner information.";
+                    toastBootstrap.show();
                 }
             }
         })
-        
-        function alertNewCleanerAdded(){
-            alert("New cleaner added.");
-        }
-
-        function alertFailedtoAddNewCleaner(){
-            alert("Failed to add new cleaner.");
-        }
 
         document.getElementById("confirm-add-btn").addEventListener("click", async () => {  // When the confirm button is clicked for add cleaner
             const cleanerInfo = JSON.parse(document.getElementById("confirm-add-btn").dataset.cleanerInfo); // Fetch the data in confirm btn
@@ -523,15 +576,27 @@
             if (data.status == "success") {
                 let modal2 = bootstrap.Modal.getInstance(document.getElementById("modal2"));
                 modal2.hide(); // Hide the confirmation modal
-                await document.getElementById("modal2").addEventListener('hidden.bs.modal', alertNewCleanerAdded);
                 loadCleaner();
-                await document.getElementById("modal2").removeEventListener('hidden.bs.modal', alertNewCleanerAdded);
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-danger-subtle");
+                    document.getElementById("toast-color").classList.add("bg-success-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "New cleaner added.";
+                toastBootstrap.show();
             } else if (data.status == "failed") {
                 let modal2 = bootstrap.Modal.getInstance(document.getElementById("modal2"));
                 modal2.hide(); // Hide the confirmation modal
-                await document.getElementById("modal2").addEventListener('hidden.bs.modal', alertFailedtoAddNewCleaner);
                 loadCleaner();
-                await document.getElementById("modal2").removeEventListener('hidden.bs.modal', alertFailedtoAddNewCleaner);
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                    document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "Failed to add new cleaner.";
+                toastBootstrap.show();
             }
         })
 

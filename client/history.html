@@ -15,7 +15,7 @@
         integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+"
         crossorigin="anonymous"></script>
     <style>
-        body{
+        body {
             min-height: 100vh !important;
         }
 
@@ -71,7 +71,8 @@
                                 Profile
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" onclick="window.location.href = 'profile.html'">View</a></li>
+                                <li><a class="dropdown-item" onclick="window.location.href = 'profile.html'">View</a>
+                                </li>
                                 <li><a class="dropdown-item" onclick="window.location.replace('signin.html')">Sign
                                         Out</a></li>
                             </ul>
@@ -116,17 +117,21 @@
         </table>
     </div>
     <!-- Footer -->
-    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center" style="margin-top: auto !important;">
+    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center"
+        style="margin-top: auto !important;">
         <label class="fs-2 fst-italic text-center mt-4">TrashTrack</label>
         <label class="w-50 text-center mt-3 mb-4">Revolutionize your waste management with SmartBin - A high-tech
             solution that automatically monitors waste levels, optimizes collection, and promotes a cleaner, smarter
             environment.</label>
         <div class="m-0 p-0 d-flex justify-content-center">
             <div class="w-25 text-center d-flex justify-content-evenly">
-                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i class="bi bi-facebook fs-3"></i></a>
-                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i class="bi bi-instagram fs-3"></i></a>
+                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i
+                        class="bi bi-facebook fs-3"></i></a>
+                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i
+                        class="bi bi-instagram fs-3"></i></a>
                 <a href="https://github.com/" class="text-body" target="_blank"><i class="bi bi-github fs-3"></i></a>
-                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i class="bi bi-linkedin fs-3"></i></a>
+                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i
+                        class="bi bi-linkedin fs-3"></i></a>
             </div>
         </div>
         <div class="d-flex justify-content-between mt-5 mb-2">
@@ -135,6 +140,19 @@
                 <a href="dashboard.html">Home</a>&nbsp;
                 <a href="about.html">About</a>&nbsp;
                 <a href="https://mail.google.com/mail/u/0/">Contact Us</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex bg-danger-subtle rounded" id="toast-color">
+                <div class="toast-body" id="toast-body">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    <label></label>
+                </div>
+                <button type="button" class="btn-close btn-close-grey me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
             </div>
         </div>
     </div>
@@ -269,14 +287,6 @@
             document.getElementById("confirm-del-btn").dataset.historyID = id; // Store the history ID in confirm btn
         }
 
-        function alertHistoryRemoved() {
-            alert("History removed.");
-        }
-
-        function alertFailedToRemoveHistory() {
-            alert("Failed to remove history.");
-        }
-
         document.getElementById("confirm-del-btn").addEventListener("click", async () => {  // When confirm btn clicked for history delete
             const historyID = document.getElementById("confirm-del-btn").dataset.historyID; // Fetch the data in confirm btn
 
@@ -285,15 +295,27 @@
             if (data.status == "success") {
                 let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
                 modal1.hide(); // Hide the confirmation modal
-                await document.getElementById("modal1").addEventListener('hidden.bs.modal', alertHistoryRemoved);
                 loadBinHistory();
-                await document.getElementById("modal1").removeEventListener('hidden.bs.modal', alertHistoryRemoved);
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-danger-subtle");
+                    document.getElementById("toast-color").classList.add("bg-success-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "History removed.";
+                toastBootstrap.show();
             } else if (data.status == "failed") {
                 let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
                 modal1.hide(); // Hide the confirmation modal
-                await document.getElementById("modal1").addEventListener('hidden.bs.modal', alertFailedToRemoveHistory);
                 loadBinHistory();
-                await document.getElementById("modal1").removeEventListener('hidden.bs.modal', alertFailedToRemoveHistory);
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                    document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "Failed to remove history.";
+                toastBootstrap.show();
             }
         })
 
@@ -392,14 +414,6 @@
             }
         }
 
-        function alertHistoryUpdated() {
-            alert("History updated.");
-        }
-
-        function alertFailedToUpdateHistory() {
-            alert("Failed to update history.");
-        }
-
         document.getElementById("edit-history-form").addEventListener("submit", async (e) => { // When confirm btn clicked for edit history
             const historyID = JSON.parse(document.getElementById("save-btn").dataset.historyID); // Fetch the data in save btn
 
@@ -425,15 +439,28 @@
                 if (data.status == "success") {
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal2"));
                     modal.hide(); // Hide the edit history modal
-                    await document.getElementById("modal2").addEventListener('hidden.bs.modal', alertHistoryUpdated);
                     loadBinHistory();
-                    await document.getElementById("modal2").removeEventListener('hidden.bs.modal', alertHistoryUpdated);
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-danger-subtle");
+                        document.getElementById("toast-color").classList.add("bg-success-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "History updated.";
+                    toastBootstrap.show();
                 } else if (data.status == "failed") {
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal2"));
                     modal.hide(); // Hide the edit history modal
-                    await document.getElementById("modal2").addEventListener('hidden.bs.modal', alertFailedToUpdateHistory);
+
                     loadBinHistory();
-                    await document.getElementById("modal2").removeEventListener('hidden.bs.modal', alertFailedToUpdateHistory);
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Failed to update history.";
+                    toastBootstrap.show();
                 }
             }
         })
