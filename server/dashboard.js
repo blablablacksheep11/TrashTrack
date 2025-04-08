@@ -149,7 +149,7 @@ async function portConnection() { // Function to connect to the serial port
 
                         const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
                         const [email] = await database.query("SELECT email FROM administrator");
-                        let emailList = []; 
+                        let emailList = [];
                         email.forEach((email) => {
                             emailList.push(email.email);
                         });
@@ -183,7 +183,7 @@ async function portConnection() { // Function to connect to the serial port
                 try {
                     let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
                     socket.emit("updateHistory");
-                    socket.emit("updateGraph", {binID: binID});
+                    socket.emit("updateGraph", { binID: binID });
                     console.log(collect);
                 } catch (err) {
                     console.log(err);
@@ -312,6 +312,47 @@ app.post('/verification', async (req, res) => {
     fetch(pin, otp);
 })
 
+app.post('/resend', async (req, res) => {
+    const { email } = req.body;
+    const [account] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
+
+    try {
+        var secret = speakeasy.generateSecret({ length: 20 });  // Generate a secret code
+
+        const otp = speakeasy.totp({ // Convert the secret code to a one-time password
+            secret: secret.base32,
+            encoding: "base32",
+        });
+
+        const pin = `pin:${email}`;
+        const otpPin = secret.base32.toString();
+
+        async function store(pin, secret) {
+            try {
+                const pinExists = await redis.exists(pin); // Check if OTP exists
+
+                if (pinExists == 0) {
+                    await redis.setEx(pin, 120, secret);
+                } else if (pinExists == 1) {
+                    await redis.del(pin); // Ensure deletion completes before setting new value
+                    await redis.setEx(pin, 120, secret);
+                }
+
+                console.log("Redis storage updated successfully.");
+            } catch (error) {
+                console.error("Redis error:", error);
+            }
+        }
+
+        store(pin, otpPin);
+        send(account[0].email, account[0].name, otp).catch(console.error);
+        res.json({ status: "success", admin: account[0], otp: otp });
+    } catch (error) {
+        console.log(error);
+        res.json({ status: "failed"});
+    }
+})
+
 // Express for resetpass.html
 app.post('/resetpassword', async (req, res) => {
     const { email, password, confirmpassword } = req.body;
@@ -399,7 +440,7 @@ app.get('/fetchGraph/:id', async (req, res) => {
 app.get('/getHistory/:id/:date', async (req, res) => {
     const binid = req.params.id;
     const date = req.params.date;
-    
+
     try {
         const [history] = await database.query("SELECT COUNT(*) as sum FROM bin_history WHERE binID = ? AND DATE(collection) = CONVERT_TZ(?, '+00:00', '+08:00') AND collection IS NOT NULL", [binid, date]);
         console.log(history);
@@ -829,7 +870,7 @@ app.post('/updateProfile', async (req, res) => {
 })
 
 app.post('/validatePassword', async (req, res) => {
-    const {adminemail, oldpassword} = req.body;
+    const { adminemail, oldpassword } = req.body;
     try {
         const [validate] = await database.query("SELECT * FROM administrator WHERE email = ? AND password = ?", [adminemail, oldpassword]);
         console.log(validate);
@@ -844,7 +885,7 @@ app.post('/validatePassword', async (req, res) => {
 })
 
 app.post('/changePassword', async (req, res) => {
-    const {adminemail, newpassword} = req.body;
+    const { adminemail, newpassword } = req.body;
     try {
         const [update] = await database.query("UPDATE administrator SET password = ? WHERE email = ?", [newpassword, adminemail]);
         console.log(update);

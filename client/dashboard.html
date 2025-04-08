@@ -188,17 +188,21 @@
         </div>
     </div>
     <!-- Footer -->
-    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center" style="margin-top: auto !important;">
+    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center"
+        style="margin-top: auto !important;">
         <label class="fs-2 fst-italic text-center mt-4">TrashTrack</label>
         <label class="w-50 text-center mt-3 mb-4">Revolutionize your waste management with SmartBin - A high-tech
             solution that automatically monitors waste levels, optimizes collection, and promotes a cleaner, smarter
             environment.</label>
         <div class="m-0 p-0 d-flex justify-content-center">
             <div class="w-25 text-center d-flex justify-content-evenly">
-                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i class="bi bi-facebook fs-3"></i></a>
-                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i class="bi bi-instagram fs-3"></i></a>
+                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i
+                        class="bi bi-facebook fs-3"></i></a>
+                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i
+                        class="bi bi-instagram fs-3"></i></a>
                 <a href="https://github.com/" class="text-body" target="_blank"><i class="bi bi-github fs-3"></i></a>
-                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i class="bi bi-linkedin fs-3"></i></a>
+                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i
+                        class="bi bi-linkedin fs-3"></i></a>
             </div>
         </div>
         <div class="d-flex justify-content-between mt-5 mb-2">
@@ -266,11 +270,11 @@
                     const response = await fetch(`http://localhost:3000/getHistory/${binid}/${entry.date}`);
                     const sum = await response.json();
 
-                    const date = new Date(entry.date); // Create a Date object from the given string    
-                    const formattedDate = date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
+                    const date = new Date(entry.date);
+                    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
                     data.addRows([
-                        [new Date(formattedDate), sum[0].sum],
+                        [new Date(formattedDate), sum[0].sum]
                     ]);
                 }
 

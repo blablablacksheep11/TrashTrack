@@ -86,13 +86,17 @@
                                 <button type="submit" class="btn btn-primary w-100">Verify</button>
                             </div>
                         </div>
+                        <div class="row m-0 mt-3 mb-2 p-0 d-flex justify-content-center">
+                            <label class="text-center">Didn't receive a code?&nbsp;<a class="link-underline-primary"
+                                    id="resend-btn" style="cursor: pointer;">Resend</a></label>
+                        </div>
                     </form>
 
                     <div class="toast-container position-fixed bottom-0 end-0 p-3">
                         <div id="toast" class="toast align-items-center" role="alert" aria-live="assertive"
                             aria-atomic="true">
-                            <div class="d-flex bg-danger-subtle">
-                                <div class="toast-body">
+                            <div class="d-flex bg-danger-subtle rounded" id="toast-color">
+                                <div class="toast-body" id="toast-body">
                                     <i class="bi bi-exclamation-circle me-1"></i>
                                     <label></label>
                                 </div>
@@ -148,21 +152,64 @@
                 } else if (data.status == "invalid") {
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
-                    document.querySelector(".toast-body label").innerHTML = "Invalid OTP.";
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Invalid OTP.";
                     toastBootstrap.show();
                 } else if (data.status == "expired") {
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
-                    document.querySelector(".toast-body label").innerHTML = "OTP expired. Please try again.";
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "OTP expired. Please get a new code.";
                     toastBootstrap.show();
-                }else if (data.status == "failed") {
+                } else if (data.status == "failed") {
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
-                    document.querySelector(".toast-body label").innerHTML = "Action failed. Please try again later.";
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "Action failed. Please try again later.";
                     toastBootstrap.show();
                 }
             } else {
                 form.reportValidity();
+            }
+        })
+
+        document.getElementById("resend-btn").addEventListener("click", async () => {
+            const email = sessionStorage.getItem("email");
+            const response = await fetch(`http://localhost:3000/resend`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ email })
+            });
+            const data = await response.json();
+            if (data.status == "success") {
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-danger-subtle");
+                    document.getElementById("toast-color").classList.add("bg-success-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "New OTP sent to your email.";
+                toastBootstrap.show();
+            } else if (data.status == "failed") {
+                const toast = document.getElementById('toast');
+                const toastBootstrap = new bootstrap.Toast(toast);
+                if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                    document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                    document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                }
+                document.querySelector("#toast-body label").innerHTML = "Failed to sent new OTP. Please try again later.";
+                toastBootstrap.show();
             }
         })
 
