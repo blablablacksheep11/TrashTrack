@@ -102,7 +102,6 @@
                     <th scope="col">Bin ID</th>
                     <th scope="col">Accumulation</th>
                     <th scope="col">Request Created At</th>
-                    <th scope="col">Status</th>
                     <th scope="col">Collector</th>
                     <th scope="col">Collection</th>
                     <th scope="col">Action</th>
@@ -110,7 +109,7 @@
             </thead>
             <tbody id="history-table">
                 <tr>
-                    <td colspan="8" class="text-center py-3">No history found ...<br><i
+                    <td colspan="6" class="text-center py-3">No history found ...<br><i
                             class="bi bi-clock-history fs-3"></i></td>
                 </tr>
             </tbody>
@@ -208,10 +207,6 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="status" class="form-label">Status</label>
-                            <input type="text" class="form-control" id="status" placeholder="Status" disabled readonly>
-                        </div>
-                        <div class="mb-3">
                             <label for="collector" class="form-label">Collector</label>
                             <select class="form-select" aria-label="Default select example" id="collector" required>
                                 <option selected hidden>Collector</option>
@@ -267,7 +262,6 @@
                     <td class="py-3">${history.binID}</td>
                     <td class="py-3">${history.accumulation}</td>
                     <td class="py-3">${history.creation}</td>
-                    <td class="py-3">${history.status}</td>
                     <td class="py-3">${history.collectorID}</td>
                     <td class="py-3">${history.collection}</td>
                     <td>
@@ -277,6 +271,15 @@
                 `;
                     table.appendChild(row);
                 });
+            } else {
+                table.innerHTML = ""; // Clear previous data
+
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                                <td colspan="6" class="text-center py-3">No history found ...<br><i
+                                    class="bi bi-clock-history fs-3"></i></td>
+                                `;
+                table.appendChild(row);
             }
         }
 
@@ -368,7 +371,6 @@
             document.querySelector("#modal2 #edit-history-form #accumulation").value = `${data[0].accumulation}%`;
             document.querySelector("#modal2 #edit-history-form #creation-date").value = convertDate(data[0].creationDate);
             document.querySelector("#modal2 #edit-history-form #creation-time").value = convertTime(data[0].creationTime);
-            document.querySelector("#modal2 #edit-history-form #status").value = data[0].status;
             document.querySelector("#modal2 #edit-history-form #collection-date").value = convertDate(data[0].collectionDate);
             document.querySelector("#modal2 #edit-history-form #collection-time").value = convertTime(data[0].collectionTime);
             await getCleanerList();

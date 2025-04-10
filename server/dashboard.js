@@ -126,9 +126,9 @@ async function portConnection() { // Function to connect to the serial port
             if ("string" in parsedData) {
                 console.log("Test: Invalid data."); // This is a test module
             } else if (!("cleanerID" in parsedData)) { // If the data does not contain cleanerID, it means it is a bin data
-                if (parsedData.status == "closed") {
+                if (parsedData.binstatus == "closed") {
                     const binID = Number(parsedData.binID);
-                    const status = parsedData.status;
+                    const status = parsedData.binstatus;
                     const distance = Number(parsedData.distance);
                     const accumulation = 100 - ((distance / 24) * 100);
                     if (accumulation >= 80) { // If the bin is full, change the status to unavailable
@@ -164,9 +164,9 @@ async function portConnection() { // Function to connect to the serial port
                         }
                         socket.emit("updateChart", { binID: binID, distance: distance });
                     }
-                } else if (parsedData.status == "opened") {
+                } else if (parsedData.binstatus == "opened") {
                     const binID = parsedData.binID;
-                    const status = parsedData.status;
+                    const status = parsedData.binstatus;
                 }
             } else if ("cleanerID" in parsedData) { // If the data contains cleanerID, it means it is a collection data
                 const binID = parsedData.binid;
@@ -349,7 +349,7 @@ app.post('/resend', async (req, res) => {
         res.json({ status: "success", admin: account[0], otp: otp });
     } catch (error) {
         console.log(error);
-        res.json({ status: "failed"});
+        res.json({ status: "failed" });
     }
 })
 

@@ -337,6 +337,22 @@
                 const btncontainer = document.getElementById("btn-container");
                 btncontainer.innerHTML = "";
                 btncontainer.innerHTML = `<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal1"><i class="bi bi-plus-lg me-1"></i>Add</button>`;
+            } else {
+                table.innerHTML = ""; // Clear previous data
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                                    <td colspan="6" class="text-center py-3">No cleaner found ...<br><i
+                                        class="bi bi-person-slash fs-3"></i><br><button type="button" class="btn btn-primary"
+                                        data-bs-toggle="modal" data-bs-target="#modal1">
+                                    <i class="bi bi-plus-lg me-1"></i>
+                                    Add new
+                                    </button>
+                                    </td>
+                                    `;
+                table.appendChild(row);
+
+                const btncontainer = document.getElementById("btn-container");
+                btncontainer.innerHTML = "";
             }
         }
 
