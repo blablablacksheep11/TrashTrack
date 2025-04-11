@@ -773,13 +773,20 @@ app.get('/exportHistory/:id', async (req, res) => {
         if (history.creation != null) {
             history.creation = history.creation.toLocaleString();
         }
+
         if (history.collection != null) {
             history.collection = history.collection.toLocaleString();
+        } else {
+            history.collection = "Uncollected";
         }
 
         // Convert the cleanerID to the cleaner's name
-        const [cleanerName] = await database.query("SELECT name FROM cleaner WHERE ID = ?", [history.collectorID]);
-        history.collectorID = `${cleanerName[0].name} (${history.collectorID})`;
+        if (history.collectorID != null) {
+            const [cleanerName] = await database.query("SELECT name FROM cleaner WHERE ID = ?", [history.collectorID]);
+            history.collectorID = `${cleanerName[0].name} (${history.collectorID})`;
+        } else {
+            history.collectorID = "Uncollected";
+        }
     }
 
     // Format the data for the table (assuming your query returns an array of objects)
@@ -787,10 +794,12 @@ app.get('/exportHistory/:id', async (req, res) => {
         history.binID,
         history.accumulation,
         history.creation,
-        history.status,
         history.collectorID,
         history.collection
     ]);
+
+    console.log(binHistory);
+    console.log(attributes);
 
     // Document definition with a table
     const docDefinition = {
@@ -805,7 +814,6 @@ app.get('/exportHistory/:id', async (req, res) => {
                             { text: 'Bin ID', fontSize: 10, fillColor: '#f2f2f2' },
                             { text: 'Accumulation', fontSize: 10, fillColor: '#f2f2f2' },
                             { text: 'Request Created At', fontSize: 10, fillColor: '#f2f2f2' },
-                            { text: 'Status', fontSize: 10, fillColor: '#f2f2f2' },
                             { text: 'Collector', fontSize: 10, fillColor: '#f2f2f2' },
                             { text: 'Collection', fontSize: 10, fillColor: '#f2f2f2' }
                         ],  // Table headers
