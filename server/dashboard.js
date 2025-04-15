@@ -130,7 +130,7 @@ async function portConnection() { // Function to connect to the serial port
                     const binID = Number(parsedData.binID);
                     const status = parsedData.binstatus;
                     const distance = Number(parsedData.distance);
-                    const accumulation = 100 - ((distance / 24) * 100);
+                    const accumulation = 100 - ((distance / 23.5) * 100);
                     if (accumulation >= 80) { // If the bin is full, change the status to unavailable
                         try {
                             let update = await database.query("UPDATE bin SET status = 'unavailable', accumulation = ? WHERE ID = ?", [accumulation, binID]);
@@ -175,7 +175,7 @@ async function portConnection() { // Function to connect to the serial port
                 // Update the bin status to available and reset the accumulation to 0
                 try {
                     let update = await database.query("UPDATE bin SET status = 'available', accumulation = '0' WHERE ID = ?", [binID]);
-                    socket.emit("updateChart", { binID: binID, distance: 24 });
+                    socket.emit("updateChart", { binID: binID, distance: 23.5 });
                 } catch (err) {
                     console.log(err);
                 }

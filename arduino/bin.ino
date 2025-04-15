@@ -86,7 +86,7 @@ void loop() {
 
       duration = pulseIn(echoPin, HIGH);
       distance = (duration * 0.034) / 2;
-      accumulation = 100 - ((distance / 24) * 100);
+      accumulation = 100 - ((distance / 23.5) * 100);
       if (accumulation >= 80) {
         digitalWrite(redledPin, HIGH);
         digitalWrite(greenledPin, LOW);
@@ -101,8 +101,8 @@ void loop() {
 
       if (distance <= 0) {
         distance = 0;
-      } else if (distance >= 24) {
-        distance = 24;
+      } else if (distance >= 23.5) {
+        distance = 23.5;
       }
 
       if (collection == true) {
