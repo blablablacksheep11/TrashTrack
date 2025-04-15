@@ -257,6 +257,7 @@
                 });
                 const data = await response.json();
                 if (data.status == "success") {
+                    sessionStorage.setItem("adminEmail", email); // Update the session storage with the new email
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
                     if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
