@@ -367,7 +367,7 @@
             // Load the current record into the form
             // Some of the value is unchangable in the form
             // Date and time will be returned for server in LocaleString format, conversion is required to fit html date and time field format
-            document.querySelector("#modal2 #edit-history-form #id").value = data[0].ID;
+            document.querySelector("#modal2 #edit-history-form #id").value = data[0].binID;
             document.querySelector("#modal2 #edit-history-form #accumulation").value = `${data[0].accumulation}%`;
             document.querySelector("#modal2 #edit-history-form #creation-date").value = convertDate(data[0].creationDate);
             document.querySelector("#modal2 #edit-history-form #creation-time").value = convertTime(data[0].creationTime);
