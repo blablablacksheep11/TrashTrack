@@ -18,7 +18,7 @@ MySQL workbench installation
 
 Redis installation
 
-- https://github.com/redis-windows/redis-windows/releases
+- https://github.com/tporadowski/redis/releases
 
 * The Redis should run on port 6379 (default).
 
