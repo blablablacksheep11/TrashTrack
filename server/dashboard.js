@@ -45,59 +45,67 @@ const transporter = createTransport({
 
 // Function to send mail when bin is full
 async function mail(email, bin) {
-    const info = await transporter.sendMail({
-        from: '"SmartBin Manager" <smartbinmanager@gmail.com>', // sender address
-        to: email, // list of receivers
-        subject: "Bin Ready for Collection", // Subject line
-        text: `Dear administrator,\nThis is an automatic notification from the SmartBin System.\nA bin at Block ${bin[0].block}, Level ${bin[0].level} has reached its collection threshold and requires immediate attention.\nBin Details:\n- Location: Block ${bin[0].block}, Level ${bin[0].level}\n- Bin ID: ${bin[0].binid}\nAccumulation : ${bin[0].accumulation}%\nPlease arrange for collection as soon as possible to prevent overflow.\nThank you.`, // plain text body
-        html: `
-        <p>Dear administrator,</p>
-        <br>
-        <p>This is an automatic notification from the SmartBin System.</p>
-        <br>
-        <p>A bin at Block ${bin[0].block}, Level ${bin[0].level} has reached its collection threshold and requires immediate attention.</p>
-        <br>
-        <h3>Bin Details:</h3>
-        <br>
-        <ul>
-            <li>
-                <b>Location:</b> Block ${bin[0].block}, Level ${bin[0].level}
-            </li>
-            <li>
-                <b>Bin ID:</b>${bin[0].ID}
-            </li>
-            <li>
-                <b>Accumulation:</b>${bin[0].accumulation}%
-            </li>
-        </ul>
-        <p>Please arrange for collection as soon as possible to prevent overflow.</p>
-        <br>
-        <p>Thank you.</p>
-        `, // HTML body
-    });
+    try {
+        const info = await transporter.sendMail({
+            from: '"SmartBin Manager" <smartbinmanager@gmail.com>', // sender address
+            to: email, // list of receivers
+            subject: "Bin Ready for Collection", // Subject line
+            text: `Dear administrator,\nThis is an automatic notification from the SmartBin System.\nA bin at Block ${bin[0].block}, Level ${bin[0].level} has reached its collection threshold and requires immediate attention.\nBin Details:\n- Location: Block ${bin[0].block}, Level ${bin[0].level}\n- Bin ID: ${bin[0].binid}\nAccumulation : ${bin[0].accumulation}%\nPlease arrange for collection as soon as possible to prevent overflow.\nThank you.`, // plain text body
+            html: `
+            <p>Dear administrator,</p>
+            <br>
+            <p>This is an automatic notification from the SmartBin System.</p>
+            <br>
+            <p>A bin at Block ${bin[0].block}, Level ${bin[0].level} has reached its collection threshold and requires immediate attention.</p>
+            <br>
+            <h3>Bin Details:</h3>
+            <br>
+            <ul>
+                <li>
+                    <b>Location:</b> Block ${bin[0].block}, Level ${bin[0].level}
+                </li>
+                <li>
+                    <b>Bin ID:</b>${bin[0].ID}
+                </li>
+                <li>
+                    <b>Accumulation:</b>${bin[0].accumulation}%
+                </li>
+            </ul>
+            <p>Please arrange for collection as soon as possible to prevent overflow.</p>
+            <br>
+            <p>Thank you.</p>
+            `, // HTML body
+        });
 
-    console.log("Message sent");
+        console.log("Message sent");
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 // Function to send mail for password reset
 async function send(email, name, otp) {
-    const info = await transporter.sendMail({
-        from: '"SmartBin Manager" <smartbinmanager@gmail.com>', // sender address
-        to: email, // list of receivers
-        subject: "OTP for password reset", // Subject line
-        text: `Dear ${name},\nYou have requested to reset your password. Please use the following One-Time Password (OTP) to proceed:\nOTP Code: ${otp}\n This OTP is valid for 2 minutes. Do not share this code with anyone for security reasons.`, // plain text body
-        html: `
-        <p>Dear ${name},</p>
-        <br>
-        <p>You have requested to reset your password. Please use the following <b>One-Time Password (OTP)</b> to proceed:</p>
-        <br>
-        <b>OTP Code: </b>${otp}
-        <br>
-        <b>This OTP is valid for 2 minutes.</b>Do not share this code with anyone for security reasons.
-        `, // HTML body
-    });
+    try {
+        const info = await transporter.sendMail({
+            from: '"SmartBin Manager" <smartbinmanager@gmail.com>', // sender address
+            to: email, // list of receivers
+            subject: "OTP for password reset", // Subject line
+            text: `Dear ${name},\nYou have requested to reset your password. Please use the following One-Time Password (OTP) to proceed:\nOTP Code: ${otp}\n This OTP is valid for 2 minutes. Do not share this code with anyone for security reasons.`, // plain text body
+            html: `
+            <p>Dear ${name},</p>
+            <br>
+            <p>You have requested to reset your password. Please use the following <b>One-Time Password (OTP)</b> to proceed:</p>
+            <br>
+            <b>OTP Code: </b>${otp}
+            <br>
+            <b>This OTP is valid for 2 minutes.</b>Do not share this code with anyone for security reasons.
+            `, // HTML body
+        });
 
-    console.log("Message sent");
+        console.log("Message sent");
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 async function portConnection() { // Function to connect to the serial port
@@ -531,8 +539,9 @@ app.get('/deleteCleaner/:id', async (req, res) => {
 app.get('/validateCleanerEmail/:email', async (req, res) => {
     const email = req.params.email;
     try {
-        const [validate] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
-        if (validate.length > 0) {
+        const [validate1] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
+        const [validate2] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
+        if (validate1.length > 0 || validate2.length > 0) {
             res.json({ status: "existed" });
         } else {
             res.json({ status: "empty" });
@@ -628,8 +637,9 @@ app.get('/deleteAdministrator/:id', async (req, res) => {
 app.get('/validateEmail/:email', async (req, res) => {
     const email = req.params.email;
     try {
-        const [validate] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
-        if (validate.length > 0) {
+        const [validate1] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
+        const [validate2] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
+        if (validate1.length > 0 || validate2.length > 0) {
             res.json({ status: "existed" });
         } else {
             res.json({ status: "empty" });
@@ -859,6 +869,21 @@ app.get('/loadInfo/:email', async (req, res) => {
         res.json(admin);
     } catch (error) {
         console.error(error);
+    }
+})
+
+app.get('/validateProfileEmail/:email', async (req, res) => {
+    const email = req.params.email;
+    try {
+        const [validate1] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
+        const [validate2] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
+        if (validate1.length > 0 || validate2.length > 0) {
+            res.json({ status: "existed" });
+        } else {
+            res.json({ status: "empty" });
+        }
+    } catch (error) {
+        console.log(error);
     }
 })
 

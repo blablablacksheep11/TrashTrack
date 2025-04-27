@@ -248,6 +248,21 @@
                 const email = document.getElementById("email").value;
                 const gender = document.getElementById("gender").value;
                 const phone = document.getElementById("phone").value;
+
+                const validation = await fetch(`http://localhost:3000/validateProfileEmail/${email}`); // Check if the email already exists
+                const data1 = await validation.json();
+                if (data1.status == "existed") {
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector(".toast-body label").innerHTML = "Email already exists. Please try again.";
+                    toastBootstrap.show();
+                    return;
+                }
+
                 const response = await fetch(`http://localhost:3000/updateProfile`, {
                     method: "POST",
                     headers: {
