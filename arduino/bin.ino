@@ -1,19 +1,25 @@
-#include <Servo.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ESP32Servo.h>
 #include <SPI.h>
 #include <MFRC522.h>
 
 #define binID 1
-#define irPin 2
-#define trigPin 3
-#define echoPin 4
+#define irPin 32
+#define trigPin 27
+#define echoPin 35
 #define servoPin 5
-#define redledPin 6
-#define greenledPin 7
-#define RST_PIN 9
-#define SS_PIN 10
+#define redledPin 13
+#define greenledPin 12
+#define RST_PIN 16
+#define SS_PIN 17
 
 MFRC522 rfid(SS_PIN, RST_PIN);
 MFRC522::MIFARE_Key key;
+
+const char* ssid = "Lam Family";                                // WiFi name
+const char* password = "lam390977";                             // WiFi password
+const char* serverUrl = "http://192.168.0.105:3000/esp32data";  // Computer IP address (v4)
 
 bool opened = false;
 bool closed = false;
@@ -31,40 +37,58 @@ void setup() {
   pinMode(irPin, INPUT);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
+
+  // Connect to Wi-Fi
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
+
   myServo.attach(servoPin);
   myServo.write(0);
-  SPI.begin();
+
+  SPI.begin();  // SCK=18, MISO=19, MOSI=23 by default for ESP32
   rfid.PCD_Init();
 
   for (int i = 0; i < 6; i++) {
     key.keyByte[i] = 0xFF;
   }
 
-  Serial.begin(9600);
+  Serial.begin(115200);
 }
 
 void loop() {
   checkRFID();
+
   if (accumulation >= 80) {
     digitalWrite(redledPin, HIGH);
     digitalWrite(greenledPin, LOW);
-    if (collection == false) {
-      return;
-    }
+    if (!collection) return;
   } else {
     digitalWrite(redledPin, LOW);
     digitalWrite(greenledPin, HIGH);
   }
+
   int sensorState = digitalRead(irPin);
 
   if (sensorState == LOW) {
-    if (binstatus == true) {
+    Serial.println("Bin opened");
+    if (binstatus) {
       myServo.write(115);
-      if (opened == false) {
+      if (!opened) {
         closed = false;
-        Serial.print(F("{\"binID\":"));
-        Serial.print(binID);
-        Serial.println(F(",\"binstatus\": \"opened\"}"));
+        if (WiFi.status() == WL_CONNECTED) {
+          HTTPClient http;
+
+          http.begin(serverUrl);                               // Specify destination
+          http.addHeader("Content-Type", "application/json");  // Set content-type
+
+          String data = "{\"binID\":" + String(binID) + ",\"binstatus\": \"opened\"}";
+          http.POST(data);
+
+          http.end();
+        }
         opened = true;
       }
       delay(1000);
@@ -74,51 +98,63 @@ void loop() {
       return;
     }
   } else {
+    Serial.println("Bin closed");
     myServo.write(0);
     delay(2000);
-    if (closed == false) {
+
+    if (!closed) {
       opened = false;
+
       digitalWrite(trigPin, LOW);
-      delayMicroseconds(10);
+      delayMicroseconds(2);
       digitalWrite(trigPin, HIGH);
       delayMicroseconds(10);
       digitalWrite(trigPin, LOW);
 
       duration = pulseIn(echoPin, HIGH);
-      distance = (duration * 0.034) / 2;
+      distance = (duration * 0.0343) / 2;
       accumulation = 100 - ((distance / 23.5) * 100);
+
       if (accumulation >= 80) {
         digitalWrite(redledPin, HIGH);
         digitalWrite(greenledPin, LOW);
-        if (collection == false) {
-          binstatus = false;
-        }
+        if (!collection) binstatus = false;
       } else {
         digitalWrite(redledPin, LOW);
         digitalWrite(greenledPin, HIGH);
         binstatus = true;
       }
 
-      if (distance <= 0) {
-        distance = 0;
-      } else if (distance >= 23.5) {
-        distance = 23.5;
-      }
+      if (distance <= 0) distance = 0;
+      else if (distance >= 23.5) distance = 23.5;
 
-      if (collection == true) {
-        if (accumulation >= 80) {
-        }else{
-          Serial.println(jsonOutput);
+      if (collection) {
+        if (accumulation < 80) {
+          if (WiFi.status() == WL_CONNECTED) {
+            HTTPClient http;
+
+            http.begin(serverUrl);                               // Specify destination
+            http.addHeader("Content-Type", "application/json");  // Set content-type
+
+            http.POST(jsonOutput);
+
+            http.end();
+          }
         }
         collection = false;
-      } else if (collection == false) {
-        Serial.print(F("{\"binID\":"));
-        Serial.print(binID);
-        Serial.print(F(",\"binstatus\": \"closed\", \"distance\": "));
-        Serial.print(distance);
-        Serial.println(F("}"));
-      }
+      } else {
+        if (WiFi.status() == WL_CONNECTED) {
+          HTTPClient http;
 
+          http.begin(serverUrl);                               // Specify destination
+          http.addHeader("Content-Type", "application/json");  // Set content-type
+
+          String data = "{\"binID\":" + String(binID) + ",\"binstatus\": \"closed\", \"distance\": " + String(distance) + "}";
+          http.POST(data);
+
+          http.end();
+        }
+      }
       closed = true;
     }
   }
@@ -128,14 +164,8 @@ void checkRFID() {
   if (millis() - lastCheckTime >= checkInterval) {
     lastCheckTime = millis();
 
-    if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) {
-      return;
-    }
-    
-    // myServo.write(100);
-    // digitalWrite(redledPin, LOW);
-    // digitalWrite(greenledPin, HIGH);
-    // accumulation = 0;
+    if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) return;
+
     binstatus = true;
     collection = true;
     byte buffer[18];
@@ -144,12 +174,9 @@ void checkRFID() {
 
     byte status;
     byte block = 1;
-    int startingblock;
-    int trailerblock;
-    int counter = 0;
+    int startingblock, trailerblock, counter = 0;
     int fieldCount = 2;
-    jsonOutput = "";
-    jsonOutput += "{\"binid\": " + String(binID) + ", ";
+    jsonOutput = "{\"binid\": " + String(binID) + ", ";
 
     for (byte i = 0; i < fieldCount; i++) {
       startingblock = block / 4 * 4;
@@ -157,8 +184,6 @@ void checkRFID() {
 
       status = rfid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, trailerblock, &key, &(rfid.uid));
       if (status != MFRC522::STATUS_OK) {
-        Serial.print("Authorization failed: ");
-        Serial.println(rfid.GetStatusCodeName(status));
         return;
       }
 
@@ -179,9 +204,6 @@ void checkRFID() {
           if (counter < fieldCount - 1) {
             jsonOutput += ", ";
           }
-        } else {
-          Serial.print("Read failed: ");
-          Serial.println(rfid.GetStatusCodeName(status));
         }
         counter++;
       }
@@ -189,7 +211,6 @@ void checkRFID() {
     }
 
     jsonOutput += "}";
-
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
   }

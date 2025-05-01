@@ -1,7 +1,5 @@
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import { SerialPort } from 'serialport';
-import { ReadlineParser } from '@serialport/parser-readline';
 import { createTransport } from 'nodemailer';
 import express from 'express';
 import cors from 'cors';
@@ -14,7 +12,6 @@ import path from 'path';
 
 const app = express(); // Create an express app
 const server = createServer(app); // Create a server with the express app
-const parser = new ReadlineParser(); // Create a parser to read the data from the serial port
 const socket = new Server(server, { // Create a socket connection
     cors: {
         origin: "http://127.0.0.1:5500"
@@ -108,99 +105,6 @@ async function send(email, name, otp) {
     }
 }
 
-async function portConnection() { // Function to connect to the serial port
-    const ports = await SerialPort.list(); // List all available serial ports
-    const arduino = await ports.filter(port => port.vendorId && port.productId); // Filter the list to find the Arduino board
-    console.log(arduino);
-
-    if (arduino.length == 0) {
-        console.log("No Arduino found");
-        setTimeout(portConnection, 5000); // Retry after 5 second
-    } else {
-        arduino.forEach(arduino => {
-            console.log(`Connecting to Arduino at ${arduino.path}`);
-            const port = new SerialPort({
-                path: arduino.path,
-                baudRate: 9600
-            });
-
-            port.pipe(parser);
-        })
-
-        parser.on("data", async (data) => {
-            console.log(data); // Log the data received from the Arduino
-            const parsedData = JSON.parse(data);
-
-            if ("string" in parsedData) {
-                console.log("Test: Invalid data."); // This is a test module
-            } else if (!("cleanerID" in parsedData)) { // If the data does not contain cleanerID, it means it is a bin data
-                if (parsedData.binstatus == "closed") {
-                    const binID = Number(parsedData.binID);
-                    const status = parsedData.binstatus;
-                    const distance = Number(parsedData.distance);
-                    const accumulation = 100 - ((distance / 23.5) * 100);
-                    if (accumulation >= 80) { // If the bin is full, change the status to unavailable
-                        try {
-                            let update = await database.query("UPDATE bin SET status = 'unavailable', accumulation = ? WHERE ID = ?", [accumulation, binID]);
-                            console.log(`Bin${binID} has been changed to unavailable`);
-                        } catch (err) {
-                            console.log(err);
-                        }
-                        try {
-                            let insert = await database.query("INSERT INTO bin_history (binID, accumulation, creation, status) VALUES (?,?,?,?)", [binID, accumulation, new Date(), 'unavailable']);
-                            console.log(insert);
-                        } catch (error) {
-                            console.log(error);
-                        }
-
-                        socket.emit("updateHistory") // Emit the updateHistory event to update the history table
-
-                        const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
-                        const [email] = await database.query("SELECT email FROM administrator");
-                        let emailList = [];
-                        email.forEach((email) => {
-                            emailList.push(email.email);
-                        });
-                        mail(emailList, bin).catch(console.error); // Send email to the all administrator
-                        socket.emit("updateChart", { binID: binID, distance: distance });
-                    } else {
-                        try {
-                            let update = await database.query("UPDATE bin SET status = 'available', accumulation = ? WHERE ID = ?", [accumulation, binID]);
-                            console.log(`Bin${binID} has been changed to available`);
-                        } catch (err) {
-                            console.log(err);
-                        }
-                        socket.emit("updateChart", { binID: binID, distance: distance });
-                    }
-                } else if (parsedData.binstatus == "opened") {
-                    const binID = parsedData.binID;
-                    const status = parsedData.binstatus;
-                }
-            } else if ("cleanerID" in parsedData) { // If the data contains cleanerID, it means it is a collection data
-                const binID = parsedData.binid;
-                const cleanerid = parsedData.cleanerID;
-
-                // Update the bin status to available and reset the accumulation to 0
-                try {
-                    let update = await database.query("UPDATE bin SET status = 'available', accumulation = '0' WHERE ID = ?", [binID]);
-                    socket.emit("updateChart", { binID: binID, distance: 23.5 });
-                } catch (err) {
-                    console.log(err);
-                }
-                // Insert the collection data into the bin_history table
-                try {
-                    let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
-                    socket.emit("updateHistory");
-                    socket.emit("updateGraph", { binID: binID });
-                    console.log(collect);
-                } catch (err) {
-                    console.log(err);
-                }
-            }
-        })
-    }
-}
-
 app.use(cors()); // Use cors to allow cross-origin requests
 app.use(express.json()); // Parse JSON request body
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request body, for POST CRUD operation
@@ -211,11 +115,77 @@ socket.on('connection', (socket) => {
     console.log("Connected to client");
 });
 
-portConnection(); // Connect to the serial port
-
 redis.connect() // Connect to the Redis database
     .then(() => console.log('Connected to Redis'))
     .catch(err => console.log('Redis Connection Error:', err));
+
+// When server get data from ESP32 through HTTP POST request
+app.post('/esp32data', async (req, res) => {
+    res.status(200).send("OK"); // Critical! Without this, ESP32 will timeout
+    if (!("cleanerID" in req.body)) { // If the data does not contain cleanerID, it means it is a bin data
+        if (req.body.binstatus == "closed") {
+            const binID = Number(req.body.binID);
+            const distance = Number(req.body.distance);
+            const accumulation = 100 - ((distance / 23.5) * 100);
+            if (accumulation >= 80) { // If the bin is full, change the status to unavailable
+                try {
+                    let update = await database.query("UPDATE bin SET status = 'unavailable', accumulation = ? WHERE ID = ?", [accumulation, binID]);
+                    console.log(`Bin${binID} has been changed to unavailable`);
+                } catch (err) {
+                    console.log(err);
+                }
+                try {
+                    let insert = await database.query("INSERT INTO bin_history (binID, accumulation, creation, status) VALUES (?,?,?,?)", [binID, accumulation, new Date(), 'unavailable']);
+                    console.log(insert);
+                } catch (error) {
+                    console.log(error);
+                }
+
+                socket.emit("updateHistory") // Emit the updateHistory event to update the history table
+
+                const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
+                const [email] = await database.query("SELECT email FROM administrator");
+                let emailList = [];
+                email.forEach((email) => {
+                    emailList.push(email.email);
+                });
+                mail(emailList, bin).catch(console.error); // Send email to the all administrator
+                socket.emit("updateChart", { binID: binID, distance: distance });
+            } else {
+                try {
+                    let update = await database.query("UPDATE bin SET status = 'available', accumulation = ? WHERE ID = ?", [accumulation, binID]);
+                    console.log(`Bin${binID} has been changed to available`);
+                } catch (err) {
+                    console.log(err);
+                }
+                socket.emit("updateChart", { binID: binID, distance: distance });
+            }
+        } else if (req.body.binstatus == "opened") {
+            const binID = req.body.binID;
+            const status = req.body.binstatus;
+        }
+    } else if ("cleanerID" in req.body) { // If the data contains cleanerID, it means it is a collection data
+        const binID = req.body.binid;
+        const cleanerid = req.body.cleanerID;
+
+        // Update the bin status to available and reset the accumulation to 0
+        try {
+            let update = await database.query("UPDATE bin SET status = 'available', accumulation = '0' WHERE ID = ?", [binID]);
+            socket.emit("updateChart", { binID: binID, distance: 23.5 });
+        } catch (err) {
+            console.log(err);
+        }
+        // Insert the collection data into the bin_history table
+        try {
+            let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
+            socket.emit("updateHistory");
+            socket.emit("updateGraph", { binID: binID });
+            console.log(collect);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+});
 
 // Express for signin.html
 app.post('/signin', async (req, res) => { // When user request for signin
