@@ -34,7 +34,7 @@ To deploy this project run
 
 ```bash
   cd server
-  nodemon dashboard.js
+  node dashboard.js
 ```
 
 Serve the html file through live server
