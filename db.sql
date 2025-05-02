@@ -30,7 +30,7 @@ CREATE TABLE `administrator` (
   `contact` varchar(45) NOT NULL,
   `password` varchar(255) NOT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -57,7 +57,7 @@ CREATE TABLE `bin` (
   `status` varchar(45) NOT NULL DEFAULT 'available',
   `accumulation` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -86,7 +86,7 @@ CREATE TABLE `bin_history` (
   `collectorID` int DEFAULT NULL,
   `collection` datetime DEFAULT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -95,7 +95,7 @@ CREATE TABLE `bin_history` (
 
 LOCK TABLES `bin_history` WRITE;
 /*!40000 ALTER TABLE `bin_history` DISABLE KEYS */;
-INSERT INTO `bin_history` VALUES (88,1,84,'2025-04-11 22:11:36','unavailable',2,'2025-04-11 22:12:11'),(89,1,80,'2025-04-11 22:33:13','unavailable',2,'2025-04-11 22:33:35'),(90,1,85,'2025-04-15 09:44:13','unavailable',1,'2025-04-15 09:49:21'),(91,1,85,'2025-04-15 09:52:22','unavailable',2,'2025-04-15 09:54:20'),(92,1,85,'2025-04-15 20:58:31','unavailable',2,'2025-04-15 20:59:44'),(93,1,82,'2025-04-15 21:00:22','unavailable',1,'2025-04-15 21:00:45'),(94,1,86,'2025-04-15 21:01:27','unavailable',2,'2025-04-15 21:06:47'),(95,1,89,'2025-04-15 21:09:10','unavailable',2,'2025-04-15 21:11:23'),(96,1,87,'2025-04-15 21:11:58','unavailable',1,'2025-04-15 21:12:48'),(97,1,85,'2025-04-16 08:32:47','unavailable',2,'2025-04-16 08:33:39'),(98,1,86,'2025-04-16 08:36:30','unavailable',1,'2025-04-16 08:37:16'),(100,1,90,'2025-04-16 15:15:26','unavailable',1,'2025-04-16 15:15:45'),(104,1,83,'2025-04-20 10:16:27','unavailable',2,'2025-04-20 10:17:58');
+INSERT INTO `bin_history` VALUES (1,1,84,'2025-04-11 22:11:36','unavailable',2,'2025-04-11 22:12:11'),(2,1,80,'2025-04-11 22:33:13','unavailable',2,'2025-04-11 22:33:35'),(3,1,85,'2025-04-15 09:44:13','unavailable',1,'2025-04-15 09:49:21'),(4,1,85,'2025-04-15 09:52:22','unavailable',2,'2025-04-15 09:54:20'),(5,1,85,'2025-04-15 20:58:31','unavailable',2,'2025-04-15 20:59:44'),(6,1,82,'2025-04-15 21:00:22','unavailable',1,'2025-04-15 21:00:45'),(7,1,86,'2025-04-15 21:01:27','unavailable',2,'2025-04-15 21:06:47'),(8,1,89,'2025-04-15 21:09:10','unavailable',2,'2025-04-15 21:11:23'),(9,1,87,'2025-04-15 21:11:58','unavailable',1,'2025-04-15 21:12:48'),(10,1,85,'2025-04-16 08:32:47','unavailable',2,'2025-04-16 08:33:39'),(11,1,86,'2025-04-16 08:36:30','unavailable',1,'2025-04-16 08:37:16'),(12,1,90,'2025-04-16 15:15:26','unavailable',1,'2025-04-16 15:15:45'),(13,1,83,'2025-04-20 10:16:27','unavailable',2,'2025-04-20 10:17:58');
 /*!40000 ALTER TABLE `bin_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -113,7 +113,7 @@ CREATE TABLE `cleaner` (
   `IC` varchar(45) NOT NULL,
   `email` varchar(255) NOT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
