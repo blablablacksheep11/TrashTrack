@@ -9,6 +9,7 @@ import { createClient } from 'redis';
 import PdfPrinter from 'pdfmake';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { GoogleGenAI } from "@google/genai";
 
 const app = express(); // Create an express app
 const server = createServer(app); // Create a server with the express app
@@ -901,6 +902,34 @@ app.post('/changePassword', async (req, res) => {
         console.log(error);
     }
 })
+
+// Express for img recognition / garbage segregation
+app.post('/img', async (req, res) => {
+    // Get the img data from request body
+    const { label, confidence, image } = req.body;  // This is the img data from Python
+    if(image){
+        res.status(200).json({ message: 'Image received successfully' });
+    }
+
+    // Create Gemeni object
+    const ai = new GoogleGenAI({ apiKey: "AIzaSyDXM2GrjA3ualF8L9CdLdD_zTG-F51eNfI" });
+
+    const contents = [
+        {
+            inlineData: {
+                mimeType: "image/jpeg",
+                data: image,
+            },
+        },
+        { text: "Is this a paper, plastic, metal, or general waste. Return me the response in single vocabulary. Return general waste if multiple material detected." },
+    ];
+
+    const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: contents,
+    });
+    console.log(response.text);    
+});
 
 server.listen(3000, () => {
     console.log('Server is running on port 3000');

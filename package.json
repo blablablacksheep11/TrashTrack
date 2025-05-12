@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/blablablacksheep11/SmartBIN#readme",
   "dependencies": {
+    "@google/genai": "^0.13.0",
     "bootstrap": "^5.3.3",
     "cors": "^2.8.5",
     "express": "^4.21.2",
