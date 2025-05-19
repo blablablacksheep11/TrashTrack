@@ -34,7 +34,7 @@ To deploy this project run
 
 ```bash
   cd server
-  node dashboard.js
+  node server.js
 ```
 
 Serve the html file through live server
