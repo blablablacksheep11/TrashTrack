@@ -7,7 +7,7 @@ import time
 
 device = "cuda" if torch.cuda.is_available() else "cpu" # Use GPU if available, otherwise use CPU
 model = YOLO("yolov8s.pt").to(device) # Load the YOLOv8 model to GPU/CPU
-cap = cv2.VideoCapture(0) # Open the webcam
+cap = cv2.VideoCapture("http://192.168.0.103:81/stream") # Receive the video from the camera, the default port is 81
 
 captured_object = None
 capture_threshold = 50 # If the object moves more than this distance, it will be consider as new object
@@ -19,7 +19,9 @@ while True:
     try:
         ret, frame = cap.read() # Read the video as a frame, smth like a snapshot
         if not ret:
-            break
+            print("[ERROR] Failed to read frame from camera.")
+            time.sleep(1) # Wait for a second before retrying
+            continue
 
         frame = cv2.flip(frame, 1) # Flip the frame horizontally
         frame = cv2.resize(frame, (640, 480))
