@@ -26,6 +26,10 @@ const redis = createClient({ // Create redis client
     }
 });
 
+redis.connect() // Connect to the Redis database
+    .then(() => console.log('Connected to Redis'))
+    .catch(err => console.log('Redis Connection Error:', err));
+
 const database = mysql.createPool({ // Create a connection to the database
     host: '127.0.0.1',
     user: 'root',
@@ -39,6 +43,14 @@ const transporter = createTransport({
         user: "lamyongqin@gmail.com",
         pass: "xvtgwerkxhoavubq"
     }
+});
+
+app.use(cors()); // Use cors to allow cross-origin requests
+app.use(express.json()); // Parse JSON request body
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request body, for POST CRUD operation
+
+socket.on('connection', (socket) => { // Crete connection with client side
+    console.log("Connected to client");
 });
 
 // Function to send mail when bin is full
@@ -105,20 +117,6 @@ async function send(email, name, otp) {
         console.log(error);
     }
 }
-
-app.use(cors()); // Use cors to allow cross-origin requests
-app.use(express.json()); // Parse JSON request body
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request body, for POST CRUD operation
-
-
-
-socket.on('connection', (socket) => {
-    console.log("Connected to client");
-});
-
-redis.connect() // Connect to the Redis database
-    .then(() => console.log('Connected to Redis'))
-    .catch(err => console.log('Redis Connection Error:', err));
 
 // When server get data from ESP32 through HTTP POST request
 app.post('/esp32data', async (req, res) => {
@@ -187,6 +185,21 @@ app.post('/esp32data', async (req, res) => {
         }
     }
 });
+
+// Serve the navigation bar
+app.get('/loadNavbar', (req, res) => {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    res.sendFile(path.join(__dirname, '../client/navbar.html'));
+})
+
+// Serve the footer
+app.get('/loadFooter', (req, res) => {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    res.sendFile(path.join(__dirname, '../client/footer.html'));
+})
+
 
 // Express for signin.html
 app.post('/signin', async (req, res) => { // When user request for signin
@@ -536,104 +549,6 @@ app.get('/validateCleanerIC/:ic', async (req, res) => {
     }
 })
 
-// Express for administrator.html
-app.get('/loadAdministrator/:id', async (req, res) => {
-    const adminEmail = req.params.id;
-    try {
-        const [administrators] = await database.query(`SELECT * FROM administrator WHERE NOT email = ?`, [adminEmail]);
-        res.json(administrators);
-    } catch (error) {
-        console.log(error);
-    }
-})
-
-app.post('/addAdministrator', async (req, res) => {
-    const { name, gender, email, contact, password } = req.body;
-    try {
-        const [add] = await database.query("INSERT INTO administrator (name, gender, email, contact, password) VALUES(?,?,?,?,?)", [name, gender, email, contact, password]);
-        if (add.warningStatus == 0) {
-            res.json({ status: "success" });
-        } else {
-            res.json({ status: "failed" });
-        }
-    } catch (error) {
-        console.log(error);
-    }
-})
-
-app.post('/editAdministrator', async (req, res) => {
-    const { administratorID, name, gender, email, contact } = req.body;
-    console.log(name);
-    console.log(gender);
-    console.log(email);
-    console.log(contact);
-    try {
-        const [edit] = await database.query("UPDATE administrator SET name = ?, gender = ?, email = ?, contact = ? WHERE ID = ?", [name, gender, email, contact, administratorID]);
-        console.log(edit);
-        if (edit.warningStatus == 0) {
-            res.json({ status: "success" });
-        } else {
-            res.json({ status: "failed" });
-        }
-    } catch (error) {
-        console.log(error);
-    }
-})
-
-app.get('/fetchAdministrator/:id', async (req, res) => {
-    const administratorID = req.params.id;
-    try {
-        const [fetch] = await database.query("SELECT * FROM administrator WHERE ID = ?", [administratorID]);
-        console.log(fetch);
-        res.json(fetch);
-    } catch (error) {
-        console.log(error);
-    }
-})
-
-app.get('/deleteAdministrator/:id', async (req, res) => {
-    const administratorID = req.params.id;
-    try {
-        const [del] = await database.query("DELETE FROM administrator WHERE ID = ?", [administratorID]);
-        if (del.warningStatus == 0) {
-            res.json({ status: "success" });
-        } else {
-            res.json({ status: "failed" });
-        }
-    } catch (error) {
-        console.log(error);
-    }
-})
-
-app.get('/validateEmail/:email', async (req, res) => {
-    const email = req.params.email;
-    try {
-        const [validate1] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
-        const [validate2] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
-        if (validate1.length > 0 || validate2.length > 0) {
-            res.json({ status: "existed" });
-        } else {
-            res.json({ status: "empty" });
-        }
-    } catch (error) {
-        console.log(error);
-    }
-})
-
-app.get('/validateContact/:contact', async (req, res) => {
-    const contact = req.params.contact;
-    try {
-        const [validate] = await database.query("SELECT * FROM administrator WHERE contact = ?", [contact]);
-        if (validate.length > 0) {
-            res.json({ status: "existed" });
-        } else {
-            res.json({ status: "empty" });
-        }
-    } catch (error) {
-        console.log(error);
-    }
-})
-
 // Express for history.html
 app.get('/loadBinHistory/:id', async (req, res) => {
     const id = req.params.id;
@@ -907,7 +822,7 @@ app.post('/changePassword', async (req, res) => {
 app.post('/img', async (req, res) => {
     // Get the img data from request body
     const { label, confidence, image } = req.body;  // This is the img data from Python
-    if(image){
+    if (image) {
         res.status(200).json({ message: 'Image received successfully' });
     }
 
@@ -928,7 +843,7 @@ app.post('/img', async (req, res) => {
         model: "gemini-2.0-flash",
         contents: contents,
     });
-    console.log(response.text);    
+    console.log(response.text);
 });
 
 server.listen(3000, () => {

@@ -34,69 +34,8 @@
 </head>
 
 <body class="bg-body-tertiary d-flex flex-column">
-    <div class="row p-0 m-0">
-        <nav class="navbar navbar-expand-lg bg-secondary-subtle">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="dashboard.html"><img src="../img/smart-trash-dark.svg" alt="TrashTrack"
-                        style="height: 30px;" id="logo">&nbsp;<label class="fs-6 ps-1"
-                        style="cursor: pointer;">TrashTrack</label></a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ps-2">
-                        <li class="nav-item">
-                            <a class="nav-link" aria-current="page" role="button" href="dashboard.html">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" role="button" href="history-binlist.html">History</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link active dropdown-toggle" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                List
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="bin.html">List of bin</a></li>
-                                <li><a class="dropdown-item active" href="cleaner.html">List of cleaner</a></li>
-                                <li><a class="dropdown-item" href="administrator.html">List of administrator</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" role="button" href="about.html">About Us</a>
-                        </li>
-                    </ul>
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                Profile
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" onclick="window.location.href = 'profile.html'">View</a>
-                                </li>
-                                <li><a class="dropdown-item" onclick="window.location.replace('signin.html')">Sign
-                                        Out</a></li>
-                            </ul>
-                        </li>
-                        <div class="dropdown p-0 m-0">
-                            <button class="btn btn-transparent dropdown-toggle border" type="button"
-                                data-bs-toggle="dropdown" aria-expanded="false" id="theme">
-                                <i class="bi bi-brightness-high"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item active" id="light-theme" onclick="change(1)"><i
-                                            class="bi bi-brightness-high"></i>&nbsp;&nbsp;Light</a></li>
-                                <li><a class="dropdown-item" id="dark-theme" onclick="change(0)"><i
-                                            class="bi bi-moon"></i>&nbsp;&nbsp;Dark</a></li>
-                            </ul>
-                        </div>
-                    </ul>
-                </div>
-            </div>
-        </nav>
+    <div class="row p-0 m-0" id="navbar">
+        <!-- the navigaiton bar will be loaded here -->
     </div>
     <div class="row mt-4 px-5 m-0">
         <table class="table table-hover border caption-top">
@@ -265,31 +204,9 @@
     </div>
 
     <!-- Footer -->
-    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center"
+    <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center" id="footer"
         style="margin-top: auto !important;">
-        <label class="fs-2 fst-italic text-center mt-4">TrashTrack</label>
-        <label class="w-50 text-center mt-3 mb-4">Revolutionize your waste management with SmartBin - A high-tech
-            solution that automatically monitors waste levels, optimizes collection, and promotes a cleaner, smarter
-            environment.</label>
-        <div class="m-0 p-0 d-flex justify-content-center">
-            <div class="w-25 text-center d-flex justify-content-evenly">
-                <a href="https://www.facebook.com/" class="text-body" target="_blank"><i
-                        class="bi bi-facebook fs-3"></i></a>
-                <a href="https://www.instagram.com/?hl=en" class="text-body" target="_blank"><i
-                        class="bi bi-instagram fs-3"></i></a>
-                <a href="https://github.com/" class="text-body" target="_blank"><i class="bi bi-github fs-3"></i></a>
-                <a href="https://www.linkedin.com/" class="text-body" target="_blank"><i
-                        class="bi bi-linkedin fs-3"></i></a>
-            </div>
-        </div>
-        <div class="d-flex justify-content-between mt-5 mb-2">
-            <p class="p-0 m-0 ps-3 fs-6 fw-light">&copy; 2025 LAM YONG QIN. All rights reserved.</p>
-            <div class="p-0 m-0 pe-3">
-                <a href="dashboard.html">Home</a>&nbsp;
-                <a href="about.html">About</a>&nbsp;
-                <a href="https://mail.google.com/mail/u/0/">Contact Us</a>
-            </div>
-        </div>
+        <!-- Footer will be loaded here -->
     </div>
 
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
@@ -310,6 +227,27 @@
         socket.on('connect', (response) => {
             console.log("Connected to server");
         });
+
+        window.onload = async () => {
+            await loadNavbar(); // Load the navigation bar
+            await loadFooter(); // Load the footer
+            loadCleaner(); // Fetch data when page loads
+            getTheme();
+        }
+
+        async function loadNavbar() {
+            const response = await fetch('http://localhost:3000/loadNavbar');
+            const data = await response.text();
+            document.getElementById("navbar").innerHTML = data;
+            document.getElementById("navbar-list-btn").classList.add("active");
+            document.getElementById("navbar-cleaner-option").classList.add("active");
+        }
+
+        async function loadFooter() {
+            const response = await fetch('http://localhost:3000/loadFooter');
+            const data = await response.text();
+            document.getElementById("footer").innerHTML = data;
+        }
 
         async function loadCleaner() {
             const response = await fetch("http://localhost:3000/loadCleaner");
@@ -629,11 +567,6 @@
                 toastBootstrap.show();
             }
         })
-
-        window.onload = () => {
-            loadCleaner(); // Fetch data when page loads
-            getTheme();
-        }
     </script>
 </body>
 
