@@ -120,6 +120,8 @@
                     document.getElementById("light-theme").classList.add("active");
                     document.getElementById("dark-theme").classList.remove("active");
                     sessionStorage.setItem("theme", "light");
+                    document.getElementById("theme-icon").classList.remove("bi-moon");
+                    document.getElementById("theme-icon").classList.add("bi-brightness-high");
                 }
             } else if (mode == 0) {  // Switch to dark mode
                 if (htmlTag.getAttribute("data-bs-theme") == "light") {
@@ -129,6 +131,8 @@
                     document.getElementById("light-theme").classList.remove("active");
                     document.getElementById("dark-theme").classList.add("active");
                     sessionStorage.setItem("theme", "dark");
+                    document.getElementById("theme-icon").classList.remove("bi-brightness-high");
+                    document.getElementById("theme-icon").classList.add("bi-moon");
                 }
             }
         }
