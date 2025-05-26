@@ -186,8 +186,9 @@
                 const email = document.getElementById("email").value;
                 const gender = document.getElementById("gender").value;
                 const phone = document.getElementById("phone").value;
+                const ID = sessionStorage.getItem("adminId");
 
-                const validation = await fetch(`http://localhost:3000/validateProfileEmail/${email}`); // Check if the email already exists
+                const validation = await fetch(`http://localhost:3000/validateProfileEmail/${ID}/${email}`); // Check if the email already exists
                 const data1 = await validation.json();
                 if (data1.status == "existed") {
                     const toast = document.getElementById('toast');

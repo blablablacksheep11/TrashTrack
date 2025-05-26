@@ -520,7 +520,7 @@ app.get('/deleteCleaner/:id', async (req, res) => {
     }
 })
 
-app.get('/validateCleanerEmail/:email', async (req, res) => {
+app.get('/validateCleanerEmail/:email', async (req, res) => { // This is used when adding new cleaner
     const email = req.params.email;
     try {
         const [validate1] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
@@ -535,12 +535,53 @@ app.get('/validateCleanerEmail/:email', async (req, res) => {
     }
 })
 
-app.get('/validateCleanerIC/:ic', async (req, res) => {
+app.get('/validateCleanerIC/:ic', async (req, res) => { // This is used when adding new cleaner
     const ic = req.params.ic;
     try {
         const [validate] = await database.query("SELECT * FROM cleaner WHERE IC = ?", [ic]);
         if (validate.length > 0) {
             res.json({ status: "existed" });
+        } else {
+            res.json({ status: "empty" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/checkCleanerEmail/:id/:email', async (req, res) => { // This is used when editing existing cleaner
+    const cleanerID = req.params.id;
+    const email = req.params.email;
+
+    try {
+        const [validation1] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
+        if (validation1.length > 0) {
+            return res.json({ status: validation1[0].ID == cleanerID ? "empty" : "existed" });
+        }
+
+        const [validation2] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
+        if (validation2.length > 0) {
+            return res.json({ status: "existed" });
+        }
+
+        res.json({ status: "empty" }); // Email is not found in both tables
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/checkCleanerIC/:id/:IC', async (req, res) => { // This is used when editing existing cleaner
+    const cleanerID = req.params.id;
+    const IC = req.params.IC;
+
+    try {
+        const [check] = await database.query("SELECT * FROM cleaner WHERE IC = ?", [IC]);
+        if (check.length > 0) {
+            if (check[0].ID == cleanerID) {
+                res.json({ status: "empty" });
+            } else {
+                res.json({ status: "existed" });
+            }
         } else {
             res.json({ status: "empty" });
         }
@@ -758,16 +799,21 @@ app.get('/loadInfo/:email', async (req, res) => {
     }
 })
 
-app.get('/validateProfileEmail/:email', async (req, res) => {
+app.get('/validateProfileEmail/:id/:email', async (req, res) => {
+    const adminID = req.params.id;
     const email = req.params.email;
     try {
-        const [validate1] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
-        const [validate2] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
-        if (validate1.length > 0 || validate2.length > 0) {
-            res.json({ status: "existed" });
-        } else {
-            res.json({ status: "empty" });
+        const [validation1] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
+        if (validation1.length > 0) {
+            return res.json({ status: validation1[0].ID == adminID ? "empty" : "existed" });
         }
+
+        const [validation2] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
+        if (validation2.length > 0) {
+            return res.json({ status: "existed" });
+        }
+
+        res.json({ status: "empty" }); // Email is not found in both tables
     } catch (error) {
         console.log(error);
     }

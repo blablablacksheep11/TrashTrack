@@ -484,7 +484,7 @@
                 const ic = document.getElementById("ic2").value;
                 const email = document.getElementById("email2").value.toLowerCase();
 
-                const validation = await fetch(`http://localhost:3000/validateCleanerEmail/${email}`);
+                const validation = await fetch(`http://localhost:3000/checkCleanerEmail/${cleanerID}/${email}`);
                 const data1 = await validation.json();
                 if (data1.status == "existed") {
                     const toast = document.getElementById('toast');
@@ -494,6 +494,20 @@
                         document.getElementById("toast-color").classList.add("bg-danger-subtle");
                     }
                     document.querySelector("#toast-body label").innerHTML = "Email already exists. Please try again.";
+                    toastBootstrap.show();
+                    return;
+                }
+
+                const validation1 = await fetch(`http://localhost:3000/checkCleanerIC/${cleanerID}/${ic}`);
+                const data2 = await validation1.json();
+                if (data2.status == "existed") {
+                    const toast = document.getElementById('toast');
+                    const toastBootstrap = new bootstrap.Toast(toast);
+                    if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
+                        document.getElementById("toast-color").classList.remove("bg-success-subtle");
+                        document.getElementById("toast-color").classList.add("bg-danger-subtle");
+                    }
+                    document.querySelector("#toast-body label").innerHTML = "IC already exists. Please try again.";
                     toastBootstrap.show();
                     return;
                 }
