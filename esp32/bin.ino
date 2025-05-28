@@ -75,7 +75,7 @@ void loop() {
   if (sensorState == LOW) {
     Serial.println("Bin opened");
     if (binstatus) {
-      myServo.write(115);
+      myServo.write(85);
       if (!opened) {
         closed = false;
         if (WiFi.status() == WL_CONNECTED) {
