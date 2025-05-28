@@ -62,7 +62,7 @@ async function mail(email, bin) {
             subject: "Bin Ready for Collection", // Subject line
             text: `Dear administrator,\nThis is an automatic notification from the SmartBin System.\nA bin at Block ${bin[0].block}, Level ${bin[0].level} has reached its collection threshold and requires immediate attention.\nBin Details:\n- Location: Block ${bin[0].block}, Level ${bin[0].level}\n- Bin ID: ${bin[0].binid}\nAccumulation : ${bin[0].accumulation}%\nPlease arrange for collection as soon as possible to prevent overflow.\nThank you.`, // plain text body
             html: `
-            <p>Dear administrator,</p>
+            <p>Dear administrator & cleaner,</p>
             <br>
             <p>This is an automatic notification from the SmartBin System.</p>
             <br>
@@ -143,11 +143,18 @@ app.post('/esp32data', async (req, res) => {
                 socket.emit("updateHistory") // Emit the updateHistory event to update the history table
 
                 const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
-                const [email] = await database.query("SELECT email FROM administrator");
                 let emailList = [];
-                email.forEach((email) => {
+
+                const [adminEmail] = await database.query("SELECT email FROM administrator");
+                adminEmail.forEach((email) => {
                     emailList.push(email.email);
                 });
+
+                const [cleanerEmail] = await database.query("SELECT email FROM cleaner");
+                cleanerEmail.forEach((email) => {
+                    emailList.push(email.email);
+                });
+
                 mail(emailList, bin).catch(console.error); // Send email to the all administrator
                 socket.emit("updateChart", { binID: binID, distance: distance });
             } else {
@@ -864,32 +871,104 @@ app.post('/changePassword', async (req, res) => {
     }
 })
 
+// Express for analytics.html
+app.get('/getGarbageType/:category_id', async (req, res) => {
+    try {
+        const category_id = req.params.category_id;
+        const [garbageType] = await database.query(`SELECT
+                                                        CONVERT_TZ(STR_TO_DATE(CONCAT(YEAR(disposal_datetime), WEEK(disposal_datetime, 0), ' Sunday'), '%X%V %W'), '+00:00', '+08:00') AS week_start,
+                                                        COUNT(*) AS total_records
+                                                    FROM disposal_records
+                                                    WHERE 
+                                                        STR_TO_DATE(CONCAT(YEAR(disposal_datetime), WEEK(disposal_datetime, 0), ' Sunday'), '%X%V %W') 
+                                                        <= STR_TO_DATE(CONCAT(YEAR(CURDATE()), WEEK(CURDATE(), 0), ' Sunday'), '%X%V %W')
+                                                        AND garbage_type = ?
+                                                    GROUP BY week_start
+                                                    ORDER BY week_start`, [category_id]);
+
+        res.json(garbageType);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/getGarbageOverview', async (req, res) => {
+    try {
+        const [garbageType] = await database.query('SELECT DISTINCT disposal_records.garbage_type, garbage_type.category FROM disposal_records INNER JOIN garbage_type ON disposal_records.garbage_type = garbage_type.id');
+
+        let counts = [];
+
+        for (const type of garbageType) {
+            const [[{ count }]] = await database.query(`SELECT COUNT(*) AS count FROM disposal_records WHERE garbage_type = ?`, [type.garbage_type]);
+
+            counts.push({
+                category: type.category,
+                garbage_type: type.garbage_type,
+                count
+            });
+        }
+        res.json(counts);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
 // Express for img recognition / garbage segregation
 app.post('/img', async (req, res) => {
-    // Get the img data from request body
-    const { label, confidence, image } = req.body;  // This is the img data from Python
-    if (image) {
-        res.status(200).json({ message: 'Image received successfully' });
-    }
+    try {
+        // Get the img data from request body
+        const { label, confidence, image } = req.body;  // This is the img data from Python
+        if (image) {
+            res.status(200).json({ message: 'Image received successfully' });
+        }
 
-    // Create Gemeni object
-    const ai = new GoogleGenAI({ apiKey: "AIzaSyDXM2GrjA3ualF8L9CdLdD_zTG-F51eNfI" });
+        // Create Gemeni object
+        const ai = new GoogleGenAI({ apiKey: "AIzaSyDXM2GrjA3ualF8L9CdLdD_zTG-F51eNfI" });
 
-    const contents = [
-        {
-            inlineData: {
-                mimeType: "image/jpeg",
-                data: image,
+        const contents = [
+            {
+                inlineData: {
+                    mimeType: "image/jpeg",
+                    data: image,
+                },
             },
-        },
-        { text: "Is this a paper, plastic, metal, or general waste. Return me the response in single vocabulary. Return general waste if multiple material detected." },
-    ];
+            { text: "Is this a paper, plastic, metal, or general waste. Return me the response in single vocabulary. Return general waste if multiple material detected." },
+        ];
 
-    const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: contents,
-    });
-    console.log(response.text);
+        const response = await ai.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: contents,
+        });
+
+        if (response.error) {
+            return; // Stop the execetion if gemeni return error
+        }
+
+        if (response.text.toLowerCase().includes("paper")) {
+            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["1"]);
+            if (insert.warningStatus == 0) {
+                console.log("Paper waste detected and recorded");
+            }
+        } else if (response.text.toLowerCase().includes("plastic")) {
+            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["2"]);
+            if (insert.warningStatus == 0) {
+                console.log("Plastic waste detected and recorded");
+            }
+        } else if (response.text.toLowerCase().includes("metal")) {
+            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["3"]);
+            if (insert.warningStatus == 0) {
+                console.log("Metal waste detected and recorded");
+            }
+        } else {
+            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["4"]);
+            if (insert.warningStatus == 0) {
+                console.log("General waste detected and recorded");
+            }
+        }
+    } catch (error) {
+        console.error("Error processing image:", error);
+        res.status(500).json({ error: "Failed to process image" });
+    }
 });
 
 server.listen(3000, () => {

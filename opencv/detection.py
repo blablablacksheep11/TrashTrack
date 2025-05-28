@@ -7,7 +7,7 @@ import time
 
 device = "cuda" if torch.cuda.is_available() else "cpu" # Use GPU if available, otherwise use CPU
 model = YOLO("yolov8s.pt").to(device) # Load the YOLOv8 model to GPU/CPU
-cap = cv2.VideoCapture("http://192.168.0.103:81/stream") # Receive the video from the camera, the default port is 81
+cap = cv2.VideoCapture(0) # Receive the video from the camera, the default port is 81
 
 captured_object = None
 capture_threshold = 50 # If the object moves more than this distance, it will be consider as new object
@@ -71,8 +71,6 @@ while True:
         if closest_box:
             x1, y1, x2, y2 = closest_box
             cv2.rectangle(annotated, (x1, y1), (x2, y2), (0, 255, 0), 2) # Draw the bounding box
-            cv2.putText(annotated, f"{chosen_label} {chosen_conf:.2f}", (x1, y1 - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2) # Draw the label
 
             # If object not captured yet
             if captured_object is None:
