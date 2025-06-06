@@ -886,7 +886,9 @@ app.get('/getGarbageType/:category_id', async (req, res) => {
                                                     GROUP BY week_start
                                                     ORDER BY week_start`, [category_id]);
 
-        res.json(garbageType);
+        const [categoryName] = await database.query(`SELECT category FROM garbage_type WHERE id = ?`, [category_id]);
+        console.log(garbageType)
+        res.json({categoryName, data: garbageType});
     } catch (error) {
         console.log(error);
     }
