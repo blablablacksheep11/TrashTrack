@@ -140,8 +140,6 @@ app.post('/esp32data', async (req, res) => {
                     console.log(error);
                 }
 
-                socket.emit("updateHistory") // Emit the updateHistory event to update the history table
-
                 const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
                 let emailList = [];
 
@@ -184,7 +182,6 @@ app.post('/esp32data', async (req, res) => {
         // Insert the collection data into the bin_history table
         try {
             let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
-            socket.emit("updateHistory");
             socket.emit("updateGraph", { binID: binID });
             console.log(collect);
         } catch (err) {
@@ -598,10 +595,17 @@ app.get('/checkCleanerIC/:id/:IC', async (req, res) => { // This is used when ed
 })
 
 // Express for history.html
-app.get('/loadBinHistory/:id', async (req, res) => {
+app.get('/loadBinHistory/:id/:pageNumber', async (req, res) => {
     const id = req.params.id;
+    const pageNumber = req.params.pageNumber;
+    const limit = 15; // Only fetch 15 records per page
+    const offset = (pageNumber - 1) * limit; // Skip the records in the previous page
+
     try {
-        const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ?", [id]);
+        const [recordCount] = await database.query("SELECT COUNT(*) as total FROM bin_history WHERE binID = ?", [id]); // Get the total number of records
+        const totalRecord = recordCount[0].total;
+        const pageCount = Math.ceil((recordCount[0].total)/15);
+        const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ? LIMIT ? OFFSET ?", [id, limit, offset]); // Fetch the records for the current page
         for (const history of binHistory) {
             // Convert the datetime to locale string
             if (history.creation != null) {
@@ -617,14 +621,12 @@ app.get('/loadBinHistory/:id', async (req, res) => {
             if (history.collectorID != null) {
                 // Convert the cleanerID to the cleaner's name
                 const [cleanerName] = await database.query("SELECT name FROM cleaner WHERE ID = ?", [history.collectorID]);
-                console.log(cleanerName);
                 history.collectorID = cleanerName[0].name;
             } else {
                 history.collectorID = "Uncollected";
             }
         }
-        console.log(binHistory);
-        res.json(binHistory);
+        res.json({totalRecord, pageCount, binHistory});
     } catch (error) {
         console.log(error);
     }

@@ -19,6 +19,10 @@
             min-height: 100vh !important;
         }
 
+        .page-link {
+            cursor: pointer;
+        }
+
         #theme::after {
             display: none !important;
         }
@@ -33,12 +37,12 @@
     <div class="row p-0 m-0" id="navbar">
         <!-- the navigaiton bar will be loaded here -->
     </div>
-    <div class="row mt-4 mb-3 px-5 m-0">
+    <div class="row mt-4 px-5 m-0">
         <table class="table table-hover border caption-top">
             <caption></caption>
             <thead class="table">
                 <tr>
-                    <th scope="col">Bin ID</th>
+                    <th scope="col" class="ps-4">#</th>
                     <th scope="col">Accumulation</th>
                     <th scope="col">Request Created At</th>
                     <th scope="col">Collector</th>
@@ -53,6 +57,17 @@
                 </tr>
             </tbody>
         </table>
+    </div>
+    <div class="pb-3 p-0 mx-5 m-0 d-flex justify-content-between">
+        <div>
+            <nav aria-label="Page navigation example" class="px-0">
+                <ul class="pagination" id="pagination-btnGroup">
+                </ul>
+            </nav>
+        </div>
+        <div class="d-flex justify-content-end">
+            <label class="text-dark-emphasis ps-5" id="pagination-lbl"></label>
+        </div>
     </div>
     <!-- Footer -->
     <div class="row w-100 p-0 m-0 bg-secondary-subtle d-flex justify-content-center" id="footer"
@@ -162,12 +177,8 @@
             await loadNavbar();
             await loadFooter();
             getTheme();
-            loadBinHistory();
+            loadBinHistory(1);
         }
-
-        socket.on('updateHistory', (response) => {
-            loadBinHistory();
-        });
 
         document.querySelector("table caption").innerHTML = `Collection history of Bin ${sessionStorage.getItem("binIDforhistory")}<a class="float-end me-2" id="export-btn">Export as PDF</a>`;
 
@@ -184,17 +195,19 @@
             document.getElementById("footer").innerHTML = data;
         }
 
-        async function loadBinHistory() {
-            const response = await fetch(`http://localhost:3000/loadBinHistory/${sessionStorage.getItem("binIDforhistory")}`);
+        async function loadBinHistory(pageNumber) {
+            sessionStorage.setItem("pageNumber", pageNumber);
+            const response = await fetch(`http://localhost:3000/loadBinHistory/${sessionStorage.getItem("binIDforhistory")}/${pageNumber}`);
             const data = await response.json();
             const table = document.getElementById("history-table");
 
-            if (data.length > 0) {
+            if (data.binHistory.length > 0) {
+                let counter = ((pageNumber - 1) * 15) + 1;
                 table.innerHTML = ""; // Clear previous data
-                data.forEach((history) => {
+                data.binHistory.forEach((history) => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
-                    <td class="py-3">${history.binID}</td>
+                    <td class="py-3 ps-4">${counter}</td>
                     <td class="py-3">${history.accumulation}</td>
                     <td class="py-3">${history.creation}</td>
                     <td class="py-3">${history.collectorID}</td>
@@ -205,7 +218,122 @@
                     </td>
                 `;
                     table.appendChild(row);
+                    counter++;
                 });
+
+                document.documentElement.scrollTop = 0;
+                const paginationBtnGroup = document.getElementById("pagination-btnGroup");
+                paginationBtnGroup.innerHTML = "";
+
+                // This is fix btn
+                // Isolated code block that add the 'Previous' btn in the pagination btnGroup
+                {
+                    const li = document.createElement("li");
+                    li.classList.add("page-item");
+                    const a = document.createElement("a");
+                    a.classList.add("page-link", "text-dark-emphasis");
+                    a.addEventListener("click", () => {
+                        const pageNum = parseInt(sessionStorage.getItem("pageNumber"));
+                        const targetPage = pageNum > 1 ? pageNum - 1 : 1;
+                        loadBinHistory(targetPage);
+                    });
+                    a.innerHTML = "Previous";
+                    li.appendChild(a);
+                    paginationBtnGroup.appendChild(li);
+                }
+
+                // This is flexible btn
+                // Isolated code block the create page btn
+                {
+                    const currentPage = parseInt(sessionStorage.getItem("pageNumber"));
+                    const pageCount = data.pageCount;
+
+                    const createPageBtn = (label, targetPage, isActive = false) => {
+                        const li = document.createElement("li");
+                        li.classList.add("page-item");
+                        if (isActive) li.classList.add("active");
+
+                        const a = document.createElement("a");
+                        if (!isActive) a.classList.add("text-dark-emphasis");
+                        a.classList.add("page-link");
+                        a.textContent = label;
+                        a.addEventListener("click", () => {
+                            loadBinHistory(targetPage);
+                        });
+
+                        li.appendChild(a);
+                        paginationBtnGroup.appendChild(li);
+                    };
+
+                    if (pageCount <= 5) {
+                        // Direct create btn
+                        for (let i = 1; i <= pageCount; i++) {
+                            createPageBtn(i, i, i === currentPage);
+                        }
+                    } else {
+                        // Show: Prev2, Prev1, Current, Next1, Next2, ..., Last
+                        let start = currentPage - 2;
+                        let end = currentPage + 2;
+
+                        // Adjust if near start
+                        if (currentPage <= 3) {
+                            start = 1;
+                            end = 5;
+                        }
+
+                        // Adjust if near end
+                        if (currentPage >= pageCount - 2) {
+                            start = pageCount - 4;
+                            end = pageCount;
+                        }
+
+                        // Determine the final start and final end
+                        start = Math.max(1, start);
+                        end = Math.min(pageCount, end);
+
+                        // Create btn after cal the start and end
+                        for (let i = start; i <= end; i++) {
+                            createPageBtn(i, i, i === currentPage);
+                        }
+
+                        // This will be skipped if near end
+                        if (end < pageCount - 1) {
+                            // Add ellipsis
+                            const li = document.createElement("li");
+                            li.classList.add("page-item", "disabled");
+                            const span = document.createElement("span");
+                            span.classList.add("page-link");
+                            span.textContent = "...";
+                            li.appendChild(span);
+                            paginationBtnGroup.appendChild(li);
+                        }
+
+                        // This will be skipped if near end
+                        if (end < pageCount) {
+                            // Always show last page
+                            createPageBtn(pageCount, pageCount, currentPage === pageCount);
+                        }
+                    }
+                }
+
+                // This is fix btn
+                // Isolated code block that add the 'Next' btn in the pagination btnGroup
+                {
+                    const li = document.createElement("li");
+                    li.classList.add("page-item");
+                    const a = document.createElement("a");
+                    a.classList.add("page-link", "text-dark-emphasis");
+                    a.addEventListener("click", () => {
+                        const pageNum = parseInt(sessionStorage.getItem("pageNumber"));
+                        const targetPage = pageNum == data.pageCount ? pageNum : pageNum + 1;
+                        loadBinHistory(targetPage);
+                    });
+                    a.innerHTML = "Next";
+                    li.appendChild(a);
+                    paginationBtnGroup.appendChild(li);
+                }
+
+                document.getElementById("pagination-lbl").innerHTML = `Showing ${((pageNumber - 1) * 15) + 1}-${pageNumber * 15 > data.totalRecord ? data.totalRecord : pageNumber * 15} of ${data.totalRecord}`;
             } else {
                 table.innerHTML = ""; // Clear previous data
 
@@ -233,7 +361,7 @@
             if (data.status == "success") {
                 let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
                 modal1.hide(); // Hide the confirmation modal
-                loadBinHistory();
+                loadBinHistory(parseInt(sessionStorage.getItem("pageNumber")));
                 const toast = document.getElementById('toast');
                 const toastBootstrap = new bootstrap.Toast(toast);
                 if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
@@ -245,7 +373,7 @@
             } else if (data.status == "failed") {
                 let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
                 modal1.hide(); // Hide the confirmation modal
-                loadBinHistory();
+                loadBinHistory(parseInt(sessionStorage.getItem("pageNumber")));
                 const toast = document.getElementById('toast');
                 const toastBootstrap = new bootstrap.Toast(toast);
                 if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
@@ -259,6 +387,8 @@
 
         // Convert request creation date to "YYYY-MM-DD" format (for <input type="date">)
         function convertDate(date) {
+            if (!date) return;
+
             let dateParts = date.split('/');
             let formattedDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
             return formattedDate;
@@ -266,6 +396,8 @@
 
         // Convert request creation time to "HH:MM" 24-hour format (for <input type="time">)
         function convertTime(time) {
+            if (!time) return;
+
             let timeParts = time.trim().split(/[: ]/);
             let hours = parseInt(timeParts[0]);
             let minutes = timeParts[1];
@@ -355,7 +487,7 @@
             }
         }
 
-        document.getElementById("edit-history-form").addEventListener("submit", async (e) => { // When confirm btn clicked for edit history
+        document.getElementById("edit-history-form").addEventListener("submit", async (e) => { // When btn clicked for edit history
             const historyID = JSON.parse(document.getElementById("save-btn").dataset.historyID); // Fetch the data in save btn
 
             e.preventDefault();
@@ -380,7 +512,7 @@
                 if (data.status == "success") {
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal2"));
                     modal.hide(); // Hide the edit history modal
-                    loadBinHistory();
+                    loadBinHistory(parseInt(sessionStorage.getItem("pageNumber")));
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
                     if (document.getElementById("toast-color").classList.contains("bg-danger-subtle")) {
@@ -393,7 +525,7 @@
                     let modal = bootstrap.Modal.getInstance(document.getElementById("modal2"));
                     modal.hide(); // Hide the edit history modal
 
-                    loadBinHistory();
+                    loadBinHistory(parseInt(sessionStorage.getItem("pageNumber")));
                     const toast = document.getElementById('toast');
                     const toastBootstrap = new bootstrap.Toast(toast);
                     if (document.getElementById("toast-color").classList.contains("bg-success-subtle")) {
@@ -406,7 +538,7 @@
             }
         })
 
-        document.getElementById("export-btn").addEventListener("click", async () => {  // When confirm btn clicked for history delete
+        document.getElementById("export-btn").addEventListener("click", async () => {  // When btn clicked for history export
             const response = await fetch(`http://localhost:3000/exportHistory/${sessionStorage.getItem("binIDforhistory")}`);
             const data = await response.blob();
 
