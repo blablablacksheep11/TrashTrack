@@ -33,15 +33,15 @@ redis.connect() // Connect to the Redis database
 const database = mysql.createPool({ // Create a connection to the database
     host: '127.0.0.1',
     user: 'root',
-    password: 'Yongqin_1101',
-    database: 'bin'
+    password: 'password',
+    database: 'database name'
 }).promise();
 
 const transporter = createTransport({
     service: "gmail", // Use Gmail's SMTP service
     auth: {
-        user: "lamyongqin@gmail.com",
-        pass: "xvtgwerkxhoavubq"
+        user: "your email here",
+        pass: "API key here"
     }
 });
 
