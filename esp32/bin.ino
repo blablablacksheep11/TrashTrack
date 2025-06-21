@@ -17,8 +17,8 @@
 MFRC522 rfid(SS_PIN, RST_PIN);
 MFRC522::MIFARE_Key key;
 
-const char* ssid = "Lam Family";                                // WiFi name
-const char* password = "lam390977";                             // WiFi password
+const char* ssid = "Wifi name here";                                // WiFi name
+const char* password = "Wifi password here";                             // WiFi password
 const char* serverUrl = "http://192.168.0.105:3000/esp32data";  // Computer IP address (v4)
 
 bool opened = false;
