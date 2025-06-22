@@ -121,6 +121,7 @@ async function send(email, name, otp) {
 // When server get data from ESP32 through HTTP POST request
 app.post('/esp32data', async (req, res) => {
     res.status(200).send("OK"); // Critical! Without this, ESP32 will timeout
+    console.log(req.body); // Log the data received from ESP32
     if (!("cleanerID" in req.body)) { // If the data does not contain cleanerID, it means it is a bin data
         if (req.body.binstatus == "closed") {
             const binID = Number(req.body.binID);
@@ -187,6 +188,64 @@ app.post('/esp32data', async (req, res) => {
         } catch (err) {
             console.log(err);
         }
+    }
+});
+
+// Express for img recognition / garbage segregation
+app.post('/img', async (req, res) => {
+    try {
+        // Get the img data from request body
+        const { label, confidence, image } = req.body;  // This is the img data from Python
+        if (image) {
+            res.status(200).json({ message: 'Image received successfully' });
+        }
+
+        // Create Gemeni object
+        const ai = new GoogleGenAI({ apiKey: "AIzaSyDXM2GrjA3ualF8L9CdLdD_zTG-F51eNfI" });
+
+        const contents = [
+            {
+                inlineData: {
+                    mimeType: "image/jpeg",
+                    data: image,
+                },
+            },
+            { text: "Is this a paper, plastic, metal, or general waste. Return me the response in single vocabulary. Return general waste if multiple material detected." },
+        ];
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: contents,
+        });
+
+        if (response.error) {
+            return; // Stop the execetion if gemeni return error
+        }
+
+        if (response.text.toLowerCase().includes("paper")) {
+            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["1"]);
+            if (insert.warningStatus == 0) {
+                console.log("Paper waste detected and recorded");
+            }
+        } else if (response.text.toLowerCase().includes("plastic")) {
+            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["2"]);
+            if (insert.warningStatus == 0) {
+                console.log("Plastic waste detected and recorded");
+            }
+        } else if (response.text.toLowerCase().includes("metal")) {
+            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["3"]);
+            if (insert.warningStatus == 0) {
+                console.log("Metal waste detected and recorded");
+            }
+        } else {
+            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["4"]);
+            if (insert.warningStatus == 0) {
+                console.log("General waste detected and recorded");
+            }
+        }
+    } catch (error) {
+        console.error("Error processing image:", error);
+        res.status(500).json({ error: "Failed to process image" });
     }
 });
 
@@ -604,7 +663,7 @@ app.get('/loadBinHistory/:id/:pageNumber', async (req, res) => {
     try {
         const [recordCount] = await database.query("SELECT COUNT(*) as total FROM bin_history WHERE binID = ?", [id]); // Get the total number of records
         const totalRecord = recordCount[0].total;
-        const pageCount = Math.ceil((recordCount[0].total)/15);
+        const pageCount = Math.ceil((recordCount[0].total) / 15);
         const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ? LIMIT ? OFFSET ?", [id, limit, offset]); // Fetch the records for the current page
         for (const history of binHistory) {
             // Convert the datetime to locale string
@@ -626,7 +685,7 @@ app.get('/loadBinHistory/:id/:pageNumber', async (req, res) => {
                 history.collectorID = "Uncollected";
             }
         }
-        res.json({totalRecord, pageCount, binHistory});
+        res.json({ totalRecord, pageCount, binHistory });
     } catch (error) {
         console.log(error);
     }
@@ -890,7 +949,7 @@ app.get('/getGarbageType/:category_id', async (req, res) => {
 
         const [categoryName] = await database.query(`SELECT category FROM garbage_type WHERE id = ?`, [category_id]);
         console.log(garbageType)
-        res.json({categoryName, data: garbageType});
+        res.json({ categoryName, data: garbageType });
     } catch (error) {
         console.log(error);
     }
@@ -916,64 +975,6 @@ app.get('/getGarbageOverview', async (req, res) => {
         console.log(error);
     }
 })
-
-// Express for img recognition / garbage segregation
-app.post('/img', async (req, res) => {
-    try {
-        // Get the img data from request body
-        const { label, confidence, image } = req.body;  // This is the img data from Python
-        if (image) {
-            res.status(200).json({ message: 'Image received successfully' });
-        }
-
-        // Create Gemeni object
-        const ai = new GoogleGenAI({ apiKey: "AIzaSyDXM2GrjA3ualF8L9CdLdD_zTG-F51eNfI" });
-
-        const contents = [
-            {
-                inlineData: {
-                    mimeType: "image/jpeg",
-                    data: image,
-                },
-            },
-            { text: "Is this a paper, plastic, metal, or general waste. Return me the response in single vocabulary. Return general waste if multiple material detected." },
-        ];
-
-        const response = await ai.models.generateContent({
-            model: "gemini-2.0-flash",
-            contents: contents,
-        });
-
-        if (response.error) {
-            return; // Stop the execetion if gemeni return error
-        }
-
-        if (response.text.toLowerCase().includes("paper")) {
-            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["1"]);
-            if (insert.warningStatus == 0) {
-                console.log("Paper waste detected and recorded");
-            }
-        } else if (response.text.toLowerCase().includes("plastic")) {
-            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["2"]);
-            if (insert.warningStatus == 0) {
-                console.log("Plastic waste detected and recorded");
-            }
-        } else if (response.text.toLowerCase().includes("metal")) {
-            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["3"]);
-            if (insert.warningStatus == 0) {
-                console.log("Metal waste detected and recorded");
-            }
-        } else {
-            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["4"]);
-            if (insert.warningStatus == 0) {
-                console.log("General waste detected and recorded");
-            }
-        }
-    } catch (error) {
-        console.error("Error processing image:", error);
-        res.status(500).json({ error: "Failed to process image" });
-    }
-});
 
 server.listen(3000, () => {
     console.log('Server is running on port 3000');

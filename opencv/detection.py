@@ -12,7 +12,7 @@ cap = cv2.VideoCapture(0) # Receive the video from the camera, the default port 
 captured_object = None
 capture_threshold = 50 # If the object moves more than this distance, it will be consider as new object
 last_capture_time = 0
-cooldown_seconds = 30 # Cooldown period in seconds
+cooldown_seconds = 15 # Cooldown period in seconds
 center_margin = 50 # The main frame will be 50 pixels around the center of the screen
 
 while True:
