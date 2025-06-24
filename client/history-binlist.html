@@ -35,16 +35,17 @@
             <thead class="table">
                 <tr>
                     <th scope="col">Bin ID</th>
-                    <th scope="col">Block</th>
-                    <th scope="col">Level</th>
+                    <th scope="col">Location</th>
                     <th scope="col">Status</th>
-                    <th scope="col">Accumulation</th>
+                    <th scope="col">Paper Accumulation</th>
+                    <th scope="col">Plastic Accumulation</th>
+                    <th scope="col">General Waste Accumulation</th>
                     <th scope="col">Action</th>
                 </tr>
             </thead>
             <tbody id="registeredbin-table">
                 <tr>
-                    <td colspan="6" class="text-center py-3">No bin found ...<br><i class="bi bi-trash3 fs-3"></i></td>
+                    <td colspan="7" class="text-center py-3">No bin found ...<br><i class="bi bi-trash3 fs-3"></i></td>
                 </tr>
             </tbody>
         </table>
@@ -92,10 +93,11 @@
                     const row = document.createElement("tr");
                     row.innerHTML = `
                     <td class="py-3">${bin.ID}</td>
-                    <td class="py-3">${bin.block}</td>
-                    <td class="py-3">${bin.level}</td>
+                    <td class="py-3">${bin.block}, ${bin.level}</td>
                     <td class="py-3">${bin.status}</td>
-                    <td class="py-3">${bin.accumulation}%</td>
+                    <td class="py-3">${bin.cat1_accumulation}%</td>
+                    <td class="py-3">${bin.cat2_accumulation}%</td>
+                    <td class="py-3">${bin.cat3_accumulation}%</td>
                     <td><button class="btn btn-primary" value="${bin.ID}" onclick="history(${bin.ID})">History</button></td>
                 `;
                     table.appendChild(row);

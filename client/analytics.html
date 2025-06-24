@@ -60,9 +60,6 @@
                             onclick="drawColChart(2)">Plastic</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-secondary category-btn" id="cat3Btn" onclick="drawColChart(3)">Metal</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link text-secondary category-btn" id="cat4Btn" onclick="drawColChart(4)">General
                             Waste</a>
                     </li>
@@ -91,11 +88,6 @@
                     <div class="progress px-0" role="progressbar" aria-label="Basic example" aria-valuenow="25"
                         aria-valuemin="0" aria-valuemax="100" style="height: 10px;">
                         <div class="progress-bar" id="progress3"></div>
-                    </div>
-                    <p id="label4" class="text-start m-0 p-0"></p>
-                    <div class="progress px-0" role="progressbar" aria-label="Basic example" aria-valuenow="25"
-                        aria-valuemin="0" aria-valuemax="100" style="height: 10px;">
-                        <div class="progress-bar" id="progress4"></div>
                     </div>
                 </div>
             </div>
@@ -189,7 +181,7 @@
                     total += category.count;
                 });
 
-                for (let counter = 0; counter < 4; counter++) {
+                for (let counter = 0; counter < 3; counter++) {
                     document.getElementById(`label${counter + 1}`).innerText = `${overview[counter].category} (${(overview[counter].count / total * 100).toFixed(2)}%)`;
                     document.getElementById(`progress${counter + 1}`).style.width = `${overview[counter].count / total * 100}%`;
                 }

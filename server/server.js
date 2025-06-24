@@ -10,6 +10,8 @@ import PdfPrinter from 'pdfmake';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { GoogleGenAI } from "@google/genai";
+import axios from 'axios'; // Used to make HTTP requests to esp32
+import shared from './shared.js'; // Fetch the global shared variables
 
 const app = express(); // Create an express app
 const server = createServer(app); // Create a server with the express app
@@ -33,15 +35,15 @@ redis.connect() // Connect to the Redis database
 const database = mysql.createPool({ // Create a connection to the database
     host: '127.0.0.1',
     user: 'root',
-    password: 'password',
-    database: 'database name'
+    password: 'Yongqin_1101',
+    database: 'bin'
 }).promise();
 
 const transporter = createTransport({
     service: "gmail", // Use Gmail's SMTP service
     auth: {
-        user: "your email here",
-        pass: "API key here"
+        user: "lamyongqin@gmail.com",
+        pass: "xvtgwerkxhoavubq"
     }
 });
 
@@ -118,28 +120,70 @@ async function send(email, name, otp) {
     }
 }
 
+async function sendSegregationData(data) {
+    axios.post('http://192.168.0.103/segregationData', {
+        category: data
+    })
+        .then(response => {
+            console.log('ESP32 responded:', response.data);
+        })
+        .catch(error => {
+            console.error('Error posting to ESP32:', error.message);
+        });
+
+}
+
 // When server get data from ESP32 through HTTP POST request
 app.post('/esp32data', async (req, res) => {
     res.status(200).send("OK"); // Critical! Without this, ESP32 will timeout
     console.log(req.body); // Log the data received from ESP32
-    if (!("cleanerID" in req.body)) { // If the data does not contain cleanerID, it means it is a bin data
-        if (req.body.binstatus == "closed") {
-            const binID = Number(req.body.binID);
-            const distance = Number(req.body.distance);
-            const accumulation = 100 - ((distance / 23.5) * 100);
-            if (accumulation >= 80) { // If the bin is full, change the status to unavailable
-                try {
-                    let update = await database.query("UPDATE bin SET status = 'unavailable', accumulation = ? WHERE ID = ?", [accumulation, binID]);
-                    console.log(`Bin${binID} has been changed to unavailable`);
-                } catch (err) {
-                    console.log(err);
-                }
-                try {
-                    let insert = await database.query("INSERT INTO bin_history (binID, accumulation, creation, status) VALUES (?,?,?,?)", [binID, accumulation, new Date(), 'unavailable']);
-                    console.log(insert);
-                } catch (error) {
-                    console.log(error);
-                }
+
+    if ("cleanerID" in req.body) { // If the data contains cleanerID, it means it is a collection data
+        const binID = req.body.binid;
+        const cleanerid = req.body.cleanerID;
+
+        // Update the bin status to available and reset the accumulation to 0
+        try {
+            let update = await database.query("UPDATE bin SET status = 'available', cat1_accumulation = '0', cat2_accumulation = '0', cat3_accumulation = '0' WHERE ID = ?", [binID]);
+            socket.emit("updateChart", { binID: binID, distance: 23.5 });
+
+            // Insert the collection data into the bin_history table
+            let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
+            socket.emit("updateGraph", { binID: binID });
+            console.log(collect);
+        } catch (err) {
+            console.log(err);
+        }
+
+    } else if ("binstatus" in req.body && req.body.binstatus == "closed") { // If the data does not contain cleanerID, it means it is a bin data
+        const binID = Number(req.body.binID);
+        const acceptingIMG = Boolean(req.body.acceptingIMG);
+        shared.acceptingIMG = acceptingIMG; // Update the global shared variable
+
+    } else if ("distance" in req.body) {
+        const binID = Number(req.body.binID);
+        const category = Number(req.body.category);
+        const distance = Number(req.body.distance);
+        const accumulation = 100 - ((distance / 23.5) * 100);
+        const categoryMap = {
+            1: 'cat1_accumulation',
+            2: 'cat2_accumulation',
+            3: 'cat3_accumulation'
+        };
+
+        const colToReplace = categoryMap[category];
+
+        if (accumulation >= 80) { // If the bin is full, change the status to unavailable
+            try {
+                let update = await database.query(`UPDATE bin SET status = 'unavailable', cat${category}_accumulation = ? WHERE ID = ?`, [accumulation, binID]);
+                console.log(`Bin${binID} has been changed to unavailable`);
+
+                // Get the accumulation of the other 2 categories
+                const [accumulations] = await database.query("SELECT cat1_accumulation, cat2_accumulation, cat2_accumulation FROM bin WHERE ID = ?", [binID]);
+
+                accumulations[0][colToReplace] = accumulation; // Replace the accumulation of the category with the new value
+
+                let insert = await database.query("INSERT INTO bin_history (binID, cat1_accumulation, cat2_accumulation, cat3_accumulation, creation, status) VALUES (?,?,?,?)", [binID, accumulations[0]['cat1_accumulation'], accumulations[0]['cat2_accumulation'], accumulations[0]['cat3_accumulation'], new Date(), 'unavailable']);
 
                 const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
                 let emailList = [];
@@ -155,38 +199,19 @@ app.post('/esp32data', async (req, res) => {
                 });
 
                 mail(emailList, bin).catch(console.error); // Send email to the all administrator
-                socket.emit("updateChart", { binID: binID, distance: distance });
-            } else {
-                try {
-                    let update = await database.query("UPDATE bin SET status = 'available', accumulation = ? WHERE ID = ?", [accumulation, binID]);
-                    console.log(`Bin${binID} has been changed to available`);
-                } catch (err) {
-                    console.log(err);
-                }
-                socket.emit("updateChart", { binID: binID, distance: distance });
-            }
-        } else if (req.body.binstatus == "opened") {
-            const binID = req.body.binID;
-            const status = req.body.binstatus;
-        }
-    } else if ("cleanerID" in req.body) { // If the data contains cleanerID, it means it is a collection data
-        const binID = req.body.binid;
-        const cleanerid = req.body.cleanerID;
+                socket.emit("updateChart", { binID: binID, distance: distance, category: category });
 
-        // Update the bin status to available and reset the accumulation to 0
-        try {
-            let update = await database.query("UPDATE bin SET status = 'available', accumulation = '0' WHERE ID = ?", [binID]);
-            socket.emit("updateChart", { binID: binID, distance: 23.5 });
-        } catch (err) {
-            console.log(err);
-        }
-        // Insert the collection data into the bin_history table
-        try {
-            let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
-            socket.emit("updateGraph", { binID: binID });
-            console.log(collect);
-        } catch (err) {
-            console.log(err);
+            } catch (err) {
+                console.log(err);
+            }
+        } else {
+            try {
+                let update = await database.query(`UPDATE bin SET status = 'available', cat${category}_accumulation = ? WHERE ID = ?`, [accumulation, binID]);
+                console.log(`Bin${binID} has been changed to available`);
+            } catch (err) {
+                console.log(err);
+            }
+            socket.emit("updateChart", { binID: binID, distance: distance });
         }
     }
 });
@@ -210,37 +235,37 @@ app.post('/img', async (req, res) => {
                     data: image,
                 },
             },
-            { text: "Is this a paper, plastic, metal, or general waste. Return me the response in single vocabulary. Return general waste if multiple material detected." },
+            { text: "Is this a paper, plastic, or general waste. Return me the response in single vocabulary. Return general waste if multiple material detected." },
         ];
 
-        const response = await ai.models.generateContent({
-            model: "gemini-2.0-flash",
-            contents: contents,
-        });
+        if (shared.acceptingIMG == true) {
+            const response = await ai.models.generateContent({
+                model: "gemini-2.0-flash",
+                contents: contents,
+            });
 
-        if (response.error) {
-            return; // Stop the execetion if gemeni return error
-        }
+            if (response.error) {
+                return; // Stop the execetion if gemeni return error
+            }
 
-        if (response.text.toLowerCase().includes("paper")) {
-            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["1"]);
-            if (insert.warningStatus == 0) {
-                console.log("Paper waste detected and recorded");
-            }
-        } else if (response.text.toLowerCase().includes("plastic")) {
-            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["2"]);
-            if (insert.warningStatus == 0) {
-                console.log("Plastic waste detected and recorded");
-            }
-        } else if (response.text.toLowerCase().includes("metal")) {
-            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["3"]);
-            if (insert.warningStatus == 0) {
-                console.log("Metal waste detected and recorded");
-            }
-        } else {
-            const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["4"]);
-            if (insert.warningStatus == 0) {
-                console.log("General waste detected and recorded");
+            if (response.text.toLowerCase().includes("paper")) {
+                const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["1"]);
+                if (insert.warningStatus == 0) {
+                    console.log("Paper waste detected and recorded");
+                }
+                sendSegregationData("paper"); // Send the segregation data to ESP32
+            } else if (response.text.toLowerCase().includes("plastic")) {
+                const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["2"]);
+                if (insert.warningStatus == 0) {
+                    console.log("Plastic waste detected and recorded");
+                }
+                sendSegregationData("plastic"); // Send the segregation data to ESP32
+            } else {
+                const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["4"]);
+                if (insert.warningStatus == 0) {
+                    console.log("General waste detected and recorded");
+                }
+                sendSegregationData("general"); // Send the segregation data to ESP32
             }
         }
     } catch (error) {
