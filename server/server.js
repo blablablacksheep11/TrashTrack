@@ -35,15 +35,15 @@ redis.connect() // Connect to the Redis database
 const database = mysql.createPool({ // Create a connection to the database
     host: '127.0.0.1',
     user: 'root',
-    password: 'Yongqin_1101',
+    password: 'Database password here',
     database: 'bin'
 }).promise();
 
 const transporter = createTransport({
     service: "gmail", // Use Gmail's SMTP service
     auth: {
-        user: "lamyongqin@gmail.com",
-        pass: "xvtgwerkxhoavubq"
+        user: "Email address here", // Your email address
+        pass: "API key here"
     }
 });
 
@@ -80,7 +80,9 @@ async function mail(email, bin) {
                     <b>Bin ID:</b>${bin[0].ID}
                 </li>
                 <li>
-                    <b>Accumulation:</b>${bin[0].accumulation}%
+                    <b>Paper Accumulation:</b>${bin[0].cat1_accumulation}%
+                    <b>Plastic Accumulation:</b>${bin[0].cat2_accumulation}%
+                    <b>General Waste Accumulation:</b>${bin[0].cat3_accumulation}%
                 </li>
             </ul>
             <p>Please arrange for collection as soon as possible to prevent overflow.</p>
@@ -121,7 +123,7 @@ async function send(email, name, otp) {
 }
 
 async function sendSegregationData(data) {
-    axios.post('http://192.168.0.103/segregationData', {
+    axios.post('http://ESP32 IP address/segregationData', {
         category: data
     })
         .then(response => {
@@ -132,6 +134,8 @@ async function sendSegregationData(data) {
         });
 
 }
+
+console.log(shared.acceptingIMG); // Log the initial value of acceptingIMG
 
 // When server get data from ESP32 through HTTP POST request
 app.post('/esp32data', async (req, res) => {
@@ -179,11 +183,11 @@ app.post('/esp32data', async (req, res) => {
                 console.log(`Bin${binID} has been changed to unavailable`);
 
                 // Get the accumulation of the other 2 categories
-                const [accumulations] = await database.query("SELECT cat1_accumulation, cat2_accumulation, cat2_accumulation FROM bin WHERE ID = ?", [binID]);
+                const [accumulations] = await database.query("SELECT cat1_accumulation, cat2_accumulation, cat3_accumulation FROM bin WHERE ID = ?", [binID]);
 
                 accumulations[0][colToReplace] = accumulation; // Replace the accumulation of the category with the new value
 
-                let insert = await database.query("INSERT INTO bin_history (binID, cat1_accumulation, cat2_accumulation, cat3_accumulation, creation, status) VALUES (?,?,?,?)", [binID, accumulations[0]['cat1_accumulation'], accumulations[0]['cat2_accumulation'], accumulations[0]['cat3_accumulation'], new Date(), 'unavailable']);
+                let insert = await database.query("INSERT INTO bin_history (binID, cat1_accumulation, cat2_accumulation, cat3_accumulation, creation, status) VALUES (?,?,?,?,?,?)", [binID, accumulations[0]['cat1_accumulation'], accumulations[0]['cat2_accumulation'], accumulations[0]['cat3_accumulation'], new Date(), 'unavailable']);
 
                 const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
                 let emailList = [];
@@ -211,7 +215,7 @@ app.post('/esp32data', async (req, res) => {
             } catch (err) {
                 console.log(err);
             }
-            socket.emit("updateChart", { binID: binID, distance: distance });
+            socket.emit("updateChart", { binID: binID, distance: distance, category: category });
         }
     }
 });
@@ -267,6 +271,8 @@ app.post('/img', async (req, res) => {
                 }
                 sendSegregationData("general"); // Send the segregation data to ESP32
             }
+
+            shared.acceptingIMG = false; // Set the acceptingIMG to false after processing the image
         }
     } catch (error) {
         console.error("Error processing image:", error);
@@ -525,6 +531,31 @@ app.get('/getHistory/:id/:date', async (req, res) => {
         const [history] = await database.query("SELECT COUNT(*) as sum FROM bin_history WHERE binID = ? AND DATE(collection) = CONVERT_TZ(?, '+00:00', '+08:00') AND collection IS NOT NULL", [binid, date]);
         console.log(history);
         res.json(history);
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+app.get('/getDisposalOverview', async (req, res) => {
+    try {
+        const [disposalOverview] = await database.query("SELECT garbage_type, COUNT(*) as count FROM disposal_records GROUP BY garbage_type");
+        const overview = {
+            paper: 0,
+            plastic: 0,
+            general: 0
+        };
+
+        disposalOverview.forEach(record => {
+            if (record.garbage_type == "1") {
+                overview.paper = record.count;
+            } else if (record.garbage_type == "2") {
+                overview.plastic = record.count;
+            } else if (record.garbage_type == "4") {
+                overview.general = record.count;
+            }
+        });
+
+        res.json(overview);
     } catch (error) {
         console.log(error);
     }

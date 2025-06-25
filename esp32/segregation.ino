@@ -20,9 +20,9 @@
 #define echoPin3 33
 
 // MG996 servo motor pins
-#define lidServoPin 17            // 0 degree, put at RHS, wire face front, 120 degree open
-#define armVerticalServoPin 32    // Origin: 90 degree, Under camera: 75 degree
-#define armHorizontalServoPin 22  // Origin: 178 degree
+#define lidServoPin 17            // 0 degree, put at RHS, wire face front, 90 degree open
+#define armVerticalServoPin 32    // Origin: 90 degree, Under camera: 105 degree
+#define armHorizontalServoPin 22  // Origin: 52 degree, Cat1: 30 degree, Cat3: 74 degree
 #define cover1ServoPin1 25        // Rotate from 0 to 90
 #define cover2ServoPin2 26        // Rotate from 0 to 90
 #define cover3ServoPin3 27        // Rotate from 87 to 0
@@ -35,9 +35,9 @@
 MFRC522 rfid(SS_PIN, RST_PIN);
 MFRC522::MIFARE_Key key;
 
-const char *ssid = "Lam Family";                                // WiFi name
-const char *password = "lam390977";                             // WiFi password
-const char *serverUrl = "http://192.168.0.107:3000/esp32data";  // Computer IP address (v4)
+const char *ssid = "WiFi name here";                                // WiFi name
+const char *password = "WiFi password here";                             // WiFi password
+const char *serverUrl = "http://localhost IP address/esp32data";  // Computer IP address (v4)
 
 WebServer server(80);  // ESP32 runs on port 80
 
@@ -48,11 +48,77 @@ bool isInitial = true;
 int categoryID = 0;
 double duration, distance, accumulation;
 unsigned long lastCheckTime = 0;
-const long checkInterval = 1;
+const long checkInterval = 1000;
 String jsonOutput = "";
 Servo lidServo, armVerticalServo, armHorizontalServo, cover1Servo, cover2Servo, cover3Servo;
 
-void checkRFID();
+void checkRFID() {
+  if (millis() - lastCheckTime >= checkInterval) {
+    lastCheckTime = millis();
+
+    if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial())
+      return;
+
+    binstatus = true;
+    byte buffer[18];
+    byte buffersize = sizeof(buffer);
+    String fields[] = { "cleanerID", "Name" };
+
+    byte status;
+    byte block = 1;
+    int startingblock, trailerblock, counter = 0;
+    int fieldCount = 2;
+    jsonOutput = "{\"binid\": " + String(binID) + ", ";
+
+    for (byte i = 0; i < fieldCount; i++) {
+      startingblock = block / 4 * 4;
+      trailerblock = startingblock + 3;
+
+      status = rfid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, trailerblock, &key, &(rfid.uid));
+      if (status != MFRC522::STATUS_OK) {
+        return;
+      }
+
+      if (block == trailerblock) {
+        fieldCount += 1;
+      } else {
+        status = rfid.MIFARE_Read(block, buffer, &buffersize);
+        if (status == MFRC522::STATUS_OK) {
+          jsonOutput += "\"" + fields[counter] + "\": \"";
+
+          for (byte j = 0; j < 16; j++) {
+            if (buffer[j] != 0x00) {  // Ignore null bytes
+              jsonOutput += (char)buffer[j];
+            }
+          }
+
+          jsonOutput += "\"";
+          if (counter < fieldCount - 1) {
+            jsonOutput += ", ";
+          }
+        }
+        counter++;
+      }
+      block++;
+    }
+
+    jsonOutput += "}";
+
+    if (WiFi.status() == WL_CONNECTED) {
+      HTTPClient http;
+
+      http.begin(serverUrl);                               // Specify destination
+      http.addHeader("Content-Type", "application/json");  // Set content-type
+
+      http.POST(jsonOutput);
+
+      http.end();
+    }
+
+    rfid.PICC_HaltA();
+    rfid.PCD_StopCrypto1();
+  }
+}
 
 void handlePost() {
   if (server.hasArg("plain")) {
@@ -77,16 +143,17 @@ void handlePost() {
 
       armVerticalServo.write(90);
       delay(1000);
-      armHorizontalServo.write(150);
+      armHorizontalServo.write(30);
       delay(1000);
       cover1Servo.write(75);
       delay(1000);
-      armVerticalServo.write(130);
+      armVerticalServo.write(50);
       delay(3000);
       cover1Servo.write(7);
+      delay(1000);
       armVerticalServo.write(90);
-      delay(500);
-      armHorizontalServo.write(178);
+      delay(1000);
+      armHorizontalServo.write(52);
       delay(1000);
 
       digitalWrite(trigPin1, LOW);
@@ -106,9 +173,10 @@ void handlePost() {
       delay(1000);
       cover2Servo.write(75);
       delay(1000);
-      armVerticalServo.write(130);
+      armVerticalServo.write(50);
       delay(3000);
       cover2Servo.write(0);
+      delay(1000);
       armVerticalServo.write(90);
       delay(1000);
 
@@ -127,16 +195,17 @@ void handlePost() {
 
       armVerticalServo.write(90);
       delay(1000);
-      armHorizontalServo.write(206);
+      armHorizontalServo.write(74);
       delay(1000);
       cover3Servo.write(20);
       delay(1000);
-      armVerticalServo.write(130);
+      armVerticalServo.write(50);
       delay(3000);
       cover3Servo.write(87);
+      delay(1000);
       armVerticalServo.write(90);
-      delay(500);
-      armHorizontalServo.write(178);
+      delay(1000);
+      armHorizontalServo.write(52);
       delay(1000);
 
       digitalWrite(trigPin3, LOW);
@@ -212,8 +281,8 @@ void setup() {
   // Set initial positions for servos
   lidServo.write(0);
   armVerticalServo.write(90);  // Angle go higher to throw
-  armHorizontalServo.write(178);
-  cover1Servo.write(7);
+  armHorizontalServo.write(52);
+  cover1Servo.write(9);
   cover2Servo.write(0);
   cover3Servo.write(87);
 
@@ -267,18 +336,18 @@ void loop() {
       return;
     }
   } else if (sensorState == HIGH) {
-    if(isInitial){
+    if (isInitial) {
       lidServo.write(0);
       return;
     }
-    
+
     lidServo.write(0);
     delay(2000);  // Final delay after lid fully closed
 
     if (!closed) {
       opened = false;
 
-      armVerticalServo.write(75);  // Slightly rotate the vertical robotic arm to place the garbage under the camera
+      armVerticalServo.write(105);  // Slightly rotate the vertical robotic arm to place the garbage under the camera
       if (WiFi.status() == WL_CONNECTED) {
         HTTPClient http;
 
@@ -293,73 +362,5 @@ void loop() {
     }
 
     closed = true;
-  }
-}
-
-void checkRFID() {
-  if (millis() - lastCheckTime >= checkInterval) {
-    lastCheckTime = millis();
-
-    if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial())
-      return;
-
-    binstatus = true;
-    byte buffer[18];
-    byte buffersize = sizeof(buffer);
-    String fields[] = { "cleanerID", "Name" };
-
-    byte status;
-    byte block = 1;
-    int startingblock, trailerblock, counter = 0;
-    int fieldCount = 2;
-    jsonOutput = "{\"binid\": " + String(binID) + ", ";
-
-    for (byte i = 0; i < fieldCount; i++) {
-      startingblock = block / 4 * 4;
-      trailerblock = startingblock + 3;
-
-      status = rfid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, trailerblock, &key, &(rfid.uid));
-      if (status != MFRC522::STATUS_OK) {
-        return;
-      }
-
-      if (block == trailerblock) {
-        fieldCount += 1;
-      } else {
-        status = rfid.MIFARE_Read(block, buffer, &buffersize);
-        if (status == MFRC522::STATUS_OK) {
-          jsonOutput += "\"" + fields[counter] + "\": \"";
-
-          for (byte j = 0; j < 16; j++) {
-            if (buffer[j] != 0x00) {  // Ignore null bytes
-              jsonOutput += (char)buffer[j];
-            }
-          }
-
-          jsonOutput += "\"";
-          if (counter < fieldCount - 1) {
-            jsonOutput += ", ";
-          }
-        }
-        counter++;
-      }
-      block++;
-    }
-
-    jsonOutput += "}";
-
-    if (WiFi.status() == WL_CONNECTED) {
-      HTTPClient http;
-
-      http.begin(serverUrl);                               // Specify destination
-      http.addHeader("Content-Type", "application/json");  // Set content-type
-
-      http.POST(jsonOutput);
-
-      http.end();
-    }
-
-    rfid.PICC_HaltA();
-    rfid.PCD_StopCrypto1();
   }
 }

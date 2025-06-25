@@ -26,11 +26,11 @@
             border-radius: 0.375rem;
         }
 
-        #overview {
+        #graph_div {
             border-radius: 0.375rem;
         }
 
-        #graph_div {
+        #disposal-overview {
             border-radius: 0.375rem;
         }
 
@@ -86,7 +86,7 @@
             </div>
         </div>
         <div class="col-lg-3 mt-4 mt-lg-0">
-            <div id="overview" class="border d-flex align-items-center justify-content-center bg-white px-3">asdasd
+            <div id="disposal-overview" class="border d-flex align-items-center justify-content-center bg-white px-3 pb-2">asdasd
             </div>
         </div>
     </div>
@@ -268,6 +268,54 @@
             }
         }
 
+        async function drawColChart() {
+            google.charts.load("current", { packages: ["corechart"] });
+            google.charts.setOnLoadCallback(drawCC);
+
+            async function drawCC() {
+
+                const response = await fetch(`http://localhost:3000/getDisposalOverview`);
+                let summary = await response.json();
+
+                garbageType = [
+                    ['Garbage Type', 'Disposal Count'],
+                    ['Paper', summary.paper],
+                    ['Plastic', summary.plastic],
+                    ['General Waste', summary.general]
+                ];
+
+                const data = google.visualization.arrayToDataTable(garbageType);
+
+                var options = {
+                    title: 'Disposal Overview',
+                    legend: { position: 'none' },
+                    height: 350,
+                    width: 320,
+                    chartArea: { width: '75%', height: '67.5%' },
+                    backgroundColor: 'transparent',
+                    titleTextStyle: { color: 'grey' },
+                    legend: { textStyle: { color: 'grey' } },
+                    hAxis: {
+                        title: 'Garbage Type',
+                        textStyle: {
+                            color: 'grey',
+                        },
+                        titleTextStyle: {
+                            color: 'grey',
+                        }
+                    },
+                    vAxis: {
+                        textStyle: {
+                            color: 'grey'
+                        }
+                    }
+                };
+
+                var chart = new google.visualization.ColumnChart(document.getElementById('disposal-overview'));
+                chart.draw(data, options);
+            }
+        }
+
         async function drawGraph(binid, dates) {
             document.getElementById("graph_div").classList.add("py-4");
             google.charts.load('current', { 'packages': ['line'] });
@@ -323,6 +371,7 @@
             loadCleanerCount();
             loadFreeBinTable();
             loadFulledBinTable();
+            drawColChart();
             getTheme();
         }
 
@@ -403,6 +452,18 @@
             }
         }
 
+        async function loadChartContainer() {
+            document.getElementById("chart_div").classList.add("justify-content-center");
+            document.getElementById("chart_div").classList.remove("justify-content-end");
+            document.getElementById("chart_div").innerHTML = `
+                                                            <div id="chart_container" class="row w-100">
+                                                                <div id="cat1_chart_container" class="col-4"></div>
+                                                                <div id="cat2_chart_container" class="col-4"></div>
+                                                                <div id="cat3_chart_container" class="col-4"></div>
+                                                            </div>
+                `;
+        }
+
         async function initializeChart() {
             const response = await fetch("http://localhost:3000/initializeChart&Graph");
             const data = await response.json();
@@ -456,15 +517,7 @@
         async function fetchChart(binid) {
             const response = await fetch(`http://localhost:3000/fetchChart/${binid}`);
             const data = await response.json();
-            document.getElementById("chart_div").classList.add("justify-content-center");
-            document.getElementById("chart_div").classList.remove("justify-content-end");
-            document.getElementById("chart_div").innerHTML = `
-            <div id="chart_container" class="row w-100">
-                    <div id="cat1_chart_container" class="col-4"></div>
-                    <div id="cat2_chart_container" class="col-4"></div>
-                    <div id="cat3_chart_container" class="col-4"></div>
-                </div>
-                `;
+            loadChartContainer();
             const distance1 = 23.5 * ((100 - (data[0].cat1_accumulation)) / 100);
             const distance2 = 23.5 * ((100 - (data[0].cat2_accumulation)) / 100);
             const distance3 = 23.5 * ((100 - (data[0].cat3_accumulation)) / 100);
@@ -532,12 +585,15 @@
         socket.on("updateChart", async (data) => {
             switch (data.category) {
                 case 1:
+                    loadChartContainer();
                     drawChart1(data.binID, data.distance);
                     break;
                 case 2:
+                    loadChartContainer();
                     drawChart2(data.binID, data.distance);
                     break;
                 case 3:
+                    loadChartContainer();
                     drawChart3(data.binID, data.distance);
                     break;
             }
