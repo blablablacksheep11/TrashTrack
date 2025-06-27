@@ -35,9 +35,9 @@
 MFRC522 rfid(SS_PIN, RST_PIN);
 MFRC522::MIFARE_Key key;
 
-const char *ssid = "WiFi name here";                                // WiFi name
-const char *password = "WiFi password here";                             // WiFi password
-const char *serverUrl = "http://localhost IP address/esp32data";  // Computer IP address (v4)
+const char *ssid = "WiFi_NAME_HERE";                                   // WiFi name
+const char *password = "WiFi_PASSWORD_HERE";                           // WiFi password
+const char *serverUrl = "http://LOCALHOST_IPV4_HERE:3000/esp32data";  // Computer IP address (v4)
 
 WebServer server(80);  // ESP32 runs on port 80
 
@@ -46,7 +46,7 @@ bool closed = false;
 bool binstatus = true;
 bool isInitial = true;
 int categoryID = 0;
-double duration, distance, accumulation;
+double duration, distance, occupiedDistance, remainingDistance, accumulation;
 unsigned long lastCheckTime = 0;
 const long checkInterval = 1000;
 String jsonOutput = "";
@@ -164,7 +164,11 @@ void handlePost() {
 
       duration = pulseIn(echoPin1, HIGH);
       distance = (duration * 0.0343) / 2;
-      accumulation = 100 - ((distance / 23.5) * 100);
+      occupiedDistance = 22.7 - distance;
+      occupiedDistance = occupiedDistance > 11.5 ? 11.5 : occupiedDistance;
+      remainingDistance = 11.5 - occupiedDistance;
+      remainingDistance = remainingDistance > 11.5 ? 11.5 : remainingDistance;
+      accumulation = 100 - ((remainingDistance / 11.5) * 100);
 
     } else if (category == "plastic") {
       categoryID = 2;
@@ -188,7 +192,11 @@ void handlePost() {
 
       duration = pulseIn(echoPin2, HIGH);
       distance = (duration * 0.0343) / 2;
-      accumulation = 100 - ((distance / 23.5) * 100);
+      occupiedDistance = 22.7 - distance;
+      occupiedDistance = occupiedDistance > 11.5 ? 11.5 : occupiedDistance;
+      remainingDistance = 11.5 - occupiedDistance;
+      remainingDistance = remainingDistance > 11.5 ? 11.5 : remainingDistance;
+      accumulation = 100 - ((remainingDistance / 11.5) * 100);
 
     } else if (category == "general") {
       categoryID = 3;
@@ -216,13 +224,12 @@ void handlePost() {
 
       duration = pulseIn(echoPin3, HIGH);
       distance = (duration * 0.0343) / 2;
-      accumulation = 100 - ((distance / 23.5) * 100);
+      occupiedDistance = 22.7 - distance;
+      occupiedDistance = occupiedDistance > 11.5 ? 11.5 : occupiedDistance;
+      remainingDistance = 11.5 - occupiedDistance;
+      remainingDistance = remainingDistance > 11.5 ? 11.5 : remainingDistance;
+      accumulation = 100 - ((remainingDistance / 11.5) * 100);
     }
-
-    if (distance <= 0)
-      distance = 0;
-    else if (distance >= 23.5)
-      distance = 23.5;
 
     if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
@@ -230,7 +237,7 @@ void handlePost() {
       http.begin(serverUrl);                               // Specify destination
       http.addHeader("Content-Type", "application/json");  // Set content-type
 
-      String data = "{\"binID\":" + String(binID) + ",\"category\":" + categoryID + ", \"distance\": " + String(distance) + "}";
+      String data = "{\"binID\":" + String(binID) + ",\"category\":" + categoryID + ", \"remainingDistance\": " + String(remainingDistance) + "}";
       http.POST(data);
 
       http.end();

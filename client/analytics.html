@@ -365,6 +365,16 @@
                 change(0);
             }
         }
+
+        socket.on('updateAnalytics', (data) => {
+            drawColChart(data.categoryID);
+            drawPieChart();
+        });
+
+        socket.on('updateCollectionFreqGraph', (data) => {
+            drawColChart(data.categoryID);
+            drawPieChart();
+        });
     </script>
 </body>
 

@@ -147,7 +147,7 @@
 
     <!-- Google Chart -->
     <script type="text/javascript">
-        async function drawChart1(binid, distance) {
+        async function drawChart1(binid, remainingDistance) {
             google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawC1);
             function drawC1() {
@@ -156,8 +156,8 @@
                 data.addColumn('string', 'Type');
                 data.addColumn('number', 'Accumulation');
                 data.addRows([
-                    ['Free space', distance],
-                    ['Occupied space', 23.5 - distance],
+                    ['Free space', remainingDistance],
+                    ['Occupied space', 11.5 - remainingDistance]
                 ]);
 
                 // Set chart options
@@ -187,7 +187,7 @@
             }
         }
 
-        async function drawChart2(binid, distance) {
+        async function drawChart2(binid, remainingDistance) {
             google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawC2);
             function drawC2() {
@@ -196,8 +196,8 @@
                 data.addColumn('string', 'Type');
                 data.addColumn('number', 'Accumulation');
                 data.addRows([
-                    ['Free space', distance],
-                    ['Occupied space', 23.5 - distance],
+                    ['Free space', remainingDistance],
+                    ['Occupied space', 11.5 - remainingDistance]
                 ]);
 
                 // Set chart options
@@ -212,7 +212,7 @@
                     pieSliceTextStyle: {
                         color: 'black',
                     },
-                    colors: ['#E5E7EB', '#FFBCBC'],
+                    colors: ['#E5E7EB', '#FFA94D'],
                     pieSliceBorderColor: 'transparent',
                     backgroundColor: 'transparent',
                     legend: 'none',
@@ -228,7 +228,7 @@
             }
         }
 
-        async function drawChart3(binid, distance) {
+        async function drawChart3(binid, remainingDistance) {
             google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawC3);
             function drawC3() {
@@ -237,8 +237,8 @@
                 data.addColumn('string', 'Type');
                 data.addColumn('number', 'Accumulation');
                 data.addRows([
-                    ['Free space', distance],
-                    ['Occupied space', 23.5 - distance],
+                    ['Free space', remainingDistance],
+                    ['Occupied space', 11.5 - remainingDistance]
                 ]);
 
                 // Set chart options
@@ -278,10 +278,10 @@
                 let summary = await response.json();
 
                 garbageType = [
-                    ['Garbage Type', 'Disposal Count'],
-                    ['Paper', summary.paper],
-                    ['Plastic', summary.plastic],
-                    ['General Waste', summary.general]
+                    ['Garbage Type', 'Disposal Count', { role: 'style' }],
+                    ['Paper', summary.paper, '#5BC0EB'],
+                    ['Plastic', summary.plastic, '#FFA94D'],
+                    ['General Waste', summary.general, '#9BC53D']
                 ];
 
                 const data = google.visualization.arrayToDataTable(garbageType);
@@ -518,12 +518,12 @@
             const response = await fetch(`http://localhost:3000/fetchChart/${binid}`);
             const data = await response.json();
             loadChartContainer();
-            const distance1 = 23.5 * ((100 - (data[0].cat1_accumulation)) / 100);
-            const distance2 = 23.5 * ((100 - (data[0].cat2_accumulation)) / 100);
-            const distance3 = 23.5 * ((100 - (data[0].cat3_accumulation)) / 100);
-            drawChart1(data[0].ID, distance1);
-            drawChart2(data[0].ID, distance2);
-            drawChart3(data[0].ID, distance3);
+            const remainingDistance1 = 11.5 * ((100 - (data[0].cat1_accumulation)) / 100);
+            const remainingDistance2 = 11.5 * ((100 - (data[0].cat2_accumulation)) / 100);
+            const remainingDistance3 = 11.5 * ((100 - (data[0].cat3_accumulation)) / 100);
+            drawChart1(data[0].ID, remainingDistance1);
+            drawChart2(data[0].ID, remainingDistance2);
+            drawChart3(data[0].ID, remainingDistance3);
         }
 
         async function fetchGraph(binid) {
@@ -539,6 +539,7 @@
             let logo = document.getElementById("logo");
             let graph = document.getElementById("graph_div");
             let chart = document.getElementById("chart_div");
+            let overview = document.getElementById("disposal-overview");
 
             if (mode == 1) {  // Switch to light mode
                 if (htmlTag.getAttribute("data-bs-theme") == "dark") {
@@ -546,8 +547,10 @@
                     htmlTag.setAttribute("data-bs-theme", "light");  // Set light mode
                     chart.classList.add("bg-white");
                     graph.classList.add("bg-white");
+                    overview.classList.add("bg-white");
                     chart.classList.remove("bg-dark");
                     graph.classList.remove("bg-dark");
+                    overview.classList.remove("bg-dark");
                     logo.src = "../img/smart-trash-dark.svg";
                     document.getElementById("light-theme").classList.add("active");
                     document.getElementById("dark-theme").classList.remove("active");
@@ -561,8 +564,10 @@
                     htmlTag.setAttribute("data-bs-theme", "dark");  // Set dark mode
                     chart.classList.add("bg-dark");
                     graph.classList.add("bg-dark");
+                    overview.classList.add("bg-dark");
                     chart.classList.remove("bg-white");
                     graph.classList.remove("bg-white");
+                    overview.classList.remove("bg-white");
                     logo.src = "../img/smart-trash-light.svg";
                     document.getElementById("light-theme").classList.remove("active");
                     document.getElementById("dark-theme").classList.add("active");
@@ -582,27 +587,18 @@
             }
         }
 
-        socket.on("updateChart", async (data) => {
-            switch (data.category) {
-                case 1:
-                    loadChartContainer();
-                    drawChart1(data.binID, data.distance);
-                    break;
-                case 2:
-                    loadChartContainer();
-                    drawChart2(data.binID, data.distance);
-                    break;
-                case 3:
-                    loadChartContainer();
-                    drawChart3(data.binID, data.distance);
-                    break;
-            }
+        socket.on("updateAccumulationPieChart", async (data) => {
+            fetchChart(data.binID);
             loadBinsCount();
             loadFreeBinTable();
             loadFulledBinTable();
         });
 
-        socket.on("updateGraph", async (data) => {
+        socket.on("updateColumnChart", async () => {
+            drawColChart();
+        });
+
+        socket.on("updateCollectionFreqGraph", async (data) => {
             const response = await fetch(`http://localhost:3000/fetchGraph/${data.binID}`);
             const date = await response.json();
             document.getElementById("graph_div").classList.add("justify-content-center");

@@ -35,15 +35,15 @@ redis.connect() // Connect to the Redis database
 const database = mysql.createPool({ // Create a connection to the database
     host: '127.0.0.1',
     user: 'root',
-    password: 'Database password here',
-    database: 'bin'
+    password: 'DATABASE_PASSWORD', // Replace with your database password
+    database: 'DATABASE_NAME', // Replace with your database name
 }).promise();
 
 const transporter = createTransport({
     service: "gmail", // Use Gmail's SMTP service
     auth: {
-        user: "Email address here", // Your email address
-        pass: "API key here"
+        user: "EMAIL_ADDRESS", // Your email address
+        pass: "API_KEY"
     }
 });
 
@@ -123,7 +123,7 @@ async function send(email, name, otp) {
 }
 
 async function sendSegregationData(data) {
-    axios.post('http://ESP32 IP address/segregationData', {
+    axios.post('http://ESP32_IP_ADDRESS/segregationData', {
         category: data
     })
         .then(response => {
@@ -149,11 +149,11 @@ app.post('/esp32data', async (req, res) => {
         // Update the bin status to available and reset the accumulation to 0
         try {
             let update = await database.query("UPDATE bin SET status = 'available', cat1_accumulation = '0', cat2_accumulation = '0', cat3_accumulation = '0' WHERE ID = ?", [binID]);
-            socket.emit("updateChart", { binID: binID, distance: 23.5 });
+            socket.emit("updateAccumulationPieChart", { binID: binID });
 
             // Insert the collection data into the bin_history table
             let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
-            socket.emit("updateGraph", { binID: binID });
+            socket.emit("updateCollectionFreqGraph", { binID: binID });
             console.log(collect);
         } catch (err) {
             console.log(err);
@@ -164,11 +164,11 @@ app.post('/esp32data', async (req, res) => {
         const acceptingIMG = Boolean(req.body.acceptingIMG);
         shared.acceptingIMG = acceptingIMG; // Update the global shared variable
 
-    } else if ("distance" in req.body) {
+    } else if ("remainingDistance" in req.body) {
         const binID = Number(req.body.binID);
         const category = Number(req.body.category);
-        const distance = Number(req.body.distance);
-        const accumulation = 100 - ((distance / 23.5) * 100);
+        const remainingDistance = Number(req.body.remainingDistance);
+        const accumulation = 100 - ((remainingDistance / 11.5) * 100);
         const categoryMap = {
             1: 'cat1_accumulation',
             2: 'cat2_accumulation',
@@ -203,7 +203,7 @@ app.post('/esp32data', async (req, res) => {
                 });
 
                 mail(emailList, bin).catch(console.error); // Send email to the all administrator
-                socket.emit("updateChart", { binID: binID, distance: distance, category: category });
+                socket.emit("updateAccumulationPieChart", { binID: binID });
 
             } catch (err) {
                 console.log(err);
@@ -212,10 +212,11 @@ app.post('/esp32data', async (req, res) => {
             try {
                 let update = await database.query(`UPDATE bin SET status = 'available', cat${category}_accumulation = ? WHERE ID = ?`, [accumulation, binID]);
                 console.log(`Bin${binID} has been changed to available`);
+
+                socket.emit("updateAccumulationPieChart", { binID: binID });
             } catch (err) {
                 console.log(err);
             }
-            socket.emit("updateChart", { binID: binID, distance: distance, category: category });
         }
     }
 });
@@ -243,6 +244,7 @@ app.post('/img', async (req, res) => {
         ];
 
         if (shared.acceptingIMG == true) {
+            let categoryID = 0; // Initialize categoryID
             const response = await ai.models.generateContent({
                 model: "gemini-2.0-flash",
                 contents: contents,
@@ -258,20 +260,25 @@ app.post('/img', async (req, res) => {
                     console.log("Paper waste detected and recorded");
                 }
                 sendSegregationData("paper"); // Send the segregation data to ESP32
+                categoryID = 1; // Paper category ID
             } else if (response.text.toLowerCase().includes("plastic")) {
                 const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["2"]);
                 if (insert.warningStatus == 0) {
                     console.log("Plastic waste detected and recorded");
                 }
                 sendSegregationData("plastic"); // Send the segregation data to ESP32
+                categoryID = 2; // Plastic category ID
             } else {
                 const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["4"]);
                 if (insert.warningStatus == 0) {
                     console.log("General waste detected and recorded");
                 }
                 sendSegregationData("general"); // Send the segregation data to ESP32
+                categoryID = 4; // General waste category ID
             }
 
+            socket.emit("updateOverviewColumnChart"); // Update the overview column chart in dashboard.html
+            socket.emit("updateAnalytics", { categoryID: categoryID }); // Emit the event to update the pie chart
             shared.acceptingIMG = false; // Set the acceptingIMG to false after processing the image
         }
     } catch (error) {
