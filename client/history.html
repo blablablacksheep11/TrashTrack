@@ -43,7 +43,7 @@
             <thead class="table">
                 <tr>
                     <th scope="col" class="ps-4">#</th>
-                    <th scope="col">Accumulation</th>
+                    <th scope="col">Average Accumulation</th>
                     <th scope="col">Request Created At</th>
                     <th scope="col">Collector</th>
                     <th scope="col">Collection</th>
@@ -122,7 +122,7 @@
                             <input type="text" class="form-control" id="id" placeholder="Bin ID" disabled readonly>
                         </div>
                         <div class="mb-3">
-                            <label for="accumulation" class="form-label">Accumulation</label>
+                            <label for="accumulation" class="form-label">Average Accumulation</label>
                             <input type="text" class="form-control" id="accumulation" placeholder="Accumulation"
                                 disabled readonly>
                         </div>
@@ -205,10 +205,12 @@
                 let counter = ((pageNumber - 1) * 15) + 1;
                 table.innerHTML = ""; // Clear previous data
                 data.binHistory.forEach((history) => {
+                    const averageAccumulation = (history.cat1_accumulation + history.cat2_accumulation + history.cat3_accumulation) / 3;
+                    history.accumulation = averageAccumulation.toFixed(2); // Calculate average accumulation
                     const row = document.createElement("tr");
                     row.innerHTML = `
                     <td class="py-3 ps-4">${counter}</td>
-                    <td class="py-3">${history.accumulation}</td>
+                    <td class="py-3">${history.accumulation}%</td>
                     <td class="py-3">${history.creation}</td>
                     <td class="py-3">${history.collectorID}</td>
                     <td class="py-3">${history.collection}</td>
@@ -434,6 +436,8 @@
             // Load the current record into the form
             // Some of the value is unchangable in the form
             // Date and time will be returned for server in LocaleString format, conversion is required to fit html date and time field format
+            const averageAccumulation = (data[0].cat1_accumulation + data[0].cat2_accumulation + data[0].cat3_accumulation) / 3;
+            data[0].accumulation = averageAccumulation.toFixed(2);
             document.querySelector("#modal2 #edit-history-form #id").value = data[0].binID;
             document.querySelector("#modal2 #edit-history-form #accumulation").value = `${data[0].accumulation}%`;
             document.querySelector("#modal2 #edit-history-form #creation-date").value = convertDate(data[0].creationDate);
