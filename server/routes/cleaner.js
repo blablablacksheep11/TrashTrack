@@ -1,10 +1,5 @@
 import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import database from '../services/mysql';
-
-const __filename = fileURLToPath(import.meta.url); // Get the url of the current file
-const __dirname = path.dirname(__filename); // Get the directory of the current file
+import database from '../services/mysql.js';
 
 const router = express.Router();
 
@@ -20,8 +15,8 @@ router.get('/loadCleaner', async (req, res) => {
 router.post('/addCleaner', async (req, res) => {
     const { name, gender, ic, email } = req.body;
     try {
-        const [add] = await database.query("INSERT INTO cleaner (name, gender, IC, email) VALUES(?,?,?,?)", [name, gender, ic, email]);
-        if (add.warningStatus == 0) {
+        const [insert] = await database.query("INSERT INTO cleaner (name, gender, IC, email) VALUES(?,?,?,?)", [name, gender, ic, email]);
+        if (insert.warningStatus == 0) {
             res.json({ status: "success" });
         } else {
             res.json({ status: "failed" });
@@ -33,14 +28,9 @@ router.post('/addCleaner', async (req, res) => {
 
 router.post('/editCleaner', async (req, res) => {
     const { cleanerID, name, gender, ic, email } = req.body;
-    console.log(name);
-    console.log(gender);
-    console.log(ic);
-    console.log(email);
     try {
-        const [edit] = await database.query("UPDATE cleaner SET name = ?, gender = ?, IC = ?, email = ? WHERE ID = ?", [name, gender, ic, email, cleanerID]);
-        console.log(edit);
-        if (edit.warningStatus == 0) {
+        const [update] = await database.query("UPDATE cleaner SET name = ?, gender = ?, IC = ?, email = ? WHERE ID = ?", [name, gender, ic, email, cleanerID]);
+        if (update.warningStatus == 0) {
             res.json({ status: "success" });
         } else {
             res.json({ status: "failed" });
@@ -50,19 +40,18 @@ router.post('/editCleaner', async (req, res) => {
     }
 })
 
-router.get('/fetchCleaner/:id', async (req, res) => {
-    const cleanerID = req.params.id;
+router.get('/fetchCleaner/:cleanerID', async (req, res) => {
+    const cleanerID = req.params.cleanerID;
     try {
-        const [fetch] = await database.query("SELECT * FROM cleaner WHERE ID = ?", [cleanerID]);
-        console.log(fetch);
-        res.json(fetch);
+        const [cleaner] = await database.query("SELECT * FROM cleaner WHERE ID = ?", [cleanerID]);
+        res.json(cleaner);
     } catch (error) {
         console.log(error);
     }
 })
 
-router.get('/deleteCleaner/:id', async (req, res) => {
-    const cleanerID = req.params.id;
+router.get('/deleteCleaner/:cleanerID', async (req, res) => {
+    const cleanerID = req.params.cleanerID;
     try {
         const [del] = await database.query("DELETE FROM cleaner WHERE ID = ?", [cleanerID]);
         if (del.warningStatus == 0) {
@@ -75,12 +64,12 @@ router.get('/deleteCleaner/:id', async (req, res) => {
     }
 })
 
-router.get('/validateCleanerEmail/:email', async (req, res) => { // This is used when adding new cleaner
-    const email = req.params.email;
+router.get('/validateCleanerEmail/:cleanerEmail', async (req, res) => { // This is used when adding new cleaner
+    const cleanerEmail = req.params.cleanerEmail;
     try {
-        const [validate1] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
-        const [validate2] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
-        if (validate1.length > 0 || validate2.length > 0) {
+        const [cleanerValidation] = await database.query("SELECT * FROM cleaner WHERE email = ?", [cleanerEmail]); // Check either email existed in cleaner table
+        const [adminValidation] = await database.query("SELECT * FROM administrator WHERE email = ?", [cleanerEmail]); // Check either email existed in admin table
+        if (cleanerValidation.length > 0 || adminValidation.length > 0) {
             res.json({ status: "existed" });
         } else {
             res.json({ status: "empty" });
@@ -90,11 +79,11 @@ router.get('/validateCleanerEmail/:email', async (req, res) => { // This is used
     }
 })
 
-router.get('/validateCleanerIC/:ic', async (req, res) => { // This is used when adding new cleaner
-    const ic = req.params.ic;
+router.get('/validateCleanerIC/:cleanerIC', async (req, res) => { // This is used when adding new cleaner
+    const cleanerIC = req.params.cleanerIC;
     try {
-        const [validate] = await database.query("SELECT * FROM cleaner WHERE IC = ?", [ic]);
-        if (validate.length > 0) {
+        const [validation] = await database.query("SELECT * FROM cleaner WHERE IC = ?", [cleanerIC]); // Check either IC existed in cleaner table
+        if (validation.length > 0) {
             res.json({ status: "existed" });
         } else {
             res.json({ status: "empty" });
@@ -104,19 +93,20 @@ router.get('/validateCleanerIC/:ic', async (req, res) => { // This is used when 
     }
 })
 
-router.get('/checkCleanerEmail/:id/:email', async (req, res) => { // This is used when editing existing cleaner
-    const cleanerID = req.params.id;
-    const email = req.params.email;
+router.get('/checkCleanerEmail/:cleanerID/:cleanerEmail', async (req, res) => { // This is used when editing existing cleaner
+    const cleanerID = req.params.cleanerID;
+    const cleanerEmail = req.params.cleanerEmail;
 
     try {
-        const [validation1] = await database.query("SELECT * FROM cleaner WHERE email = ?", [email]);
-        if (validation1.length > 0) {
-            return res.json({ status: validation1[0].ID == cleanerID ? "empty" : "existed" });
-        }
-
-        const [validation2] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
-        if (validation2.length > 0) {
+        // Critical to start from the admin table first
+        const [adminChecking] = await database.query("SELECT * FROM administrator WHERE email = ?", [cleanerEmail]); // Check either email existed in admin table
+        if (adminChecking.length > 0) {
             return res.json({ status: "existed" });
+        }
+
+        const [cleanerChecking] = await database.query("SELECT * FROM cleaner WHERE email = ?", [cleanerEmail]); // Check either email existed in cleaner table
+        if (cleanerChecking.length > 0) {
+            return res.json({ status: cleanerChecking[0].ID == cleanerID ? "empty" : "existed" });
         }
 
         res.json({ status: "empty" }); // Email is not found in both tables
@@ -125,18 +115,14 @@ router.get('/checkCleanerEmail/:id/:email', async (req, res) => { // This is use
     }
 })
 
-router.get('/checkCleanerIC/:id/:IC', async (req, res) => { // This is used when editing existing cleaner
-    const cleanerID = req.params.id;
-    const IC = req.params.IC;
+router.get('/checkCleanerIC/:cleanerID/:cleanerIC', async (req, res) => { // This is used when editing existing cleaner
+    const cleanerID = req.params.cleanerID;
+    const cleanerIC = req.params.cleanerIC;
 
     try {
-        const [check] = await database.query("SELECT * FROM cleaner WHERE IC = ?", [IC]);
+        const [check] = await database.query("SELECT * FROM cleaner WHERE IC = ?", [cleanerIC]); // Check either IC existed in cleaner table
         if (check.length > 0) {
-            if (check[0].ID == cleanerID) {
-                res.json({ status: "empty" });
-            } else {
-                res.json({ status: "existed" });
-            }
+            res.json({ status: check[0].ID == cleanerID ? "empty" : "existed" });
         } else {
             res.json({ status: "empty" });
         }

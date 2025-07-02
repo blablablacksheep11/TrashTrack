@@ -1,21 +1,16 @@
 import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import shared from '../shared.js'; // Fetch the global shared variables
 import database from '../services/mysql.js';
 import { socket } from '../services/socket.js'; // Import the socket variables
 import transporter from '../services/mailer.js';
 
-const __filename = fileURLToPath(import.meta.url); // Get the url of the current file
-const __dirname = path.dirname(__filename); // Get the directory of the current file
-
 const router = express.Router();
 
-async function mail(email, bin) {
+async function mail(recipientEmail, bin) {
     try {
         const info = await transporter.sendMail({
             from: '"SmartBin Manager" <smartbinmanager@gmail.com>', // sender address
-            to: email, // list of receivers
+            to: recipientEmail, // list of receivers
             subject: "Bin Ready for Collection", // Subject line
             text: `Dear administrator,\nThis is an automatic notification from the SmartBin System.\nA bin at Block ${bin[0].block}, Level ${bin[0].level} has reached its collection threshold and requires immediate attention.\nBin Details:\n- Location: Block ${bin[0].block}, Level ${bin[0].level}\n- Bin ID: ${bin[0].binid}\nAccumulation : ${bin[0].accumulation}%\nPlease arrange for collection as soon as possible to prevent overflow.\nThank you.`, // plain text body
             html: `
@@ -52,13 +47,10 @@ async function mail(email, bin) {
     }
 }
 
-router.post('/esp32data', async (req, res) => {
-    res.status(200).send("OK"); // Critical! Without this, ESP32 will timeout
-    console.log(req.body); // Log the data received from ESP32
-
+router.post('/esp32Data', async (req, res) => {
     if ("cleanerID" in req.body) { // If the data contains cleanerID, it means it is a collection data
         const binID = req.body.binid;
-        const cleanerid = req.body.cleanerID;
+        const cleanerID = req.body.cleanerID;
 
         // Update the bin status to available and reset the accumulation to 0
         try {
@@ -66,7 +58,7 @@ router.post('/esp32data', async (req, res) => {
             socket.emit("updateAccumulationPieChart", { binID: binID });
 
             // Insert the collection data into the bin_history table
-            let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerid, new Date()]);
+            let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerID, new Date()]);
             socket.emit("updateCollectionFreqGraph", { binID: binID });
             console.log(collect);
         } catch (err) {
@@ -74,7 +66,6 @@ router.post('/esp32data', async (req, res) => {
         }
 
     } else if ("binstatus" in req.body && req.body.binstatus == "closed") { // If the data does not contain cleanerID, it means it is a bin data
-        const binID = Number(req.body.binID);
         const acceptingIMG = Boolean(req.body.acceptingIMG);
         shared.acceptingIMG = acceptingIMG; // Update the global shared variable
 
@@ -133,6 +124,8 @@ router.post('/esp32data', async (req, res) => {
             }
         }
     }
+
+    res.status(200).send("OK"); // Critical! Without this, ESP32 will timeout
 });
 
 export default router;

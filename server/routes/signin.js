@@ -7,10 +7,8 @@ router.post('/signIn', async (req, res) => { // When user request for signin
     const { email, password } = req.body;
     try {
         const [admin] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
-        console.log(admin);
         if (admin.length > 0) {
             if (admin[0].password == password) {
-                console.log("pass correct");
                 res.json({ status: "success", admin: admin[0] });
             } else {
                 res.json({ status: "failed" });

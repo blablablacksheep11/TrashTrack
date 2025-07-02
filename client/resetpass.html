@@ -122,7 +122,7 @@
                 const email = sessionStorage.getItem("email");
 
                 if (password == confirmpassword) {
-                    const response = await fetch(`http://localhost:3000/resetpassword`, {
+                    const response = await fetch(`http://localhost:3000/forgotpass/resetPassword`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"

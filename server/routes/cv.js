@@ -25,9 +25,6 @@ router.post('/img', async (req, res) => {
     try {
         // Get the img data from request body
         const { label, confidence, image } = req.body;  // This is the img data from Python
-        if (image) {
-            res.status(200).json({ message: 'Image received successfully' });
-        }
 
         if (shared.acceptingIMG == true) {
             let categoryID = 0; // Initialize categoryID
@@ -57,9 +54,11 @@ router.post('/img', async (req, res) => {
             }
 
             socket.emit("updateOverviewColumnChart"); // Update the overview column chart in dashboard.html
-            socket.emit("updateAnalytics", { categoryID: categoryID }); // Emit the event to update the pie chart
+            socket.emit("updateAnalytics", { categoryID: categoryID }); // Update the column chart and pie chart in analytics.html
             shared.acceptingIMG = false; // Set the acceptingIMG to false after processing the image
         }
+
+        res.status(200).json({ message: 'Image received successfully' });
     } catch (error) {
         console.error("Error processing image:", error);
         res.status(500).json({ error: "Failed to process image" });

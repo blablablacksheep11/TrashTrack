@@ -1,13 +1,8 @@
 import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import speakeasy from 'speakeasy';
-import {redis} from '../services/redis'
-import database from '../services/mysql';
+import {redis} from '../services/redis.js'
+import database from '../services/mysql.js';
 import transporter from '../services/mailer.js';
-
-const __filename = fileURLToPath(import.meta.url); // Get the url of the current file
-const __dirname = path.dirname(__filename); // Get the directory of the current file
 
 const router = express.Router();
 
@@ -35,7 +30,7 @@ async function send(email, name, otp) {
     }
 }
 
-router.post('/forgotpassword', async (req, res) => { // When user request for password reset
+router.post('/forgotPassword', async (req, res) => { // When user request for password reset
     const { email } = req.body;
     try {
         const [account] = await database.query("SELECT * FROM administrator WHERE email = ?", [email]);
@@ -156,7 +151,7 @@ router.post('/resend', async (req, res) => {
     }
 })
 
-router.post('/resetpassword', async (req, res) => {
+router.post('/resetPassword', async (req, res) => {
     const { email, password, confirmpassword } = req.body;
     const pin = `pin:${email}`;
 

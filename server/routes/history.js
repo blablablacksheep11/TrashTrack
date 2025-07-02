@@ -1,25 +1,20 @@
 import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import PdfPrinter from 'pdfmake';
-import database from '../services/mysql';
-
-const __filename = fileURLToPath(import.meta.url); // Get the url of the current file
-const __dirname = path.dirname(__filename); // Get the directory of the current file
+import database from '../services/mysql.js';
 
 const router = express.Router();
 
-router.get('/loadBinHistory/:id/:pageNumber', async (req, res) => {
-    const id = req.params.id;
+router.get('/loadBinHistory/:binID/:pageNumber', async (req, res) => {
+    const binID = req.params.binID;
     const pageNumber = req.params.pageNumber;
     const limit = 15; // Only fetch 15 records per page
     const offset = (pageNumber - 1) * limit; // Skip the records in the previous page
 
     try {
-        const [recordCount] = await database.query("SELECT COUNT(*) as total FROM bin_history WHERE binID = ?", [id]); // Get the total number of records
+        const [recordCount] = await database.query("SELECT COUNT(*) as total FROM bin_history WHERE binID = ?", [binID]); // Get the total number of records
         const totalRecord = recordCount[0].total;
         const pageCount = Math.ceil((recordCount[0].total) / 15);
-        const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ? LIMIT ? OFFSET ?", [id, limit, offset]); // Fetch the records for the current page
+        const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ? LIMIT ? OFFSET ?", [binID, limit, offset]); // Fetch the records for the current page
         for (const history of binHistory) {
             // Convert the datetime to locale string
             if (history.creation != null) {
@@ -46,10 +41,10 @@ router.get('/loadBinHistory/:id/:pageNumber', async (req, res) => {
     }
 })
 
-router.get('/deleteHistory/:id', async (req, res) => {
-    const id = req.params.id;
+router.get('/deleteHistory/:historyID', async (req, res) => {
+    const historyID = req.params.historyID;
     try {
-        const [del] = await database.query("DELETE FROM bin_history WHERE ID = ?", [id]);
+        const [del] = await database.query("DELETE FROM bin_history WHERE ID = ?", [historyID]);
         if (del.warningStatus == 0) {
             res.json({ status: "success" });
         } else if (del.warningStatus != 0) {
@@ -60,10 +55,10 @@ router.get('/deleteHistory/:id', async (req, res) => {
     }
 })
 
-router.get('/fetchHistory/:id', async (req, res) => {
-    const id = req.params.id;
+router.get('/fetchHistory/:historyID', async (req, res) => {
+    const historyID = req.params.historyID;
     try {
-        const [fetch] = await database.query("SELECT * FROM bin_history WHERE ID = ?", [id]);
+        const [fetch] = await database.query("SELECT * FROM bin_history WHERE ID = ?", [historyID]);
         console.log(fetch);
         // The datetime will be returned in timezone format
         // Split datetime into date and time
@@ -99,7 +94,6 @@ router.get('/getCleanerList', async (req, res) => {
 router.post('/editHistory', async (req, res) => {
     // Unlike fetch history, the colleection datetime is already preprocessed on the client side (history.html)
     const { historyID, collector, collection } = req.body;
-    console.log(req.body);
     try {
         const [edit] = await database.query("UPDATE bin_history SET collectorID = ?, collection =? WHERE ID = ?", [collector, collection, historyID]);
         if (edit.warningStatus == 0) {
@@ -112,8 +106,8 @@ router.post('/editHistory', async (req, res) => {
     }
 })
 
-router.get('/exportHistory/:id', async (req, res) => {
-    const binID = req.params.id;
+router.get('/exportHistory/:binID', async (req, res) => {
+    const binID = req.params.binID;
     const fonts = {
         Roboto: {
             normal: '../fonts/Roboto-Regular.ttf',
@@ -123,74 +117,68 @@ router.get('/exportHistory/:id', async (req, res) => {
         },
     };
 
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
     const printer = new PdfPrinter(fonts);
-
-    const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ?", [binID]);
-    for (const history of binHistory) {
-        // Convert the datetime to locale string
-        if (history.creation != null) {
-            history.creation = history.creation.toLocaleString();
-        }
-
-        if (history.collection != null) {
-            history.collection = history.collection.toLocaleString();
-        } else {
-            history.collection = "Uncollected";
-        }
-
-        // Convert the cleanerID to the cleaner's name
-        if (history.collectorID != null) {
-            const [cleanerName] = await database.query("SELECT name FROM cleaner WHERE ID = ?", [history.collectorID]);
-            history.collectorID = `${cleanerName[0].name} (${history.collectorID})`;
-        } else {
-            history.collectorID = "Uncollected";
-        }
-    }
-
-    // Format the data for the table (assuming your query returns an array of objects)
-    const attributes = binHistory.map(history => [
-        history.binID,
-        history.accumulation,
-        history.creation,
-        history.collectorID,
-        history.collection
-    ]);
-
-    console.log(binHistory);
-    console.log(attributes);
-
-    // Document definition with a table
-    const docDefinition = {
-        content: [
-            { text: 'Bin History Report', fontSize: 20, bold: true, margin: [0, 0, 0, 20] },
-            {
-                table: {
-                    headerRows: 1,
-                    widths: ['*', '*', '*', '*', '*', '*'], // Set the column width auto fit maximum of page width
-                    body: [
-                        [
-                            { text: 'Bin ID', fontSize: 10, fillColor: '#f2f2f2' },
-                            { text: 'Accumulation', fontSize: 10, fillColor: '#f2f2f2' },
-                            { text: 'Request Created At', fontSize: 10, fillColor: '#f2f2f2' },
-                            { text: 'Collector', fontSize: 10, fillColor: '#f2f2f2' },
-                            { text: 'Collection', fontSize: 10, fillColor: '#f2f2f2' }
-                        ],  // Table headers
-                        ...attributes.map(row => row.map(cell => ({ text: cell, fontSize: 10 }))) // Add the table data from the database
-                    ]
-                },
-                layout: {
-                    hLineWidth: function (i, node) { return 0.2; }, // Horizontal border width
-                    vLineWidth: function (i, node) { return 0.2; }, // Vertical border width
-                    hLineColor: function (i, node) { return '#000000'; }, // Horizontal border color
-                    vLineColor: function (i, node) { return '#000000'; }  // Vertical border color
-                }
-            }
-        ]
-    };
-
     try {
+        const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ?", [binID]);
+        for (const history of binHistory) {
+            // Convert the datetime to locale string
+            if (history.creation != null) {
+                history.creation = history.creation.toLocaleString();
+            }
+
+            if (history.collection != null) {
+                history.collection = history.collection.toLocaleString();
+            } else {
+                history.collection = "Uncollected";
+            }
+
+            // Convert the cleanerID to the cleaner's name
+            if (history.collectorID != null) {
+                const [cleanerName] = await database.query("SELECT name FROM cleaner WHERE ID = ?", [history.collectorID]);
+                history.collectorID = `${cleanerName[0].name} (${history.collectorID})`;
+            } else {
+                history.collectorID = "Uncollected";
+            }
+        }
+
+        // Format the data for the table (assuming your query returns an array of objects)
+        const attributes = binHistory.map(history => [
+            history.binID,
+            history.accumulation,
+            history.creation,
+            history.collectorID,
+            history.collection
+        ]);
+
+        // Document definition with a table
+        const docDefinition = {
+            content: [
+                { text: 'Bin History Report', fontSize: 20, bold: true, margin: [0, 0, 0, 20] },
+                {
+                    table: {
+                        headerRows: 1,
+                        widths: ['*', '*', '*', '*', '*', '*'], // Set the column width auto fit maximum of page width
+                        body: [
+                            [
+                                { text: 'Bin ID', fontSize: 10, fillColor: '#f2f2f2' },
+                                { text: 'Accumulation', fontSize: 10, fillColor: '#f2f2f2' },
+                                { text: 'Request Created At', fontSize: 10, fillColor: '#f2f2f2' },
+                                { text: 'Collector', fontSize: 10, fillColor: '#f2f2f2' },
+                                { text: 'Collection', fontSize: 10, fillColor: '#f2f2f2' }
+                            ],  // Table headers
+                            ...attributes.map(row => row.map(cell => ({ text: cell, fontSize: 10 }))) // Add the table data from the database
+                        ]
+                    },
+                    layout: {
+                        hLineWidth: function (i, node) { return 0.2; }, // Horizontal border width
+                        vLineWidth: function (i, node) { return 0.2; }, // Vertical border width
+                        hLineColor: function (i, node) { return '#000000'; }, // Horizontal border color
+                        vLineColor: function (i, node) { return '#000000'; }  // Vertical border color
+                    }
+                }
+            ]
+        };
+
         const pdfDoc = printer.createPdfKitDocument(docDefinition);
 
         // Set response headers to force download

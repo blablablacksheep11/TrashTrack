@@ -197,7 +197,7 @@
 
         async function loadBinHistory(pageNumber) {
             sessionStorage.setItem("pageNumber", pageNumber);
-            const response = await fetch(`http://localhost:3000/loadBinHistory/${sessionStorage.getItem("binIDforhistory")}/${pageNumber}`);
+            const response = await fetch(`http://localhost:3000/history/loadBinHistory/${sessionStorage.getItem("binIDforhistory")}/${pageNumber}`);
             const data = await response.json();
             const table = document.getElementById("history-table");
 
@@ -358,7 +358,7 @@
         document.getElementById("confirm-del-btn").addEventListener("click", async () => {  // When confirm btn clicked for history delete
             const historyID = document.getElementById("confirm-del-btn").dataset.historyID; // Fetch the data in confirm btn
 
-            const response = await fetch(`http://localhost:3000/deleteHistory/${historyID}`);
+            const response = await fetch(`http://localhost:3000/history/deleteHistory/${historyID}`);
             const data = await response.json();
             if (data.status == "success") {
                 let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
@@ -419,7 +419,7 @@
         // Get all available cleaner (for <select>)
         async function getCleanerList() {
             document.getElementById("collector").innerHTML = "";
-            const response = await fetch('http://localhost:3000/getCleanerList');
+            const response = await fetch('http://localhost:3000/history/getCleanerList');
             const data = await response.json();
             data.forEach(cleaner => {
                 let option = document.createElement('option');
@@ -430,7 +430,7 @@
         }
 
         async function edit(id) {
-            const response = await fetch(`http://localhost:3000/fetchHistory/${id}`);
+            const response = await fetch(`http://localhost:3000/history/fetchHistory/${id}`);
             const data = await response.json();
 
             // Load the current record into the form
@@ -505,7 +505,7 @@
                 // No special convertion is required
                 // Binning is required becuse MySQL use datetime datatype
 
-                const response = await fetch("http://localhost:3000/editHistory", {
+                const response = await fetch("http://localhost:3000/history/editHistory", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -543,7 +543,7 @@
         })
 
         document.getElementById("export-btn").addEventListener("click", async () => {  // When btn clicked for history export
-            const response = await fetch(`http://localhost:3000/exportHistory/${sessionStorage.getItem("binIDforhistory")}`);
+            const response = await fetch(`http://localhost:3000/history/exportHistory/${sessionStorage.getItem("binIDforhistory")}`);
             const data = await response.blob();
 
             // Create a temporary link element to trigger the download

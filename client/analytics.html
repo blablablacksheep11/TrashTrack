@@ -123,7 +123,7 @@
 
             async function drawCC() {
 
-                const response = await fetch(`http://localhost:3000/getGarbageType/${category_id}`);
+                const response = await fetch(`http://localhost:3000/analytics/getGarbageType/${category_id}`);
                 let summary = await response.json();
 
                 garbageType = [
@@ -173,7 +173,7 @@
             google.charts.setOnLoadCallback(drawPC);
             async function drawPC() {
 
-                const response = await fetch(`http://localhost:3000/getGarbageOverview`);
+                const response = await fetch(`http://localhost:3000/analytics/getGarbageOverview`);
                 let overview = await response.json();
                 let total = 0;
 
@@ -224,7 +224,7 @@
                 data.addColumn('number', 'Collection Frequency');
 
                 for (const entry of dates) {
-                    const response = await fetch(`http://localhost:3000/getHistory/${binid}/${entry.date}`);  // Refer to the code block in server.js under dashboard
+                    const response = await fetch(`http://localhost:3000/dashboard/getHistory/${binid}/${entry.date}`);  // Refer to the code block in server.js under dashboard
                     const sum = await response.json();
 
                     const date = new Date(entry.date);
@@ -281,7 +281,7 @@
         }
 
         async function initializeGraph() {
-            const response = await fetch("http://localhost:3000/initializeChart&Graph");
+            const response = await fetch("http://localhost:3000/dashboard/initializeChart&Graph");
             const data = await response.json();
             if (data.length > 0) {
                 document.getElementById("lineGraph_div").classList.remove("justify-content-center");
@@ -306,7 +306,7 @@
         }
 
         async function fetchGraph(binid) {
-            const response = await fetch(`http://localhost:3000/fetchGraph/${binid}`);
+            const response = await fetch(`http://localhost:3000/dashboard/fetchGraph/${binid}`);
             const data = await response.json();
             document.getElementById("lineGraph_div").classList.add("justify-content-center");
             document.getElementById("lineGraph_div").classList.remove("justify-content-end");

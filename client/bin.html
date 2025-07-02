@@ -84,7 +84,7 @@
         }
 
         async function loadRegisteredBin() {
-            const response = await fetch("http://localhost:3000/loadRegisteredBin");
+            const response = await fetch("http://localhost:3000/bin/loadRegisteredBin");
             const data = await response.json();
             const table = document.getElementById("registeredbin-table");
 

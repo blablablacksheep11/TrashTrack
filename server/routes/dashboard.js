@@ -1,10 +1,5 @@
 import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import database from '../services/mysql';
-
-const __filename = fileURLToPath(import.meta.url); // Get the url of the current file
-const __dirname = path.dirname(__filename); // Get the directory of the current file
+import database from '../services/mysql.js';
 
 const router = express.Router();
 
@@ -19,7 +14,7 @@ router.get('/loadBinsCount', async (req, res) => {
 
 router.get('/loadCleanerCount', async (req, res) => {
     try {
-        const [cleaners] = await database.query("SELECT * FROM cleaner");
+        const [cleaners] = await database.query("SELECT COUNT(*) as total FROM cleaner");
         res.json(cleaners);
     } catch (error) {
         console.log(error);
@@ -28,8 +23,8 @@ router.get('/loadCleanerCount', async (req, res) => {
 
 router.get('/loadFreeBinTable', async (req, res) => {
     try {
-        const [freebins] = await database.query("SELECT * FROM bin WHERE status = 'available'");
-        res.json(freebins);
+        const [freeBins] = await database.query("SELECT * FROM bin WHERE status = 'available'");
+        res.json(freeBins);
     } catch (error) {
         console.log(error);
     }
@@ -37,8 +32,8 @@ router.get('/loadFreeBinTable', async (req, res) => {
 
 router.get('/loadFulledBinTable', async (req, res) => {
     try {
-        const [fulledbins] = await database.query("SELECT * FROM bin WHERE status = 'unavailable'");
-        res.json(fulledbins);
+        const [fulledBins] = await database.query("SELECT * FROM bin WHERE status = 'unavailable'");
+        res.json(fulledBins);
     } catch (error) {
         console.log(error);
     }
@@ -46,41 +41,39 @@ router.get('/loadFulledBinTable', async (req, res) => {
 
 router.get('/initializeChart&Graph', async (req, res) => {
     try {
-        const [record] = await database.query("SELECT * FROM bin");
-        res.json(record);
+        const [bins] = await database.query("SELECT * FROM bin");
+        res.json(bins);
     } catch (error) {
         console.log(error);
     }
 })
 
-router.get('/fetchChart/:id', async (req, res) => {
-    const binid = req.params.id;
+router.get('/fetchChart/:binID', async (req, res) => {
+    const binID = req.params.binID;
     try {
-        const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binid]);
-        console.log(bin);
+        const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
         res.json(bin);
     } catch (error) {
         console.log(error);
     }
 })
 
-router.get('/fetchGraph/:id', async (req, res) => {
-    const binid = req.params.id;
+router.get('/fetchGraph/:binID', async (req, res) => {
+    const binID = req.params.binID;
     try {
-        const [date] = await database.query("SELECT DISTINCT DATE(collection) AS date FROM bin_history WHERE binID = ?  ORDER BY date;", [binid]);
+        const [date] = await database.query("SELECT DISTINCT DATE(collection) AS date FROM bin_history WHERE binID = ?  ORDER BY date;", [binID]);
         res.json(date);
     } catch (error) {
         console.log(error);
     }
 })
 
-router.get('/getHistory/:id/:date', async (req, res) => {
-    const binid = req.params.id;
-    const date = req.params.date;
+router.get('/getHistory/:binID/:collectionDate', async (req, res) => {
+    const binID = req.params.binID;
+    const collectionDate = req.params.collectionDate;
 
     try {
-        const [history] = await database.query("SELECT COUNT(*) as sum FROM bin_history WHERE binID = ? AND DATE(collection) = CONVERT_TZ(?, '+00:00', '+08:00') AND collection IS NOT NULL", [binid, date]);
-        console.log(history);
+        const [history] = await database.query("SELECT COUNT(*) as sum FROM bin_history WHERE binID = ? AND DATE(collection) = CONVERT_TZ(?, '+00:00', '+08:00') AND collection IS NOT NULL", [binID, collectionDate]);
         res.json(history);
     } catch (error) {
         console.log(error);

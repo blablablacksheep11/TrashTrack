@@ -90,7 +90,7 @@
             const form = e.target;
             if (form.checkValidity()) {
                 const email = document.getElementById("email").value;
-                const response = await fetch(`http://localhost:3000/forgotpassword`, {
+                const response = await fetch(`http://localhost:3000/forgotpass/forgotPassword`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"

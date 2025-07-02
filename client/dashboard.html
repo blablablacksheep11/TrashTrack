@@ -274,7 +274,7 @@
 
             async function drawCC() {
 
-                const response = await fetch(`http://localhost:3000/getDisposalOverview`);
+                const response = await fetch(`http://localhost:3000/dashboard/getDisposalOverview`);
                 let summary = await response.json();
 
                 garbageType = [
@@ -328,7 +328,7 @@
                 data.addColumn('number', 'Collection Frequency');
 
                 for (const entry of dates) {
-                    const response = await fetch(`http://localhost:3000/getHistory/${binid}/${entry.date}`);
+                    const response = await fetch(`http://localhost:3000/dashboard/getHistory/${binid}/${entry.date}`);
                     const sum = await response.json();
 
                     const date = new Date(entry.date);
@@ -389,7 +389,7 @@
         }
 
         async function loadBinsCount() {
-            const response = await fetch("http://localhost:3000/loadBinsCount");
+            const response = await fetch("http://localhost:3000/dashboard/loadBinsCount");
             const data = await response.json();
             document.getElementById("registeredbincount").innerHTML = `Number of registered bin: ${data.length}`;
             document.getElementById("freebincount").innerHTML = `Number of available bin: ${(data.filter((bin) => bin.status == "available")).length}`;
@@ -397,13 +397,13 @@
         }
 
         async function loadCleanerCount() {
-            const response = await fetch("http://localhost:3000/loadCleanerCount");
+            const response = await fetch("http://localhost:3000/dashboard/loadCleanerCount");
             const data = await response.json();
-            document.getElementById("cleanercount").innerHTML = `Number of cleaner: ${data.length}`;
+            document.getElementById("cleanercount").innerHTML = `Number of cleaner: ${data.total}`;
         }
 
         async function loadFreeBinTable() {
-            const response = await fetch("http://localhost:3000/loadFreeBinTable");
+            const response = await fetch("http://localhost:3000/dashboard/loadFreeBinTable");
             const data = await response.json();
             const table = document.getElementById("freebin-table");
             if (data.length > 0) {
@@ -428,7 +428,7 @@
         }
 
         async function loadFulledBinTable() {
-            const response = await fetch("http://localhost:3000/loadFulledBinTable");
+            const response = await fetch("http://localhost:3000/dashboard/loadFulledBinTable");
             const data = await response.json();
             const table = document.getElementById("fulledbin-table");
             if (data.length > 0) {
@@ -465,7 +465,7 @@
         }
 
         async function initializeChart() {
-            const response = await fetch("http://localhost:3000/initializeChart&Graph");
+            const response = await fetch("http://localhost:3000/dashboard/initializeChart&Graph");
             const data = await response.json();
             if (data.length > 0) {
                 document.getElementById("chart_div").classList.remove("justify-content-center");
@@ -490,7 +490,7 @@
         }
 
         async function initializeGraph() {
-            const response = await fetch("http://localhost:3000/initializeChart&Graph");
+            const response = await fetch("http://localhost:3000/dashboard/initializeChart&Graph");
             const data = await response.json();
             if (data.length > 0) {
                 document.getElementById("graph_div").classList.remove("justify-content-center");
@@ -515,7 +515,7 @@
         }
 
         async function fetchChart(binid) {
-            const response = await fetch(`http://localhost:3000/fetchChart/${binid}`);
+            const response = await fetch(`http://localhost:3000/dashboard/fetchChart/${binid}`);
             const data = await response.json();
             loadChartContainer();
             const remainingDistance1 = 11.5 * ((100 - (data[0].cat1_accumulation)) / 100);
@@ -527,7 +527,7 @@
         }
 
         async function fetchGraph(binid) {
-            const response = await fetch(`http://localhost:3000/fetchGraph/${binid}`);
+            const response = await fetch(`http://localhost:3000/dashboard/fetchGraph/${binid}`);
             const data = await response.json();
             document.getElementById("graph_div").classList.add("justify-content-center");
             document.getElementById("graph_div").classList.remove("justify-content-end");
@@ -599,7 +599,7 @@
         });
 
         socket.on("updateCollectionFreqGraph", async (data) => {
-            const response = await fetch(`http://localhost:3000/fetchGraph/${data.binID}`);
+            const response = await fetch(`http://localhost:3000/dashboard/fetchGraph/${data.binID}`);
             const date = await response.json();
             document.getElementById("graph_div").classList.add("justify-content-center");
             document.getElementById("graph_div").classList.remove("justify-content-end");
