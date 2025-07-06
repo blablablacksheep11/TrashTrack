@@ -5,10 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrashTrack</title>
-    <link rel="icon" type="image/svg+xml" href="../img/smart-trash-dark.svg">
+    <link rel="icon" type="image/svg+xml" href="/smart-trash-dark.svg">
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="../src/main.css">
-    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Web Socket -->
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"
@@ -250,7 +252,7 @@
         }
 
         async function loadCleaner() {
-            const response = await fetch("http://localhost:3000/loadCleaner");
+            const response = await fetch("http://localhost:3000/cleaner/loadCleaner");
             const data = await response.json();
             const table = document.getElementById("cleaner-table");
 
@@ -295,7 +297,7 @@
         }
 
         async function edit(id) {
-            const response = await fetch(`http://localhost:3000/fetchCleaner/${id}`);
+            const response = await fetch(`http://localhost:3000/cleaner/fetchCleaner/${id}`);
             const data = await response.json();
 
             const name = document.querySelector("#modal4 #edit-cleaner-form #name2");
@@ -318,7 +320,7 @@
         }
 
         async function del(id) {
-            const response = await fetch(`http://localhost:3000/fetchCleaner/${id}`);
+            const response = await fetch(`http://localhost:3000/cleaner/fetchCleaner/${id}`);
             const data = await response.json();
             const modalBody = document.querySelector("#modal3 #confirmation-body");
             modalBody.innerHTML = `Are you sure you wanted to delete ${data[0].name} from the cleaner list?`
@@ -337,7 +339,7 @@
                 if (htmlTag.getAttribute("data-bs-theme") == "dark") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "light");  // Set light mode
-                    logo.src = "../img/smart-trash-dark.svg";
+                    logo.src = "/smart-trash-dark.svg";
                     document.getElementById("light-theme").classList.add("active");
                     document.getElementById("dark-theme").classList.remove("active");
                     sessionStorage.setItem("theme", "light");
@@ -348,7 +350,7 @@
                 if (htmlTag.getAttribute("data-bs-theme") == "light") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "dark");  // Set dark mode
-                    logo.src = "../img/smart-trash-light.svg";
+                    logo.src = "/smart-trash-light.svg";
                     document.getElementById("light-theme").classList.remove("active");
                     document.getElementById("dark-theme").classList.add("active");
                     sessionStorage.setItem("theme", "dark");
@@ -370,7 +372,7 @@
         document.getElementById("confirm-del-btn").addEventListener("click", async () => { // When confirm btn click in confirm delete modal
             const cleanerID = document.getElementById("confirm-del-btn").dataset.cleanerID; // Fetch the data in confirm btn
 
-            const response = await fetch(`http://localhost:3000/deleteCleaner/${cleanerID}`);
+            const response = await fetch(`http://localhost:3000/cleaner/deleteCleaner/${cleanerID}`);
             const data = await response.json();
             if (data.status == "success") {
                 let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
@@ -423,7 +425,7 @@
                 const ic = document.getElementById("ic1").value;
                 const email = document.getElementById("email1").value.toLowerCase();
 
-                const response1 = await fetch(`http://localhost:3000/validateCleanerIC/${ic}`);
+                const response1 = await fetch(`http://localhost:3000/cleaner/validateCleanerIC/${ic}`);
                 const data1 = await response1.json();
                 if (data1.status == "existed") {
                     const toast = document.getElementById('toast');
@@ -437,7 +439,7 @@
                     return;
                 }
 
-                const response = await fetch(`http://localhost:3000/validateCleanerEmail/${email}`);
+                const response = await fetch(`http://localhost:3000/cleaner/validateCleanerEmail/${email}`);
                 const data = await response.json();
                 if (data.status == "existed") {
                     const toast = document.getElementById('toast');
@@ -484,7 +486,7 @@
                 const ic = document.getElementById("ic2").value;
                 const email = document.getElementById("email2").value.toLowerCase();
 
-                const validation = await fetch(`http://localhost:3000/checkCleanerEmail/${cleanerID}/${email}`);
+                const validation = await fetch(`http://localhost:3000/cleaner/checkCleanerEmail/${cleanerID}/${email}`);
                 const data1 = await validation.json();
                 if (data1.status == "existed") {
                     const toast = document.getElementById('toast');
@@ -498,7 +500,7 @@
                     return;
                 }
 
-                const validation1 = await fetch(`http://localhost:3000/checkCleanerIC/${cleanerID}/${ic}`);
+                const validation1 = await fetch(`http://localhost:3000/cleaner/checkCleanerIC/${cleanerID}/${ic}`);
                 const data2 = await validation1.json();
                 if (data2.status == "existed") {
                     const toast = document.getElementById('toast');
@@ -512,7 +514,7 @@
                     return;
                 }
 
-                const response = await fetch("http://localhost:3000/editCleaner", {
+                const response = await fetch("http://localhost:3000/cleaner/editCleaner", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -551,7 +553,7 @@
         document.getElementById("confirm-add-btn").addEventListener("click", async () => {  // When the confirm button is clicked for add cleaner
             const cleanerInfo = JSON.parse(document.getElementById("confirm-add-btn").dataset.cleanerInfo); // Fetch the data in confirm btn
 
-            const response = await fetch("http://localhost:3000/addCleaner", {
+            const response = await fetch("http://localhost:3000/cleaner/addCleaner", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

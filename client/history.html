@@ -5,10 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrashTrack</title>
-    <link rel="icon" type="image/svg+xml" href="../img/smart-trash-dark.svg">
+    <link rel="icon" type="image/svg+xml" href="/smart-trash-dark.svg">
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="../src/main.css">
-    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Web Socket -->
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"
@@ -197,7 +199,7 @@
 
         async function loadBinHistory(pageNumber) {
             sessionStorage.setItem("pageNumber", pageNumber);
-            const response = await fetch(`http://localhost:3000/loadBinHistory/${sessionStorage.getItem("binIDforhistory")}/${pageNumber}`);
+            const response = await fetch(`http://localhost:3000/history/loadBinHistory/${sessionStorage.getItem("binIDforhistory")}/${pageNumber}`);
             const data = await response.json();
             const table = document.getElementById("history-table");
 
@@ -358,7 +360,7 @@
         document.getElementById("confirm-del-btn").addEventListener("click", async () => {  // When confirm btn clicked for history delete
             const historyID = document.getElementById("confirm-del-btn").dataset.historyID; // Fetch the data in confirm btn
 
-            const response = await fetch(`http://localhost:3000/deleteHistory/${historyID}`);
+            const response = await fetch(`http://localhost:3000/history/deleteHistory/${historyID}`);
             const data = await response.json();
             if (data.status == "success") {
                 let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
@@ -419,7 +421,7 @@
         // Get all available cleaner (for <select>)
         async function getCleanerList() {
             document.getElementById("collector").innerHTML = "";
-            const response = await fetch('http://localhost:3000/getCleanerList');
+            const response = await fetch('http://localhost:3000/history/getCleanerList');
             const data = await response.json();
             data.forEach(cleaner => {
                 let option = document.createElement('option');
@@ -430,7 +432,7 @@
         }
 
         async function edit(id) {
-            const response = await fetch(`http://localhost:3000/fetchHistory/${id}`);
+            const response = await fetch(`http://localhost:3000/history/fetchHistory/${id}`);
             const data = await response.json();
 
             // Load the current record into the form
@@ -461,7 +463,7 @@
                 if (htmlTag.getAttribute("data-bs-theme") == "dark") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "light");  // Set light mode
-                    logo.src = "../img/smart-trash-dark.svg";
+                    logo.src = "/smart-trash-dark.svg";
                     document.getElementById("light-theme").classList.add("active");
                     document.getElementById("dark-theme").classList.remove("active");
                     sessionStorage.setItem("theme", "light");
@@ -472,7 +474,7 @@
                 if (htmlTag.getAttribute("data-bs-theme") == "light") {
                     htmlTag.removeAttribute("data-bs-theme");  // Remove existing theme
                     htmlTag.setAttribute("data-bs-theme", "dark");  // Set dark mode
-                    logo.src = "../img/smart-trash-light.svg";
+                    logo.src = "/smart-trash-light.svg";
                     document.getElementById("light-theme").classList.remove("active");
                     document.getElementById("dark-theme").classList.add("active");
                     sessionStorage.setItem("theme", "dark");
@@ -505,7 +507,7 @@
                 // No special convertion is required
                 // Binning is required becuse MySQL use datetime datatype
 
-                const response = await fetch("http://localhost:3000/editHistory", {
+                const response = await fetch("http://localhost:3000/history/editHistory", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -543,7 +545,7 @@
         })
 
         document.getElementById("export-btn").addEventListener("click", async () => {  // When btn clicked for history export
-            const response = await fetch(`http://localhost:3000/exportHistory/${sessionStorage.getItem("binIDforhistory")}`);
+            const response = await fetch(`http://localhost:3000/history/exportHistory/${sessionStorage.getItem("binIDforhistory")}`);
             const data = await response.blob();
 
             // Create a temporary link element to trigger the download

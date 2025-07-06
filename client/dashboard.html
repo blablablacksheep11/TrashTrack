@@ -5,10 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrashTrack</title>
-    <link rel="icon" type="image/svg+xml" href="../img/smart-trash-dark.svg">
+    <link rel="icon" type="image/svg+xml" href="/smart-trash-dark.svg">
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="../src/main.css">
-    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Web Socket -->
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"
@@ -86,7 +88,9 @@
             </div>
         </div>
         <div class="col-lg-3 mt-4 mt-lg-0">
-            <div id="disposal-overview" class="border d-flex align-items-center justify-content-center bg-white px-3 pb-2">asdasd
+            <div id="disposal-overview"
+                class="border d-flex align-items-center justify-content-center bg-white px-3 pb-2">
+                <p class="text-center mt-3">No bin found ...<br><i class="bi bi-trash3 fs-2"></i></p>
             </div>
         </div>
     </div>
@@ -147,7 +151,7 @@
 
     <!-- Google Chart -->
     <script type="text/javascript">
-        async function drawChart1(binid, remainingDistance) {
+        async function drawChart1(remainingDistance) {
             google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawC1);
             function drawC1() {
@@ -187,7 +191,7 @@
             }
         }
 
-        async function drawChart2(binid, remainingDistance) {
+        async function drawChart2(remainingDistance) {
             google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawC2);
             function drawC2() {
@@ -228,7 +232,7 @@
             }
         }
 
-        async function drawChart3(binid, remainingDistance) {
+        async function drawChart3(remainingDistance) {
             google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawC3);
             function drawC3() {
@@ -274,14 +278,17 @@
 
             async function drawCC() {
 
-                const response = await fetch(`http://localhost:3000/getDisposalOverview`);
+                const response = await fetch(`http://localhost:3000/dashboard/getDisposalOverview`);
                 let summary = await response.json();
+
+                const category = [];
+                for(let i=0; i < summary.length; i++) {
+                    category[i] = Object.values(summary[i]);
+                }
 
                 garbageType = [
                     ['Garbage Type', 'Disposal Count', { role: 'style' }],
-                    ['Paper', summary.paper, '#5BC0EB'],
-                    ['Plastic', summary.plastic, '#FFA94D'],
-                    ['General Waste', summary.general, '#9BC53D']
+                   ...category
                 ];
 
                 const data = google.visualization.arrayToDataTable(garbageType);
@@ -294,7 +301,7 @@
                     chartArea: { width: '75%', height: '67.5%' },
                     backgroundColor: 'transparent',
                     titleTextStyle: { color: 'grey' },
-                    legend: { textStyle: { color: 'grey' } },
+                    legend: { position: 'none' },
                     hAxis: {
                         title: 'Garbage Type',
                         textStyle: {
@@ -328,7 +335,7 @@
                 data.addColumn('number', 'Collection Frequency');
 
                 for (const entry of dates) {
-                    const response = await fetch(`http://localhost:3000/getHistory/${binid}/${entry.date}`);
+                    const response = await fetch(`http://localhost:3000/dashboard/getHistory/${binid}/${entry.date}`);
                     const sum = await response.json();
 
                     const date = new Date(entry.date);
@@ -389,7 +396,7 @@
         }
 
         async function loadBinsCount() {
-            const response = await fetch("http://localhost:3000/loadBinsCount");
+            const response = await fetch("http://localhost:3000/dashboard/loadBinsCount");
             const data = await response.json();
             document.getElementById("registeredbincount").innerHTML = `Number of registered bin: ${data.length}`;
             document.getElementById("freebincount").innerHTML = `Number of available bin: ${(data.filter((bin) => bin.status == "available")).length}`;
@@ -397,13 +404,13 @@
         }
 
         async function loadCleanerCount() {
-            const response = await fetch("http://localhost:3000/loadCleanerCount");
+            const response = await fetch("http://localhost:3000/dashboard/loadCleanerCount");
             const data = await response.json();
-            document.getElementById("cleanercount").innerHTML = `Number of cleaner: ${data.length}`;
+            document.getElementById("cleanercount").innerHTML = `Number of cleaner: ${data.total}`;
         }
 
         async function loadFreeBinTable() {
-            const response = await fetch("http://localhost:3000/loadFreeBinTable");
+            const response = await fetch("http://localhost:3000/dashboard/loadFreeBinTable");
             const data = await response.json();
             const table = document.getElementById("freebin-table");
             if (data.length > 0) {
@@ -428,7 +435,7 @@
         }
 
         async function loadFulledBinTable() {
-            const response = await fetch("http://localhost:3000/loadFulledBinTable");
+            const response = await fetch("http://localhost:3000/dashboard/loadFulledBinTable");
             const data = await response.json();
             const table = document.getElementById("fulledbin-table");
             if (data.length > 0) {
@@ -465,7 +472,7 @@
         }
 
         async function initializeChart() {
-            const response = await fetch("http://localhost:3000/initializeChart&Graph");
+            const response = await fetch("http://localhost:3000/dashboard/initializeChart&Graph");
             const data = await response.json();
             if (data.length > 0) {
                 document.getElementById("chart_div").classList.remove("justify-content-center");
@@ -490,7 +497,7 @@
         }
 
         async function initializeGraph() {
-            const response = await fetch("http://localhost:3000/initializeChart&Graph");
+            const response = await fetch("http://localhost:3000/dashboard/initializeChart&Graph");
             const data = await response.json();
             if (data.length > 0) {
                 document.getElementById("graph_div").classList.remove("justify-content-center");
@@ -515,19 +522,19 @@
         }
 
         async function fetchChart(binid) {
-            const response = await fetch(`http://localhost:3000/fetchChart/${binid}`);
+            const response = await fetch(`http://localhost:3000/dashboard/fetchChart/${binid}`);
             const data = await response.json();
             loadChartContainer();
             const remainingDistance1 = 11.5 * ((100 - (data[0].cat1_accumulation)) / 100);
             const remainingDistance2 = 11.5 * ((100 - (data[0].cat2_accumulation)) / 100);
             const remainingDistance3 = 11.5 * ((100 - (data[0].cat3_accumulation)) / 100);
-            drawChart1(data[0].ID, remainingDistance1);
-            drawChart2(data[0].ID, remainingDistance2);
-            drawChart3(data[0].ID, remainingDistance3);
+            drawChart1(remainingDistance1);
+            drawChart2(remainingDistance2);
+            drawChart3(remainingDistance3);
         }
 
         async function fetchGraph(binid) {
-            const response = await fetch(`http://localhost:3000/fetchGraph/${binid}`);
+            const response = await fetch(`http://localhost:3000/dashboard/fetchGraph/${binid}`);
             const data = await response.json();
             document.getElementById("graph_div").classList.add("justify-content-center");
             document.getElementById("graph_div").classList.remove("justify-content-end");
@@ -551,7 +558,7 @@
                     chart.classList.remove("bg-dark");
                     graph.classList.remove("bg-dark");
                     overview.classList.remove("bg-dark");
-                    logo.src = "../img/smart-trash-dark.svg";
+                    logo.src = "/smart-trash-dark.svg";
                     document.getElementById("light-theme").classList.add("active");
                     document.getElementById("dark-theme").classList.remove("active");
                     sessionStorage.setItem("theme", "light");
@@ -568,7 +575,7 @@
                     chart.classList.remove("bg-white");
                     graph.classList.remove("bg-white");
                     overview.classList.remove("bg-white");
-                    logo.src = "../img/smart-trash-light.svg";
+                    logo.src = "/smart-trash-light.svg";
                     document.getElementById("light-theme").classList.remove("active");
                     document.getElementById("dark-theme").classList.add("active");
                     sessionStorage.setItem("theme", "dark");
@@ -599,7 +606,7 @@
         });
 
         socket.on("updateCollectionFreqGraph", async (data) => {
-            const response = await fetch(`http://localhost:3000/fetchGraph/${data.binID}`);
+            const response = await fetch(`http://localhost:3000/dashboard/fetchGraph/${data.binID}`);
             const date = await response.json();
             document.getElementById("graph_div").classList.add("justify-content-center");
             document.getElementById("graph_div").classList.remove("justify-content-end");

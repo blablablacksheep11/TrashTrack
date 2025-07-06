@@ -37,7 +37,7 @@ MFRC522::MIFARE_Key key;
 
 const char *ssid = "WiFi_NAME_HERE";                                   // WiFi name
 const char *password = "WiFi_PASSWORD_HERE";                           // WiFi password
-const char *serverUrl = "http://LOCALHOST_IPV4_HERE:3000/esp32data";  // Computer IP address (v4)
+const char *serverUrl = "http://LOCALHOST_IPV4_HERE:3000/esp32Data";  // Computer IP address (v4)
 
 WebServer server(80);  // ESP32 runs on port 80
 
