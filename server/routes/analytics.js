@@ -28,8 +28,8 @@ router.get('/getGarbageType/:categoryID', async (req, res) => {
 // To load the pie chart in analytics.html
 router.get('/getGarbageOverview', async (req, res) => {
     try {
-        // Fetch the garbage type's name and its unique ID
-        const [garbageType] = await database.query('SELECT DISTINCT disposal_records.garbage_type, garbage_type.category FROM disposal_records INNER JOIN garbage_type ON disposal_records.garbage_type = garbage_type.id');
+        // Fetch the garbage type's name, color code, and its unique ID
+        const [garbageType] = await database.query('SELECT DISTINCT disposal_records.garbage_type, garbage_type.category, garbage_type.color_code FROM disposal_records INNER JOIN garbage_type ON disposal_records.garbage_type = garbage_type.id ORDER BY disposal_records.garbage_type');
 
         let counts = [];
 
@@ -38,7 +38,8 @@ router.get('/getGarbageOverview', async (req, res) => {
 
             counts.push({
                 category: type.category,
-                count
+                count,
+                color: type.color_code,
             });
         }
         res.json(counts);

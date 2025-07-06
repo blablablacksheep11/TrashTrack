@@ -89,7 +89,8 @@
         </div>
         <div class="col-lg-3 mt-4 mt-lg-0">
             <div id="disposal-overview"
-                class="border d-flex align-items-center justify-content-center bg-white px-3 pb-2">asdasd
+                class="border d-flex align-items-center justify-content-center bg-white px-3 pb-2">
+                <p class="text-center mt-3">No bin found ...<br><i class="bi bi-trash3 fs-2"></i></p>
             </div>
         </div>
     </div>
@@ -150,7 +151,7 @@
 
     <!-- Google Chart -->
     <script type="text/javascript">
-        async function drawChart1(binid, remainingDistance) {
+        async function drawChart1(remainingDistance) {
             google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawC1);
             function drawC1() {
@@ -190,7 +191,7 @@
             }
         }
 
-        async function drawChart2(binid, remainingDistance) {
+        async function drawChart2(remainingDistance) {
             google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawC2);
             function drawC2() {
@@ -231,7 +232,7 @@
             }
         }
 
-        async function drawChart3(binid, remainingDistance) {
+        async function drawChart3(remainingDistance) {
             google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawC3);
             function drawC3() {
@@ -280,11 +281,14 @@
                 const response = await fetch(`http://localhost:3000/dashboard/getDisposalOverview`);
                 let summary = await response.json();
 
+                const category = [];
+                for(let i=0; i < summary.length; i++) {
+                    category[i] = Object.values(summary[i]);
+                }
+
                 garbageType = [
                     ['Garbage Type', 'Disposal Count', { role: 'style' }],
-                    ['Paper', summary.paper, '#5BC0EB'],
-                    ['Plastic', summary.plastic, '#FFA94D'],
-                    ['General Waste', summary.general, '#9BC53D']
+                   ...category
                 ];
 
                 const data = google.visualization.arrayToDataTable(garbageType);
@@ -297,7 +301,7 @@
                     chartArea: { width: '75%', height: '67.5%' },
                     backgroundColor: 'transparent',
                     titleTextStyle: { color: 'grey' },
-                    legend: { textStyle: { color: 'grey' } },
+                    legend: { position: 'none' },
                     hAxis: {
                         title: 'Garbage Type',
                         textStyle: {
@@ -524,9 +528,9 @@
             const remainingDistance1 = 11.5 * ((100 - (data[0].cat1_accumulation)) / 100);
             const remainingDistance2 = 11.5 * ((100 - (data[0].cat2_accumulation)) / 100);
             const remainingDistance3 = 11.5 * ((100 - (data[0].cat3_accumulation)) / 100);
-            drawChart1(data[0].ID, remainingDistance1);
-            drawChart2(data[0].ID, remainingDistance2);
-            drawChart3(data[0].ID, remainingDistance3);
+            drawChart1(remainingDistance1);
+            drawChart2(remainingDistance2);
+            drawChart3(remainingDistance3);
         }
 
         async function fetchGraph(binid) {

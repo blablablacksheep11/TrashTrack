@@ -82,24 +82,9 @@ router.get('/getHistory/:binID/:collectionDate', async (req, res) => {
 
 router.get('/getDisposalOverview', async (req, res) => {
     try {
-        const [disposalOverview] = await database.query("SELECT garbage_type, COUNT(*) as count FROM disposal_records GROUP BY garbage_type");
-        const overview = {
-            paper: 0,
-            plastic: 0,
-            general: 0
-        };
+        const [disposalOverview] = await database.query("SELECT garbage_type.category, COUNT(*) as count, garbage_type.color_code FROM disposal_records INNER JOIN garbage_type ON disposal_records.garbage_type = garbage_type.id GROUP BY disposal_records.garbage_type ORDER BY disposal_records.garbage_type");
 
-        disposalOverview.forEach(record => {
-            if (record.garbage_type == "1") {
-                overview.paper = record.count;
-            } else if (record.garbage_type == "2") {
-                overview.plastic = record.count;
-            } else if (record.garbage_type == "4") {
-                overview.general = record.count;
-            }
-        });
-
-        res.json(overview);
+        res.json(disposalOverview);
     } catch (error) {
         console.log(error);
     }
