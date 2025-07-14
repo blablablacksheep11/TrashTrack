@@ -93,7 +93,7 @@ while True:
                     "image": img_base64
                 }
 
-                url = "http://localhost:3000/img" # The url of nodejs server, ../server/server.js
+                url = "http://localhost:3000/cv/img" # The url of nodejs server, ../server/server.js
 
                 try:
                     response = requests.post(url, json=data, timeout=10)

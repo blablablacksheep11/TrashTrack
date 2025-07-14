@@ -48,6 +48,7 @@ async function mail(recipientEmail, bin) {
 }
 
 router.post('/esp32Data', async (req, res) => {
+    console.log("Received data from ESP32:", req.body);
     if ("cleanerID" in req.body) { // If the data contains cleanerID, it means it is a collection data
         const binID = req.body.binid;
         const cleanerID = req.body.cleanerID;
@@ -60,7 +61,6 @@ router.post('/esp32Data', async (req, res) => {
             // Insert the collection data into the bin_history table
             let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerID, new Date()]);
             socket.emit("updateCollectionFreqGraph", { binID: binID });
-            console.log(collect);
         } catch (err) {
             console.log(err);
         }

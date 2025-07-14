@@ -37,7 +37,7 @@ MFRC522::MIFARE_Key key;
 
 const char *ssid = "WiFi_NAME_HERE";                                   // WiFi name
 const char *password = "WiFi_PASSWORD_HERE";                           // WiFi password
-const char *serverUrl = "http://LOCALHOST_IPV4_HERE:3000/esp32Data";  // Computer IP address (v4)
+const char *serverUrl = "http://LOCALHOST_IPV4_HERE:3000/esp32/esp32Data";  // Computer IP address (v4)
 
 WebServer server(80);  // ESP32 runs on port 80
 
@@ -145,11 +145,11 @@ void handlePost() {
       delay(1000);
       armHorizontalServo.write(30);
       delay(1000);
-      cover1Servo.write(75);
+      cover1Servo.write(60);
       delay(1000);
       armVerticalServo.write(50);
       delay(3000);
-      cover1Servo.write(7);
+      cover1Servo.write(4);
       delay(1000);
       armVerticalServo.write(90);
       delay(1000);
@@ -175,11 +175,11 @@ void handlePost() {
 
       armVerticalServo.write(90);
       delay(1000);
-      cover2Servo.write(75);
+      cover2Servo.write(35);
       delay(1000);
       armVerticalServo.write(50);
       delay(3000);
-      cover2Servo.write(0);
+      cover2Servo.write(1);
       delay(1000);
       armVerticalServo.write(90);
       delay(1000);
@@ -205,11 +205,11 @@ void handlePost() {
       delay(1000);
       armHorizontalServo.write(74);
       delay(1000);
-      cover3Servo.write(20);
+      cover3Servo.write(45);
       delay(1000);
       armVerticalServo.write(50);
       delay(3000);
-      cover3Servo.write(87);
+      cover3Servo.write(84);
       delay(1000);
       armVerticalServo.write(90);
       delay(1000);
@@ -289,9 +289,9 @@ void setup() {
   lidServo.write(0);
   armVerticalServo.write(90);  // Angle go higher to throw
   armHorizontalServo.write(52);
-  cover1Servo.write(9);
-  cover2Servo.write(0);
-  cover3Servo.write(87);
+  cover1Servo.write(4);
+  cover2Servo.write(1);
+  cover3Servo.write(84);
 
   SPI.begin();  // SCK=18, MISO=19, MOSI=23 by default for ESP32
   rfid.PCD_Init();
