@@ -8,15 +8,14 @@ router.get('/getGarbageType/:categoryID', async (req, res) => {
     try {
         const categoryID = req.params.categoryID;
         const [garbageType] = await database.query(`SELECT
-                                                        CONVERT_TZ(STR_TO_DATE(CONCAT(YEAR(disposal_datetime), WEEK(disposal_datetime, 0), ' Sunday'), '%X%V %W'), '+00:00', '+08:00') AS week_start,
+                                                        STR_TO_DATE(CONCAT(YEARWEEK(disposal_datetime, 0), ' Sunday'), '%X%V %W') AS week_start,
                                                         COUNT(*) AS total_records
-                                                    FROM disposal_records
-                                                    WHERE 
-                                                        STR_TO_DATE(CONCAT(YEAR(disposal_datetime), WEEK(disposal_datetime, 0), ' Sunday'), '%X%V %W') 
-                                                        <= STR_TO_DATE(CONCAT(YEAR(CURDATE()), WEEK(CURDATE(), 0), ' Sunday'), '%X%V %W')
-                                                        AND garbage_type = ?
-                                                    GROUP BY week_start
-                                                    ORDER BY week_start`, [categoryID]);
+                                                        FROM disposal_records
+                                                        WHERE 
+                                                            YEARWEEK(disposal_datetime, 0) <= YEARWEEK(CURDATE(), 0)
+                                                            AND garbage_type = ?
+                                                        GROUP BY week_start
+                                                        ORDER BY week_start;`, [categoryID]);
 
         const [categoryName] = await database.query(`SELECT category FROM garbage_type WHERE id = ?`, [categoryID]);
         res.json({ categoryName, data: garbageType });

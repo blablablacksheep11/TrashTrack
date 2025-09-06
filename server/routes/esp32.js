@@ -59,7 +59,7 @@ router.post('/esp32Data', async (req, res) => {
             socket.emit("updateAccumulationPieChart", { binID: binID });
 
             // Insert the collection data into the bin_history table
-            let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerID, new Date()]);
+            let collect = await database.query("UPDATE bin_history SET collectorID = ?, collection=? WHERE ID = (SELECT ID FROM (SELECT max(ID) AS ID FROM bin_history) AS temp_table)", [cleanerID, new Date().toLocaleString()]);
             socket.emit("updateCollectionFreqGraph", { binID: binID });
         } catch (err) {
             console.log(err);
@@ -92,7 +92,7 @@ router.post('/esp32Data', async (req, res) => {
 
                 accumulations[0][colToReplace] = accumulation; // Replace the accumulation of the category with the new value
 
-                let insert = await database.query("INSERT INTO bin_history (binID, cat1_accumulation, cat2_accumulation, cat3_accumulation, creation, status) VALUES (?,?,?,?,?,?)", [binID, accumulations[0]['cat1_accumulation'], accumulations[0]['cat2_accumulation'], accumulations[0]['cat3_accumulation'], new Date(), 'unavailable']);
+                let insert = await database.query("INSERT INTO bin_history (binID, cat1_accumulation, cat2_accumulation, cat3_accumulation, creation, status) VALUES (?,?,?,?,?,?)", [binID, accumulations[0]['cat1_accumulation'], accumulations[0]['cat2_accumulation'], accumulations[0]['cat3_accumulation'], new Date().toLocaleString(), 'unavailable']);
 
                 const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
                 let emailList = [];
