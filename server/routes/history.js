@@ -17,13 +17,8 @@ router.get('/loadBinHistory/:binID/:pageNumber', async (req, res) => {
         const [binHistory] = await database.query("SELECT * FROM bin_history WHERE binID = ? LIMIT ? OFFSET ?", [binID, limit, offset]); // Fetch the records for the current page
         for (const history of binHistory) {
             // Convert the datetime to locale string
-            if (history.creation != null) {
-                history.creation = history.creation.toLocaleString();
-            }
-
-            if (history.collection != null) {
-                history.collection = history.collection.toLocaleString();
-            } else {
+           
+            if (history.collection == null) {
                 history.collection = "Uncollected";
             }
 

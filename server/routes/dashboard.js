@@ -61,8 +61,8 @@ router.get('/fetchChart/:binID', async (req, res) => {
 router.get('/fetchGraph/:binID', async (req, res) => {
     const binID = req.params.binID;
     try {
-        const [date] = await database.query("SELECT DISTINCT DATE(collection) AS date FROM bin_history WHERE binID = ?  ORDER BY date;", [binID]);
-        res.json(date);
+        const [dates] = await database.query("SELECT DISTINCT DATE(collection) AS date FROM bin_history WHERE binID = ?  ORDER BY date;", [binID]);
+        res.json(dates);
     } catch (error) {
         console.log(error);
     }
@@ -73,7 +73,7 @@ router.get('/getHistory/:binID/:collectionDate', async (req, res) => {
     const collectionDate = req.params.collectionDate;
 
     try {
-        const [history] = await database.query("SELECT COUNT(*) as sum FROM bin_history WHERE binID = ? AND DATE(collection) = CONVERT_TZ(?, '+00:00', '+08:00') AND collection IS NOT NULL", [binID, collectionDate]);
+        const [history] = await database.query("SELECT COUNT(*) as sum FROM bin_history WHERE binID = ? AND DATE(collection) = ? AND collection IS NOT NULL", [binID, collectionDate]);
         res.json(history);
     } catch (error) {
         console.log(error);
@@ -83,7 +83,6 @@ router.get('/getHistory/:binID/:collectionDate', async (req, res) => {
 router.get('/getDisposalOverview', async (req, res) => {
     try {
         const [disposalOverview] = await database.query("SELECT garbage_type.category, COUNT(*) as count, garbage_type.color_code FROM disposal_records INNER JOIN garbage_type ON disposal_records.garbage_type = garbage_type.id GROUP BY disposal_records.garbage_type ORDER BY disposal_records.garbage_type");
-
         res.json(disposalOverview);
     } catch (error) {
         console.log(error);

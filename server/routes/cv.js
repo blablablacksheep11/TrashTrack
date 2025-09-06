@@ -31,21 +31,21 @@ router.post('/img', async (req, res) => {
             const segregation = await classifyWaste(image); // Call the classifyWaste function with the image data
 
             if (segregation.includes("paper")) {
-                const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["1"]);
+                const [insert] = await database.query("INSERT INTO disposal_records (garbage_type, disposal_datetime) VALUES (?, ?)", ["1", new Date().toLocaleString()]);
                 if (insert.warningStatus == 0) {
                     console.log("Paper waste detected and recorded");
                 }
                 sendSegregationData("paper"); // Send the segregation data to ESP32
                 categoryID = 1; // Paper category ID
             } else if (segregation.includes("plastic")) {
-                const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["2"]);
+                const [insert] = await database.query("INSERT INTO disposal_records (garbage_type, disposal_datetime) VALUES (?)", ["2", new Date().toLocaleString()]);
                 if (insert.warningStatus == 0) {
                     console.log("Plastic waste detected and recorded");
                 }
                 sendSegregationData("plastic"); // Send the segregation data to ESP32
                 categoryID = 2; // Plastic category ID
             } else {
-                const [insert] = await database.query("INSERT INTO disposal_records (garbage_type) VALUES (?)", ["4"]);
+                const [insert] = await database.query("INSERT INTO disposal_records (garbage_type, disposal_datetime) VALUES (?, ?)", ["4", new Date().toLocaleString()]);
                 if (insert.warningStatus == 0) {
                     console.log("General waste detected and recorded");
                 }

@@ -202,7 +202,7 @@
                     width: 450,
                     chartArea: { width: '90%', height: '85%', top: 50 },
                     backgroundColor: 'transparent',
-                    colors: overview.map(item=>item.color),
+                    colors: overview.map(item => item.color),
                     titleTextStyle: { color: 'grey', fontSize: 14 },
                     legendTextStyle: {
                         color: 'grey' // Change the color of the legend text
@@ -222,18 +222,18 @@
             async function drawG() {
 
                 var data = new google.visualization.DataTable();
-                data.addColumn('date', 'Date');
+                data.addColumn('string', 'Date');
                 data.addColumn('number', 'Collection Frequency');
 
                 for (const entry of dates) {
                     const response = await fetch(`http://localhost:3000/dashboard/getHistory/${binid}/${entry.date}`);  // Refer to the code block in server.js under dashboard
                     const sum = await response.json();
 
-                    const date = new Date(entry.date);
-                    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                    let date = new Date(entry.date);
+                    date = date.toLocaleDateString("en-MY", { year: "numeric", month: "short", day: "2-digit" });
 
                     data.addRows([
-                        [new Date(formattedDate), sum[0].sum]
+                        [date, sum[0].sum]
                     ]);
                 }
 
