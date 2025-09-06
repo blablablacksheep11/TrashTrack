@@ -92,7 +92,7 @@ router.post('/esp32Data', async (req, res) => {
 
                 accumulations[0][colToReplace] = accumulation; // Replace the accumulation of the category with the new value
 
-                let insert = await database.query("INSERT INTO bin_history (binID, cat1_accumulation, cat2_accumulation, cat3_accumulation, creation, status) VALUES (?,?,?,?,?,?)", [binID, accumulations[0]['cat1_accumulation'], accumulations[0]['cat2_accumulation'], accumulations[0]['cat3_accumulation'], new Date().toLocaleString(), 'unavailable']);
+                let insert = await database.query("INSERT INTO bin_history (binID, cat1_accumulation, cat2_accumulation, cat3_accumulation, creation) VALUES (?,?,?,?,?)", [binID, accumulations[0]['cat1_accumulation'], accumulations[0]['cat2_accumulation'], accumulations[0]['cat3_accumulation'], new Date().toLocaleString()]);
 
                 const [bin] = await database.query("SELECT * FROM bin WHERE ID = ?", [binID]);
                 let emailList = [];
