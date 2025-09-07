@@ -1,5 +1,6 @@
 import express from 'express';
 import database from '../services/mysql.js';
+import dayjs from 'dayjs';
 
 const router = express.Router();
 
@@ -7,7 +8,7 @@ const router = express.Router();
 router.get('/getGarbageType/:categoryID', async (req, res) => {
     try {
         const categoryID = req.params.categoryID;
-        const [garbageType] = await database.query(`SELECT
+        let [garbageDisposal] = await database.query(`SELECT
                                                         STR_TO_DATE(CONCAT(YEARWEEK(disposal_datetime, 0), ' Sunday'), '%X%V %W') AS week_start,
                                                         COUNT(*) AS total_records
                                                         FROM disposal_records
@@ -17,8 +18,20 @@ router.get('/getGarbageType/:categoryID', async (req, res) => {
                                                         GROUP BY week_start
                                                         ORDER BY week_start;`, [categoryID]);
 
+        if (garbageDisposal.length < 5) {
+            let lastDate = garbageDisposal.length > 0 ? dayjs(garbageDisposal[garbageDisposal.length - 1].week_start) : dayjs();
+            let missing = 5 - garbageDisposal.length;
+
+            let futureData = Array(missing).fill(null).map((_, i) => ({
+                week_start: lastDate.add(i + 1, "week").format("YYYY-MM-DD"),
+                total_records: 0,
+            }));
+
+            garbageDisposal = garbageDisposal.concat(futureData);
+        }
+
         const [categoryName] = await database.query(`SELECT category FROM garbage_type WHERE id = ?`, [categoryID]);
-        res.json({ categoryName, data: garbageType });
+        res.json({ categoryName, data: garbageDisposal });
     } catch (error) {
         console.log(error);
     }

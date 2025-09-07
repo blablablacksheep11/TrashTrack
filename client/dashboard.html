@@ -282,16 +282,20 @@
                 let summary = await response.json();
 
                 const category = [];
-                for(let i=0; i < summary.length; i++) {
+                for (let i = 0; i < summary.length; i++) {
                     category[i] = Object.values(summary[i]);
                 }
 
                 garbageType = [
                     ['Garbage Type', 'Disposal Count', { role: 'style' }],
-                   ...category
+                    ...category
                 ];
 
                 const data = google.visualization.arrayToDataTable(garbageType);
+
+                var maxRecord = Math.max(...garbageType.slice(1).map(r => r[1]));
+                const maxValue = maxRecord < 10 ? 10 : maxRecord;
+
 
                 var options = {
                     title: 'Disposal Overview',
@@ -314,7 +318,12 @@
                     vAxis: {
                         textStyle: {
                             color: 'grey'
-                        }
+                        },
+                        minValue: 0,
+                        maxValue: maxValue,
+                        format: '0',          // force integers (no decimals)
+                        viewWindow: { min: 0 },
+                        gridlines: { count: -1 }
                     }
                 };
 
@@ -325,7 +334,7 @@
 
         async function drawGraph(binid, dates) {
             document.getElementById("graph_div").classList.add("py-4");
-            google.charts.load('current', { 'packages': ['line'] });
+            google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawG);
 
             async function drawG() {
@@ -348,17 +357,26 @@
 
                 var options = {
                     'title': `Collection Frequency of Bin${binid}`,
-                    'width': 1300, // Control the canvas width
+                    'width': 1500, // Control the canvas width
                     'height': 450, // Control the canvas height
                     'chartArea': { width: '90%', height: '67.5%', 'backgroundColor': 'transparent' }, // Determine the chart size in canvas
-                    'tooltip': { isHtml: true },
                     'colors': ['#007bff'],
                     'backgroundColor': 'transparent',
+                    'curveType': 'function',
+                    'legend': { position: 'bottom' },
+                    'pointSize': 4,
+                    'tooltip': { trigger: 'focus' }, // Show tooltip when hover on the point
+                    'vAxis': {
+                        minValue: 0,
+                        format: '0',          // force integers (no decimals)
+                        viewWindow: { min: 0 },
+                        gridlines: { count: -1 }, // let Google auto-calc but stay integers
+                    }
                 };
 
-                var chart = new google.charts.Line(document.getElementById('graph_div'));
+                var chart = new google.visualization.LineChart(document.getElementById('graph_div'));
 
-                chart.draw(data, google.charts.Line.convertOptions(options));
+                chart.draw(data, options);
             }
         }
     </script>
@@ -406,7 +424,7 @@
         async function loadCleanerCount() {
             const response = await fetch("http://localhost:3000/dashboard/loadCleanerCount");
             const data = await response.json();
-            document.getElementById("cleanercount").innerHTML = `Number of cleaner: ${data.total}`;
+            document.getElementById("cleanercount").innerHTML = `Number of cleaner: ${data[0].total}`;
         }
 
         async function loadFreeBinTable() {

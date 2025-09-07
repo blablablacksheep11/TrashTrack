@@ -61,7 +61,7 @@ router.get('/fetchChart/:binID', async (req, res) => {
 router.get('/fetchGraph/:binID', async (req, res) => {
     const binID = req.params.binID;
     try {
-        const [dates] = await database.query("SELECT DISTINCT DATE(collection) AS date FROM bin_history WHERE binID = ?  ORDER BY date;", [binID]);
+        const [dates] = await database.query("SELECT DISTINCT DATE(collection) AS date FROM bin_history WHERE binID = ? AND collection IS NOT NULL ORDER BY date;", [binID]);
         res.json(dates);
     } catch (error) {
         console.log(error);
