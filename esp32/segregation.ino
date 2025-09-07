@@ -7,6 +7,8 @@
 #include <MFRC522.h>
 
 #define binID 1
+#define binTotalHeight 24  // This is the height from the bottom of the bin to the sensor, cm
+#define binGarbageHeight 11.5  // This is the height of the space use to carry garbage, cm
 
 // Infrared light sensor pin
 #define irPin 4
@@ -164,11 +166,11 @@ void handlePost() {
 
       duration = pulseIn(echoPin1, HIGH);
       distance = (duration * 0.0343) / 2;
-      occupiedDistance = 22.7 - distance;
-      occupiedDistance = occupiedDistance > 11.5 ? 11.5 : occupiedDistance;
-      remainingDistance = 11.5 - occupiedDistance;
-      remainingDistance = remainingDistance > 11.5 ? 11.5 : remainingDistance;
-      accumulation = 100 - ((remainingDistance / 11.5) * 100);
+      occupiedDistance = binTotalHeight - distance;
+      occupiedDistance = occupiedDistance > binGarbageHeight ? binGarbageHeight : occupiedDistance;
+      remainingDistance = binGarbageHeight - occupiedDistance;
+      remainingDistance = remainingDistance > binGarbageHeight ? binGarbageHeight : remainingDistance;
+      accumulation = 100 - ((remainingDistance / binGarbageHeight) * 100);
 
     } else if (category == "plastic") {
       categoryID = 2;
@@ -192,11 +194,11 @@ void handlePost() {
 
       duration = pulseIn(echoPin2, HIGH);
       distance = (duration * 0.0343) / 2;
-      occupiedDistance = 22.7 - distance;
-      occupiedDistance = occupiedDistance > 11.5 ? 11.5 : occupiedDistance;
-      remainingDistance = 11.5 - occupiedDistance;
-      remainingDistance = remainingDistance > 11.5 ? 11.5 : remainingDistance;
-      accumulation = 100 - ((remainingDistance / 11.5) * 100);
+      occupiedDistance = binTotalHeight - distance;
+      occupiedDistance = occupiedDistance > binGarbageHeight ? binGarbageHeight : occupiedDistance;
+      remainingDistance = binGarbageHeight - occupiedDistance;
+      remainingDistance = remainingDistance > binGarbageHeight ? binGarbageHeight : remainingDistance;
+      accumulation = 100 - ((remainingDistance / binGarbageHeight) * 100);
 
     } else if (category == "general") {
       categoryID = 3;
@@ -224,11 +226,11 @@ void handlePost() {
 
       duration = pulseIn(echoPin3, HIGH);
       distance = (duration * 0.0343) / 2;
-      occupiedDistance = 22.7 - distance;
-      occupiedDistance = occupiedDistance > 11.5 ? 11.5 : occupiedDistance;
-      remainingDistance = 11.5 - occupiedDistance;
-      remainingDistance = remainingDistance > 11.5 ? 11.5 : remainingDistance;
-      accumulation = 100 - ((remainingDistance / 11.5) * 100);
+      occupiedDistance = binTotalHeight - distance;
+      occupiedDistance = occupiedDistance > binGarbageHeight ? binGarbageHeight : occupiedDistance;
+      remainingDistance = binGarbageHeight - occupiedDistance;
+      remainingDistance = remainingDistance > binGarbageHeight ? binGarbageHeight : remainingDistance;
+      accumulation = 100 - ((remainingDistance / binGarbageHeight) * 100);
     }
 
     if (WiFi.status() == WL_CONNECTED) {

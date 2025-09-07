@@ -4,7 +4,7 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import {socketSetup} from './services/socket.js';
+import { socketSetup } from './services/socket.js';
 import { connectRedis } from './services/redis.js';
 import dotenv from 'dotenv';
 
@@ -27,9 +27,10 @@ app.use(express.json()); // Parse JSON request body
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request body, for POST CRUD operation
 
 // Serve static files
-app.use(express.static(path.join(__dirname, '../client'))); 
+app.use(express.static(path.join(__dirname, '../client')));
 app.use(express.static(path.join(__dirname, '../src')));
 app.use(express.static(path.join(__dirname, '../img')));
+app.use(express.static(path.join(__dirname, '../server')));
 
 // Automatically load all route files
 const routesPath = path.join(__dirname, 'routes');
