@@ -73,7 +73,7 @@ router.post('/esp32Data', async (req, res) => {
         const binID = Number(req.body.binID);
         const category = Number(req.body.category);
         const remainingDistance = Number(req.body.remainingDistance);
-        const accumulation = 100 - ((remainingDistance / 11.5) * 100);
+        const accumulation = 100 - ((remainingDistance / (shared.binGarbageHeight)) * 100);
         const categoryMap = {
             1: 'cat1_accumulation',
             2: 'cat2_accumulation',
