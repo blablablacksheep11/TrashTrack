@@ -140,6 +140,9 @@
 
                 const data = google.visualization.arrayToDataTable(garbageType);
 
+                const maxRecord = Math.max(...summary.data.map(week => week.total_records));
+                const maxValue = maxRecord < 10 ? 10 : maxRecord;
+
                 var options = {
                     title: `Weekly ${summary.categoryName[0].category} Disposal Summary`,
                     legend: { position: 'none' },
@@ -161,7 +164,12 @@
                     vAxis: {
                         textStyle: {
                             color: 'grey'
-                        }
+                        },
+                        minValue: 0,
+                        maxValue: maxValue,
+                        format: '0',          // force integers (no decimals)
+                        viewWindow: { min: 0 },
+                        gridlines: { count: -1 }
                     }
                 };
 
@@ -216,7 +224,7 @@
 
         async function drawLineGraph(binid, dates) {
             document.getElementById("lineGraph_div").classList.add("py-4");
-            google.charts.load('current', { 'packages': ['line'] });
+            google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawG);
 
             async function drawG() {
@@ -239,17 +247,26 @@
 
                 var options = {
                     'title': `Collection Frequency of Bin${binid}`,
-                    'width': 1300, // Control the canvas width
+                    'width': 1500, // Control the canvas width
                     'height': 450, // Control the canvas height
                     'chartArea': { width: '90%', height: '67.5%', 'backgroundColor': 'transparent' }, // Determine the chart size in canvas
-                    'tooltip': { isHtml: true },
                     'colors': ['#007bff'],
                     'backgroundColor': 'transparent',
+                    'curveType': 'function',
+                    'legend': { position: 'bottom' },
+                    'pointSize': 4,
+                    'tooltip': { trigger: 'focus' }, // Show tooltip when hover on the point
+                    'vAxis': {
+                        minValue: 0,
+                        format: '0',          // force integers (no decimals)
+                        viewWindow: { min: 0 },
+                        gridlines: { count: -1 }, // let Google auto-calc but stay integers
+                    }
                 };
 
-                var chart = new google.charts.Line(document.getElementById('lineGraph_div'));
+                var chart = new google.visualization.LineChart(document.getElementById('lineGraph_div'));
 
-                chart.draw(data, google.charts.Line.convertOptions(options));
+                chart.draw(data, options);
             }
         }
     </script>
