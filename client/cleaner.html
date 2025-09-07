@@ -225,7 +225,7 @@
     </div>
 
     <script>
-        const socket = io('http://localhost:3000');
+        const socket = io('https://trashtrack-production.up.railway.app');
         socket.on('connect', (response) => {
             console.log("Connected to server");
         });
@@ -238,7 +238,7 @@
         }
 
         async function loadNavbar() {
-            const response = await fetch('http://localhost:3000/loadNavbar');
+            const response = await fetch('https://trashtrack-production.up.railway.app/loadNavbar');
             const data = await response.text();
             document.getElementById("navbar").innerHTML = data;
             document.getElementById("navbar-list-btn").classList.add("active");
@@ -246,13 +246,13 @@
         }
 
         async function loadFooter() {
-            const response = await fetch('http://localhost:3000/loadFooter');
+            const response = await fetch('https://trashtrack-production.up.railway.app/loadFooter');
             const data = await response.text();
             document.getElementById("footer").innerHTML = data;
         }
 
         async function loadCleaner() {
-            const response = await fetch("http://localhost:3000/cleaner/loadCleaner");
+            const response = await fetch("https://trashtrack-production.up.railway.app/cleaner/loadCleaner");
             const data = await response.json();
             const table = document.getElementById("cleaner-table");
 
@@ -297,7 +297,7 @@
         }
 
         async function edit(id) {
-            const response = await fetch(`http://localhost:3000/cleaner/fetchCleaner/${id}`);
+            const response = await fetch(`https://trashtrack-production.up.railway.app/cleaner/fetchCleaner/${id}`);
             const data = await response.json();
 
             const name = document.querySelector("#modal4 #edit-cleaner-form #name2");
@@ -320,7 +320,7 @@
         }
 
         async function del(id) {
-            const response = await fetch(`http://localhost:3000/cleaner/fetchCleaner/${id}`);
+            const response = await fetch(`https://trashtrack-production.up.railway.app/cleaner/fetchCleaner/${id}`);
             const data = await response.json();
             const modalBody = document.querySelector("#modal3 #confirmation-body");
             modalBody.innerHTML = `Are you sure you wanted to delete ${data[0].name} from the cleaner list?`
@@ -372,7 +372,7 @@
         document.getElementById("confirm-del-btn").addEventListener("click", async () => { // When confirm btn click in confirm delete modal
             const cleanerID = document.getElementById("confirm-del-btn").dataset.cleanerID; // Fetch the data in confirm btn
 
-            const response = await fetch(`http://localhost:3000/cleaner/deleteCleaner/${cleanerID}`);
+            const response = await fetch(`https://trashtrack-production.up.railway.app/cleaner/deleteCleaner/${cleanerID}`);
             const data = await response.json();
             if (data.status == "success") {
                 let modal3 = bootstrap.Modal.getInstance(document.getElementById("modal3"));
@@ -425,7 +425,7 @@
                 const ic = document.getElementById("ic1").value;
                 const email = document.getElementById("email1").value.toLowerCase();
 
-                const response1 = await fetch(`http://localhost:3000/cleaner/validateCleanerIC/${ic}`);
+                const response1 = await fetch(`https://trashtrack-production.up.railway.app/cleaner/validateCleanerIC/${ic}`);
                 const data1 = await response1.json();
                 if (data1.status == "existed") {
                     const toast = document.getElementById('toast');
@@ -439,7 +439,7 @@
                     return;
                 }
 
-                const response = await fetch(`http://localhost:3000/cleaner/validateCleanerEmail/${email}`);
+                const response = await fetch(`https://trashtrack-production.up.railway.app/cleaner/validateCleanerEmail/${email}`);
                 const data = await response.json();
                 if (data.status == "existed") {
                     const toast = document.getElementById('toast');
@@ -486,7 +486,7 @@
                 const ic = document.getElementById("ic2").value;
                 const email = document.getElementById("email2").value.toLowerCase();
 
-                const validation = await fetch(`http://localhost:3000/cleaner/checkCleanerEmail/${cleanerID}/${email}`);
+                const validation = await fetch(`https://trashtrack-production.up.railway.app/cleaner/checkCleanerEmail/${cleanerID}/${email}`);
                 const data1 = await validation.json();
                 if (data1.status == "existed") {
                     const toast = document.getElementById('toast');
@@ -500,7 +500,7 @@
                     return;
                 }
 
-                const validation1 = await fetch(`http://localhost:3000/cleaner/checkCleanerIC/${cleanerID}/${ic}`);
+                const validation1 = await fetch(`https://trashtrack-production.up.railway.app/cleaner/checkCleanerIC/${cleanerID}/${ic}`);
                 const data2 = await validation1.json();
                 if (data2.status == "existed") {
                     const toast = document.getElementById('toast');
@@ -514,7 +514,7 @@
                     return;
                 }
 
-                const response = await fetch("http://localhost:3000/cleaner/editCleaner", {
+                const response = await fetch("https://trashtrack-production.up.railway.app/cleaner/editCleaner", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -553,7 +553,7 @@
         document.getElementById("confirm-add-btn").addEventListener("click", async () => {  // When the confirm button is clicked for add cleaner
             const cleanerInfo = JSON.parse(document.getElementById("confirm-add-btn").dataset.cleanerInfo); // Fetch the data in confirm btn
 
-            const response = await fetch("http://localhost:3000/cleaner/addCleaner", {
+            const response = await fetch("https://trashtrack-production.up.railway.app/cleaner/addCleaner", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

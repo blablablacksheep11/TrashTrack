@@ -85,7 +85,7 @@
 
     <!-- General JavaScript-->
     <script>
-        const socket = io('http://localhost:3000');
+        const socket = io('https://trashtrack-production.up.railway.app');
         socket.on('connect', (response) => {
             console.log("Connected to server");
         });
@@ -97,14 +97,14 @@
         }
 
         async function loadNavbar() {
-            const response = await fetch('http://localhost:3000/loadNavbar');
+            const response = await fetch('https://trashtrack-production.up.railway.app/loadNavbar');
             const data = await response.text();
             document.getElementById("navbar").innerHTML = data;
             document.getElementById("navbar-aboutus-btn").classList.add("active");
         }
 
         async function loadFooter() {
-            const response = await fetch('http://localhost:3000/loadFooter');
+            const response = await fetch('https://trashtrack-production.up.railway.app/loadFooter');
             const data = await response.text();
             document.getElementById("footer").innerHTML = data;
         }

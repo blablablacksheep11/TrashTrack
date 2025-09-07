@@ -82,7 +82,7 @@
     </div>
 
     <script>
-        const socket = io('http://localhost:3000');
+        const socket = io('https://trashtrack-production.up.railway.app');
         socket.on('connect', (response) => {
             console.log("Connected to server");
         });
@@ -92,7 +92,7 @@
             const form = e.target;
             if (form.checkValidity()) {
                 const email = document.getElementById("email").value;
-                const response = await fetch(`http://localhost:3000/forgotpass/forgotPassword`, {
+                const response = await fetch(`https://trashtrack-production.up.railway.app/forgotpass/forgotPassword`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"

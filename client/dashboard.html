@@ -278,7 +278,7 @@
 
             async function drawCC() {
 
-                const response = await fetch(`http://localhost:3000/dashboard/getDisposalOverview`);
+                const response = await fetch(`https://trashtrack-production.up.railway.app/dashboard/getDisposalOverview`);
                 let summary = await response.json();
 
                 const category = [];
@@ -344,7 +344,7 @@
                 data.addColumn('number', 'Collection Frequency');
 
                 for (const entry of dates) {
-                    const response = await fetch(`http://localhost:3000/dashboard/getHistory/${binid}/${entry.date}`);
+                    const response = await fetch(`https://trashtrack-production.up.railway.app/dashboard/getHistory/${binid}/${entry.date}`);
                     const sum = await response.json();
 
                     let date = new Date(entry.date);
@@ -382,7 +382,7 @@
     </script>
     <!-- General JavaScript-->
     <script>
-        const socket = io('http://localhost:3000');
+        const socket = io('https://trashtrack-production.up.railway.app');
         socket.on('connect', (response) => {
             console.log("Connected to server");
         });
@@ -401,20 +401,20 @@
         }
 
         async function loadNavbar() {
-            const response = await fetch('http://localhost:3000/loadNavbar');
+            const response = await fetch('https://trashtrack-production.up.railway.app/loadNavbar');
             const data = await response.text();
             document.getElementById("navbar").innerHTML = data;
             document.getElementById("navbar-home-btn").classList.add("active");
         }
 
         async function loadFooter() {
-            const response = await fetch('http://localhost:3000/loadFooter');
+            const response = await fetch('https://trashtrack-production.up.railway.app/loadFooter');
             const data = await response.text();
             document.getElementById("footer").innerHTML = data;
         }
 
         async function loadBinsCount() {
-            const response = await fetch("http://localhost:3000/dashboard/loadBinsCount");
+            const response = await fetch("https://trashtrack-production.up.railway.app/dashboard/loadBinsCount");
             const data = await response.json();
             document.getElementById("registeredbincount").innerHTML = `Number of registered bin: ${data.length}`;
             document.getElementById("freebincount").innerHTML = `Number of available bin: ${(data.filter((bin) => bin.status == "available")).length}`;
@@ -422,13 +422,13 @@
         }
 
         async function loadCleanerCount() {
-            const response = await fetch("http://localhost:3000/dashboard/loadCleanerCount");
+            const response = await fetch("https://trashtrack-production.up.railway.app/dashboard/loadCleanerCount");
             const data = await response.json();
             document.getElementById("cleanercount").innerHTML = `Number of cleaner: ${data[0].total}`;
         }
 
         async function loadFreeBinTable() {
-            const response = await fetch("http://localhost:3000/dashboard/loadFreeBinTable");
+            const response = await fetch("https://trashtrack-production.up.railway.app/dashboard/loadFreeBinTable");
             const data = await response.json();
             const table = document.getElementById("freebin-table");
             if (data.length > 0) {
@@ -453,7 +453,7 @@
         }
 
         async function loadFulledBinTable() {
-            const response = await fetch("http://localhost:3000/dashboard/loadFulledBinTable");
+            const response = await fetch("https://trashtrack-production.up.railway.app/dashboard/loadFulledBinTable");
             const data = await response.json();
             const table = document.getElementById("fulledbin-table");
             if (data.length > 0) {
@@ -490,7 +490,7 @@
         }
 
         async function initializeChart() {
-            const response = await fetch("http://localhost:3000/dashboard/initializeChart&Graph");
+            const response = await fetch("https://trashtrack-production.up.railway.app/dashboard/initializeChart&Graph");
             const data = await response.json();
             if (data.length > 0) {
                 document.getElementById("chart_div").classList.remove("justify-content-center");
@@ -515,7 +515,7 @@
         }
 
         async function initializeGraph() {
-            const response = await fetch("http://localhost:3000/dashboard/initializeChart&Graph");
+            const response = await fetch("https://trashtrack-production.up.railway.app/dashboard/initializeChart&Graph");
             const data = await response.json();
             if (data.length > 0) {
                 document.getElementById("graph_div").classList.remove("justify-content-center");
@@ -540,7 +540,7 @@
         }
 
         async function fetchChart(binid) {
-            const response = await fetch(`http://localhost:3000/dashboard/fetchChart/${binid}`);
+            const response = await fetch(`https://trashtrack-production.up.railway.app/dashboard/fetchChart/${binid}`);
             const data = await response.json();
             loadChartContainer();
             const remainingDistance1 = 11.5 * ((100 - (data[0].cat1_accumulation)) / 100);
@@ -552,7 +552,7 @@
         }
 
         async function fetchGraph(binid) {
-            const response = await fetch(`http://localhost:3000/dashboard/fetchGraph/${binid}`);
+            const response = await fetch(`https://trashtrack-production.up.railway.app/dashboard/fetchGraph/${binid}`);
             const data = await response.json();
             document.getElementById("graph_div").classList.add("justify-content-center");
             document.getElementById("graph_div").classList.remove("justify-content-end");
@@ -624,7 +624,7 @@
         });
 
         socket.on("updateCollectionFreqGraph", async (data) => {
-            const response = await fetch(`http://localhost:3000/dashboard/fetchGraph/${data.binID}`);
+            const response = await fetch(`https://trashtrack-production.up.railway.app/dashboard/fetchGraph/${data.binID}`);
             const date = await response.json();
             document.getElementById("graph_div").classList.add("justify-content-center");
             document.getElementById("graph_div").classList.remove("justify-content-end");

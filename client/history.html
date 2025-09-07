@@ -170,7 +170,7 @@
     </div>
 
     <script>
-        const socket = io('http://localhost:3000');
+        const socket = io('https://trashtrack-production.up.railway.app');
         socket.on('connect', (response) => {
             console.log("Connected to server");
         });
@@ -185,21 +185,21 @@
         document.querySelector("table caption").innerHTML = `Collection history of Bin ${sessionStorage.getItem("binIDforhistory")}<a class="float-end me-2" id="export-btn">Export as PDF</a>`;
 
         async function loadNavbar() {
-            const response = await fetch('http://localhost:3000/loadNavbar');
+            const response = await fetch('https://trashtrack-production.up.railway.app/loadNavbar');
             const data = await response.text();
             document.getElementById("navbar").innerHTML = data;
             document.getElementById("navbar-history-btn").classList.add("active");
         }
 
         async function loadFooter() {
-            const response = await fetch('http://localhost:3000/loadFooter');
+            const response = await fetch('https://trashtrack-production.up.railway.app/loadFooter');
             const data = await response.text();
             document.getElementById("footer").innerHTML = data;
         }
 
         async function loadBinHistory(pageNumber) {
             sessionStorage.setItem("pageNumber", pageNumber);
-            const response = await fetch(`http://localhost:3000/history/loadBinHistory/${sessionStorage.getItem("binIDforhistory")}/${pageNumber}`);
+            const response = await fetch(`https://trashtrack-production.up.railway.app/history/loadBinHistory/${sessionStorage.getItem("binIDforhistory")}/${pageNumber}`);
             const data = await response.json();
             const table = document.getElementById("history-table");
 
@@ -360,7 +360,7 @@
         document.getElementById("confirm-del-btn").addEventListener("click", async () => {  // When confirm btn clicked for history delete
             const historyID = document.getElementById("confirm-del-btn").dataset.historyID; // Fetch the data in confirm btn
 
-            const response = await fetch(`http://localhost:3000/history/deleteHistory/${historyID}`);
+            const response = await fetch(`https://trashtrack-production.up.railway.app/history/deleteHistory/${historyID}`);
             const data = await response.json();
             if (data.status == "success") {
                 let modal1 = bootstrap.Modal.getInstance(document.getElementById("modal1"));
@@ -421,7 +421,7 @@
         // Get all available cleaner (for <select>)
         async function getCleanerList() {
             document.getElementById("collector").innerHTML = "";
-            const response = await fetch('http://localhost:3000/history/getCleanerList');
+            const response = await fetch('https://trashtrack-production.up.railway.app/history/getCleanerList');
             const data = await response.json();
             data.forEach(cleaner => {
                 let option = document.createElement('option');
@@ -432,7 +432,7 @@
         }
 
         async function edit(id) {
-            const response = await fetch(`http://localhost:3000/history/fetchHistory/${id}`);
+            const response = await fetch(`https://trashtrack-production.up.railway.app/history/fetchHistory/${id}`);
             const data = await response.json();
 
             // Load the current record into the form
@@ -507,7 +507,7 @@
                 // No special convertion is required
                 // Binning is required becuse MySQL use datetime datatype
 
-                const response = await fetch("http://localhost:3000/history/editHistory", {
+                const response = await fetch("https://trashtrack-production.up.railway.app/history/editHistory", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -545,7 +545,7 @@
         })
 
         document.getElementById("export-btn").addEventListener("click", async () => {  // When btn clicked for history export
-            const response = await fetch(`http://localhost:3000/history/exportHistory/${sessionStorage.getItem("binIDforhistory")}`);
+            const response = await fetch(`https://trashtrack-production.up.railway.app/history/exportHistory/${sessionStorage.getItem("binIDforhistory")}`);
             const data = await response.blob();
 
             // Create a temporary link element to trigger the download
