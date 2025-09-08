@@ -9,7 +9,16 @@ import classifyWaste from '../services/gemini.js'; // Import the classifyWaste f
 const router = express.Router();
 
 async function sendSegregationData(data) {
-    socket.emit("segregation", { category: data }); // Emit the segregation data to all connected clients
+    axios.post('http://ESP32_IP_ADDRESS/segregationData', {
+        category: data
+    })
+        .then(response => {
+            console.log('ESP32 responded:', response.data);
+        })
+        .catch(error => {
+            console.error('Error posting to ESP32:', error.message);
+        });
+
 }
 
 router.post('/img', async (req, res) => {
