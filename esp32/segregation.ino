@@ -151,7 +151,7 @@ void handlePost() {
       delay(1000);
       armVerticalServo.write(50);
       delay(3000);
-      cover1Servo.write(4);
+      cover1Servo.write(7);
       delay(1000);
       armVerticalServo.write(90);
       delay(1000);
@@ -291,7 +291,7 @@ void setup() {
   lidServo.write(0);
   armVerticalServo.write(90);  // Angle go higher to throw
   armHorizontalServo.write(52);
-  cover1Servo.write(4);
+  cover1Servo.write(7);
   cover2Servo.write(1);
   cover3Servo.write(84);
 
