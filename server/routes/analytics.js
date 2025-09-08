@@ -54,6 +54,39 @@ router.get('/getGarbageOverview', async (req, res) => {
                 color: type.color_code,
             });
         }
+
+        // Check either all three categories exist, ensuring consistent colors in the chart
+        let paperExists = false;
+        let plasticExists = false;
+        let generalExists = false;
+        counts.forEach(item => {
+            if (item.category === 'Paper') paperExists = true;
+            if (item.category === 'Plastic') plasticExists = true;
+            if (item.category === 'General') generalExists = true;
+        })
+
+        if (!paperExists) counts.push({ category: 'Paper', count: 0, color: '#5BC0EB' });
+        if (!plasticExists) counts.push({ category: 'Plastic', count: 0, color: '#FFA94D' });
+        if (!generalExists) counts.push({ category: 'General', count: 0, color: '#9BC53D' });
+
+        counts.sort((a, b) => {
+            const order = { 'Paper': 1, 'Plastic': 2, 'General': 3 };
+            return order[a.category] - order[b.category];
+        });
+
+        // Check either the disposal records is empty
+        let sum = 0;
+        counts.forEach(item => {
+            sum += item.count;
+        })
+
+        // If there is no disposal record, set all counts to 0 to avoid NaN in the percentage calculation
+        // Create a placeholder for the pie chart
+        if (sum < 1) {
+            counts = [];
+            counts.push({ category: 'Free Space', count: 100, color: '#e9ecef' }); // This is the representative of the pie chart being empty
+        }
+
         res.json(counts);
     } catch (error) {
         console.log(error);
