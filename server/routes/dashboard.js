@@ -91,15 +91,15 @@ router.get('/getDisposalOverview', async (req, res) => {
         disposalOverview.forEach(item => {
             if (item.category === 'Paper') paperExists = true;
             if (item.category === 'Plastic') plasticExists = true;
-            if (item.category === 'General') generalExists = true;
+            if (item.category === 'General Waste') generalExists = true;
         })
 
         if (!paperExists) disposalOverview.push({ category: 'Paper', count: 0, color_code: '#5BC0EB' });
         if (!plasticExists) disposalOverview.push({ category: 'Plastic', count: 0, color_code: '#FFA94D' });
-        if (!generalExists) disposalOverview.push({ category: 'General', count: 0, color_code: '#9BC53D' });
+        if (!generalExists) disposalOverview.push({ category: 'General Waste', count: 0, color_code: '#9BC53D' });
 
         disposalOverview.sort((a, b) => {
-            const order = { 'Paper': 1, 'Plastic': 2, 'General': 3 };
+            const order = { 'Paper': 1, 'Plastic': 2, 'General Waste': 3 };
             return order[a.category] - order[b.category];
         });
 
