@@ -389,35 +389,6 @@
             }
         })
 
-        // Convert request creation date to "YYYY-MM-DD" format (for <input type="date">)
-        function convertDate(date) {
-            if (!date) return;
-
-            let dateParts = date.split('/');
-            let formattedDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
-            return formattedDate;
-        }
-
-        // Convert request creation time to "HH:MM" 24-hour format (for <input type="time">)
-        function convertTime(time) {
-            if (!time) return;
-
-            let timeParts = time.trim().split(/[: ]/);
-            let hours = parseInt(timeParts[0]);
-            let minutes = timeParts[1];
-            let seconds = timeParts[2];
-            let period = timeParts[3]; // AM or PM
-
-            if (period.toLowerCase() === "pm" && hours !== 12) {
-                hours += 12; // Convert PM hours to 24-hour format
-            } else if (period.toLowerCase() === "am" && hours === 12) {
-                hours = 0; // Convert 12 AM to 00
-            }
-
-            let formattedTime = `${hours.toString().padStart(2, '0')}:${minutes}:${seconds}`;
-            return formattedTime;
-        }
-
         // Get all available cleaner (for <select>)
         async function getCleanerList() {
             document.getElementById("collector").innerHTML = "";
@@ -442,10 +413,10 @@
             data[0].accumulation = averageAccumulation.toFixed(2);
             document.querySelector("#modal2 #edit-history-form #id").value = data[0].binID;
             document.querySelector("#modal2 #edit-history-form #accumulation").value = `${data[0].accumulation}%`;
-            document.querySelector("#modal2 #edit-history-form #creation-date").value = convertDate(data[0].creationDate);
-            document.querySelector("#modal2 #edit-history-form #creation-time").value = convertTime(data[0].creationTime);
-            document.querySelector("#modal2 #edit-history-form #collection-date").value = convertDate(data[0].collectionDate);
-            document.querySelector("#modal2 #edit-history-form #collection-time").value = convertTime(data[0].collectionTime);
+            document.querySelector("#modal2 #edit-history-form #creation-date").value = data[0].creationDate;
+            document.querySelector("#modal2 #edit-history-form #creation-time").value = data[0].creationTime;
+            document.querySelector("#modal2 #edit-history-form #collection-date").value = data[0].collectionDate;
+            document.querySelector("#modal2 #edit-history-form #collection-time").value = data[0].collectionTime;
             await getCleanerList();
             document.querySelector("#modal2 #edit-history-form #collector").value = data[0].collectorID;
 

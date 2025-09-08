@@ -59,13 +59,13 @@ router.get('/fetchHistory/:historyID', async (req, res) => {
         // Split datetime into date and time
         // Convert date and time to locale string
         if (fetch[0].creation != null) {
-            const creationDateTime = fetch[0].creation.toLocaleString().split(",");
+            const creationDateTime = fetch[0].creation.toLocaleString().split(" ");
             fetch[0].creationDate = creationDateTime[0];
             fetch[0].creationTime = creationDateTime[1];
             delete fetch[0].creation;
         }
         if (fetch[0].collection != null) {
-            const collectionDateTime = fetch[0].collection.toLocaleString().split(",");
+            const collectionDateTime = fetch[0].collection.toLocaleString().split(" ");
             fetch[0].collectionDate = collectionDateTime[0];
             fetch[0].collectionTime = collectionDateTime[1];
             delete fetch[0].collection;
