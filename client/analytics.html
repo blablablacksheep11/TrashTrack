@@ -79,17 +79,17 @@
                     <p id="label1" class="text-start m-0 p-0"></p>
                     <div class="progress px-0" role="progressbar" aria-label="Basic example" aria-valuenow="25"
                         aria-valuemin="0" aria-valuemax="100" style="height: 10px;">
-                        <div class="progress-bar" id="progress1" style="background-color: #5BC0EB;"></div>
+                        <div class="progress-bar" id="progress1"></div>
                     </div>
                     <p id="label2" class="text-start m-0 p-0"></p>
                     <div class="progress px-0" role="progressbar" aria-label="Basic example" aria-valuenow="25"
                         aria-valuemin="0" aria-valuemax="100" style="height: 10px;">
-                        <div class="progress-bar" id="progress2" style="background-color: #FFA94D;"></div>
+                        <div class="progress-bar" id="progress2"></div>
                     </div>
                     <p id="label3" class="text-start m-0 p-0"></p>
                     <div class="progress px-0" role="progressbar" aria-label="Basic example" aria-valuenow="25"
                         aria-valuemin="0" aria-valuemax="100" style="height: 10px;">
-                        <div class="progress-bar" id="progress3" style="background-color: #9BC53D;"></div>
+                        <div class="progress-bar" id="progress3"></div>
                     </div>
                 </div>
             </div>
@@ -191,9 +191,10 @@
                     total += category.count;
                 });
 
-                for (let counter = 0; counter < 3; counter++) {
+                for (let counter = 0; counter < parseInt(overview.length); counter++) {
                     document.getElementById(`label${counter + 1}`).innerText = `${overview[counter].category} (${(overview[counter].count / total * 100).toFixed(2)}%)`;
                     document.getElementById(`progress${counter + 1}`).style.width = `${overview[counter].count / total * 100}%`;
+                    document.getElementById(`progress${counter + 1}`).style.backgroundColor = `${overview[counter].color}`;
                 }
 
                 dataArr = [
@@ -257,7 +258,6 @@
                     'pointSize': 4,
                     'tooltip': { trigger: 'focus' }, // Show tooltip when hover on the point
                     'vAxis': {
-                        minValue: 0,
                         format: '0',          // force integers (no decimals)
                         viewWindow: { min: 0 },
                         gridlines: { count: -1 }, // let Google auto-calc but stay integers

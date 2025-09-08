@@ -83,6 +83,26 @@ router.get('/getHistory/:binID/:collectionDate', async (req, res) => {
 router.get('/getDisposalOverview', async (req, res) => {
     try {
         const [disposalOverview] = await database.query("SELECT garbage_type.category, COUNT(*) as count, garbage_type.color_code FROM disposal_records INNER JOIN garbage_type ON disposal_records.garbage_type = garbage_type.id GROUP BY disposal_records.garbage_type ORDER BY disposal_records.garbage_type");
+        
+        // Check either all three categories exist, ensuring consistent colors in the chart
+        let paperExists = false;
+        let plasticExists = false;
+        let generalExists = false;
+        disposalOverview.forEach(item => {
+            if (item.category === 'Paper') paperExists = true;
+            if (item.category === 'Plastic') plasticExists = true;
+            if (item.category === 'General') generalExists = true;
+        })
+
+        if (!paperExists) disposalOverview.push({ category: 'Paper', count: 0, color_code: '#5BC0EB' });
+        if (!plasticExists) disposalOverview.push({ category: 'Plastic', count: 0, color_code: '#FFA94D' });
+        if (!generalExists) disposalOverview.push({ category: 'General', count: 0, color_code: '#9BC53D' });
+
+        disposalOverview.sort((a, b) => {
+            const order = { 'Paper': 1, 'Plastic': 2, 'General': 3 };
+            return order[a.category] - order[b.category];
+        });
+
         res.json(disposalOverview);
     } catch (error) {
         console.log(error);
