@@ -38,7 +38,7 @@ router.post('/img', async (req, res) => {
                 sendSegregationData("paper"); // Send the segregation data to ESP32
                 categoryID = 1; // Paper category ID
             } else if (segregation.includes("plastic")) {
-                const [insert] = await database.query("INSERT INTO disposal_records (garbage_type, disposal_datetime) VALUES (?)", ["2", new Date()]);
+                const [insert] = await database.query("INSERT INTO disposal_records (garbage_type, disposal_datetime) VALUES (?, ?)", ["2", new Date()]);
                 if (insert.warningStatus == 0) {
                     console.log("Plastic waste detected and recorded");
                 }
