@@ -27,21 +27,18 @@ Install nodemon with npm
 ```bash
   npm install -g nodemon
 ```
+🔔 Hardware component is included in this system, you may not be able to experience the full system module without the prototype.
     
-## Deployment
+## Start Commands
 
-To deploy this project run
+To run this project
 
 ```bash
   cd server
   node server.js
 ```
+⚠️ This code is designed to run on localhost. Make sure to configure the .env file before running the program.
 
-Serve the html file through live server
-
-```bash
-  client/signin.html
-```
 ## Authors
 
 - [@blablablacksheep11](https://github.com/blablablacksheep11)
