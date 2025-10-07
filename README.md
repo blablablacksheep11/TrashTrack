@@ -28,7 +28,15 @@ Install nodemon with npm
   npm install -g nodemon
 ```
 🔔 Hardware component is included in this system, you may not be able to experience the full system module without the prototype.
-    
+
+## APIs Used
+Mailer
+- You may use the Google SMTP API, or mailtrap as your mailer
+
+Google Gemini
+- Create your Gemini API key in the Google AI Studio
+- Include it in the .env file
+
 ## Start Commands
 
 To run this project
@@ -44,10 +52,6 @@ To run this project
 - [@blablablacksheep11](https://github.com/blablablacksheep11)
 
 
-## Features
+## License
 
-- Light/dark mode toggle
-- Real-time data updates
-- Responsive UI
-- Asynchronous data load
-
+© 2025 Lam Yong Qin. All rights reserved. See [LICENSE.md](LICENSE.md) for details.
